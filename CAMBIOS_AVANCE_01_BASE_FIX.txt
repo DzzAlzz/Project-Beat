@@ -1,0 +1,7 @@
+PROJECT BEAT - AVANCE 01 BASE FIX
+
+Corrección aplicada:
+- Se eliminó el script editor DemoSceneBuilder.cs que todavía referenciaba niveles/temas avanzados no incluidos en el avance 01.
+- Se mantiene solo 1 nivel básico funcional: ACELERADA.
+- Se mantiene la estructura Unity necesaria para abrir el proyecto sin Safe Mode.
+- Versión separada lista para branch: avance-01-base.

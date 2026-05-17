@@ -1,0 +1,20 @@
+PROJECT BEAT - AVANCE 01 BASE
+
+Objetivo:
+Versión inicial/prototipo del proyecto para mostrar el comienzo del desarrollo.
+
+Contenido:
+- 1 nivel funcional: ACELERADA.
+- Gameplay básico con 4 carriles.
+- UI simple/prototipo.
+- Pausa básica.
+- Sistema inicial de puntuación.
+- Sin intro cinematográfica.
+- Sin configuración avanzada.
+- Sin Hold Notes.
+- Sin selector complejo de múltiples niveles.
+- Sin resultados modernos ni efectos visuales avanzados.
+
+Uso en GitHub:
+Rama recomendada: avance-01-base
+Commit recomendado: Avance 01 - base del proyecto
