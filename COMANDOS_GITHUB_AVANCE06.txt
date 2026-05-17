@@ -1,0 +1,6 @@
+git init
+git checkout -b avance-06-scoring
+git remote add origin https://github.com/DzzAlzz/Project-Beat.git
+git add .
+git commit -m "Avance 06 - sistema de puntuación justo"
+git push origin avance-06-scoring

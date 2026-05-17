@@ -1,0 +1,12 @@
+PROJECT BEAT - AVANCE 13
+
+Cambios principales:
+- Se agrego glow sutil en opcion seleccionada de menus.
+- Se mantuvieron animaciones suaves de fade/escala en pausa.
+- Se agrego intro simple al iniciar nivel con nombre de cancion.
+- Se conserva pulso decorativo del fondo/neon wave.
+- Se mantiene HUD/textos del avance 12.
+- No se agregaron configuracion avanzada, hold notes, sliders, selector de modos ni niveles 4 a 7.
+
+Branch sugerida:
+avance-13-vfx

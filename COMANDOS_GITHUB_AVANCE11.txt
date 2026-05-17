@@ -1,0 +1,13 @@
+COMANDOS PARA SUBIR ESTE AVANCE COMO BRANCH
+
+Abrir Git Bash dentro de la carpeta del proyecto y ejecutar:
+
+git init
+git checkout -b avance-11-selector
+git remote add origin https://github.com/DzzAlzz/Project-Beat.git
+git add .
+git commit -m "Avance 11 - selector de niveles corregido"
+git push origin avance-11-selector
+
+IMPORTANTE:
+No usar git push origin main --force para este avance.
