@@ -1,0 +1,7 @@
+Corrección aplicada:
+- Se revisó el sistema HitFeedbackController.
+- Se corrigió el error de Unity: "Setting the duration while system is still playing is not supported".
+- Ahora el ParticleSystem se crea con el GameObject inactivo, se detiene, se limpia y recién después de configurar sus módulos se activa y reproduce.
+- No se modificó LevelManager.
+- No se modificó la lógica principal del juego.
+- Cambio principal aplicado en: Assets/Scripts/Runtime/HitFeedbackController.cs

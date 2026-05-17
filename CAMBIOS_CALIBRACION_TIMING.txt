@@ -1,0 +1,24 @@
+CAMBIOS - CALIBRACION DE TIMING / OFFSET
+
+Se agrego un sistema simple de offset manual para Project Beat sin modificar LevelManager.
+
+Archivos modificados:
+- Assets/Scripts/Runtime/GameController.cs
+- Assets/Scripts/Runtime/NoteObject.cs
+- Assets/Scripts/Runtime/BeatmapPlayer.cs
+- Assets/Scripts/Runtime/LaneInput.cs
+
+Funcionamiento:
+- GameController ahora tiene Timing Offset editable en el Inspector.
+- El offset se guarda en PlayerPrefs como ProjectBeat_TimingOffsetSeconds.
+- Las notas, el spawn y el judgement usan CalibratedSongPosition.
+- No se toca el audio ni LevelManager.
+
+Controles en juego:
+- F2: bajar offset en 5 ms
+- F3: subir offset en 5 ms
+- F4: resetear offset a 0 ms
+- F1: ocultar/mostrar el panel de calibracion
+
+Consejo de prueba:
+Si presionas al ritmo y el juego marca tarde/temprano, ajusta F2/F3 de a poco hasta que los Perfect salgan naturales.

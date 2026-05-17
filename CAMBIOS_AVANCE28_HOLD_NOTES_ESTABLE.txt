@@ -1,0 +1,42 @@
+PROJECT BEAT - AVANCE 28 HOLD NOTES ESTABLE
+
+Branch sugerida:
+avance-28-hold-notes-estable
+
+Resumen:
+Se agrego soporte para Hold Notes / notas mantenidas manteniendo los carriles en perspectiva del avance 27.
+
+Cambios principales:
+- Beatmaps soportan campo opcional duration.
+- duration = 0 o inexistente mantiene la nota normal.
+- duration > 0 activa nota mantenida.
+- Hold Notes con cuerpo/trail visual.
+- Deteccion de mantener tecla presionada.
+- Penalizacion si se suelta antes.
+- Bonus al mantener correctamente.
+- Compatibilidad con offset, scoring, combo, resultados, HUD y particulas.
+- No se modifico LevelManager.cs.
+
+Distribucion:
+- Tutorial: pocas Hold Notes faciles.
+- Nivel 1 y 2: Hold Notes cortas.
+- Nivel 3 y 4: Hold Notes medias.
+- Nivel 5 y 6: Hold Notes tecnicas.
+- Nivel 7: Hold Notes avanzadas/dobles pero jugables.
+
+Archivos principales modificados:
+- Assets/Scripts/Runtime/BeatmapModels.cs
+- Assets/Scripts/Runtime/BeatmapPlayer.cs
+- Assets/Scripts/Runtime/NoteObject.cs
+- Assets/Scripts/Runtime/LaneInput.cs
+- Assets/Scripts/Runtime/GameController.cs
+- Assets/Scripts/Runtime/ScoreManager.cs
+- Assets/Beatmaps/*.json activos
+
+Comandos GitHub:
+git init
+git checkout -b avance-28-hold-notes-estable
+git remote add origin https://github.com/DzzAlzz/Project-Beat.git
+git add .
+git commit -m "Avance 28 - Hold Notes estable"
+git push origin avance-28-hold-notes-estable

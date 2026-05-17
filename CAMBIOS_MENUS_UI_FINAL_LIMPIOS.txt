@@ -1,0 +1,9 @@
+CAMBIOS MENUS UI FINAL LIMPIOS
+
+- Se corrigio la duplicacion de titulos en el menu de pausa.
+- Se eliminaron visuales heredados del constructor de escena que quedaban superpuestos.
+- Se desactivo el fondo antiguo del panel para evitar saturacion morada.
+- Se dejo un solo panel central limpio para pausa y selector de nivel.
+- Se ajusto padding, espaciado vertical y tamano de botones.
+- Se reemplazaron iconos Unicode problemáticos por texto/ASCII compatible para evitar cuadros vacios.
+- Se mantuvo intacto LevelManager y la logica principal del juego.

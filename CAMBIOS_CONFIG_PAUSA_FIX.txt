@@ -1,0 +1,23 @@
+PROJECT BEAT - FIX CONFIGURACION PAUSA
+
+Correccion aplicada:
+- Se corrigio IndexOutOfRangeException en PauseMenu.cs.
+- El menu principal de pausa ahora usa 5 opciones de forma segura:
+  CONTINUAR, ELEGIR NIVEL, REINICIAR, CONFIGURACION, SALIR.
+- La opcion CONFIGURACION se crea dinamicamente si no existe en la escena.
+- Se validan arreglos/listas visuales para evitar indices fuera de rango.
+- Se conserva LevelManager.cs sin modificaciones.
+- Se mantienen los 6 niveles actuales.
+
+Submenu de configuracion:
+- VER CONTROLES
+- GRAFICOS: barra de brillo
+- SONIDO: volumen general y musica
+- VOLVER
+
+Controles:
+- Flechas o W/S para navegar.
+- Enter/Espacio para confirmar.
+- Flechas izquierda/derecha o A/D para ajustar barras.
+- Shift + izquierda/derecha para volumen de musica.
+- ESC para volver.

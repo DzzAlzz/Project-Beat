@@ -1,0 +1,13 @@
+PROJECT BEAT - AVANCE 26 TUTORIAL OFFSET FIX
+
+Correcciones realizadas:
+- Panel del Tutorial permanece visible durante todo el Nivel 0.
+- Se eliminó el fade out automático de la guía del tutorial.
+- Panel de calibración/offset inicia oculto por defecto.
+- F1 muestra/oculta el panel de offset.
+- F2/F3/F4 mantienen su función aunque el panel esté oculto.
+- Se conservan los 7 niveles, sliders reales, HUD, scoring, partículas y resultados.
+- LevelManager.cs no fue modificado.
+
+Branch sugerida:
+avance-26-tutorial-offset-fix

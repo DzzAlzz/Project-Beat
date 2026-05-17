@@ -1,0 +1,42 @@
+CAMBIOS IMPLEMENTADOS - FEEDBACK VISUAL / HIT EFFECTS
+
+Se agregaron mejoras sin borrar nada existente, sin tocar LevelManager y sin modificar los LevelData del primer nivel.
+
+Archivos agregados:
+- Assets/Scripts/Runtime/HitFeedbackController.cs
+
+Archivos modificados:
+- Assets/Scripts/Runtime/GameController.cs
+
+Nuevas funciones:
+1) Partículas al tocar notas
+   - Perfect: más partículas, más brillantes y con mayor duración.
+   - Good: partículas medianas con el color del carril.
+   - Bad: partículas pequeñas y rápidas.
+   - Miss no genera efecto, para respetar la lógica de fallo.
+
+2) Flash de pantalla
+   - Perfect y Good muestran un flash breve en pantalla.
+   - Usa un Canvas creado por código en tiempo real.
+   - No requiere prefabs nuevos ni cambios manuales en la escena.
+
+3) Hit effects reforzados
+   - Se mantiene el efecto de anillo existente.
+   - Ahora se combina con partículas y flash.
+
+4) Duck de audio breve
+   - En Perfect/Good baja muy levemente el volumen por milisegundos.
+   - Sirve como feedback innovador sin desincronizar la canción.
+
+IMPORTANTE:
+- No se modificó LevelManager.cs.
+- No se modificó Level_Acelerada.asset.
+- No se eliminó ningún archivo existente.
+- Funciona en ambos niveles porque se integra desde GameController.
+
+Cómo probar:
+1. Abrir el proyecto en Unity 6.3 LTS / 6000.3.11f1.
+2. Abrir Assets/Scenes/ProjectBeat_Demo.unity.
+3. Dar Play.
+4. Tocar notas con D, F, J, K.
+5. Al acertar, deberían verse partículas, flash y anillos.

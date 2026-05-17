@@ -1,0 +1,11 @@
+PROJECT BEAT - NIVEL 7 HER NAME IS
+
+Cambios realizados:
+- Se agregó el Nivel 7 usando Her Name Is.MP3.
+- Beatmap completo de 87.6 segundos con 565 notas.
+- Dificultad superior al Nivel 6, con patrones técnicos pero jugables.
+- Tema visual rosado pastel claro + telarañas negras / ambiente misterioso elegante.
+- Nuevo BackgroundTheme: NeonPastelSpider.
+- Selector actualizado para incluir Nivel 7.
+- LevelManager.cs no fue modificado.
+- Compatible con scoring, partículas, resultados, offset, intro y configuración de pausa.

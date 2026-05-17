@@ -1,0 +1,22 @@
+PROJECT BEAT - AVANCE 25
+
+Cambios principales:
+- Se agregaron indicadores visuales D / F / J / K bajo los carriles.
+- Los indicadores funcionan como teclas tipo juego de ritmo.
+- Las teclas cambian de brillo/glow al presionarlas.
+- Se movió PREC al lado derecho, debajo del puntaje.
+- Se dejó más espacio libre en la zona inferior central.
+- Se mantienen 7 niveles, configuración con sliders, scoring, partículas, resultados y offset.
+- No se agregaron Hold Notes todavía.
+- LevelManager.cs no fue modificado.
+
+Branch sugerida:
+avance-25-gameplay-ui-keys
+
+Comandos:
+git init
+git checkout -b avance-25-gameplay-ui-keys
+git remote add origin https://github.com/DzzAlzz/Project-Beat.git
+git add .
+git commit -m "Avance 25 - gameplay UI con teclas D F J K"
+git push origin avance-25-gameplay-ui-keys
