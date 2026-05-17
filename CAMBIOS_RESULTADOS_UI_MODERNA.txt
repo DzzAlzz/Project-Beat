@@ -1,0 +1,29 @@
+CAMBIOS - PANTALLA DE RESULTADOS MODERNA
+
+Se rediseñó la pantalla final de resultados para que deje de verse como prototipo.
+
+Cambios incluidos:
+- Fondo oscuro con overlay elegante.
+- Panel central tipo tarjeta moderna/neón.
+- Rango grande al centro con color según calificación.
+- Nombre del nivel más claro.
+- Puntaje total con conteo animado.
+- Estadísticas ordenadas en columnas:
+  * Puntaje total
+  * Precisión
+  * Máx. Combo
+- Resumen de hits alineado:
+  * Perfect
+  * Good
+  * Miss
+  * Fail
+- Opciones visibles al final:
+  * R = Reiniciar
+  * ESC = Volver / Pausa
+- Animación sutil de entrada con escala.
+
+Condiciones respetadas:
+- No se modificó LevelManager.
+- No se borraron niveles.
+- No se rompió scoring, menús ni beatmaps.
+- Se mantuvo navegación por teclado.

@@ -1,0 +1,20 @@
+AVANCE 20 - CONFIGURACION PAUSA FIX ESTABLE
+
+Correcciones realizadas:
+- PB_UI_SettingsGroup ahora se crea como elemento UI real usando RectTransform.
+- Se corrige MissingComponentException al abrir el submenú de configuración.
+- Se mantiene configuración básica: controles, brillo, volumen general y volver.
+- Se conserva navegación con teclado.
+- Se mantienen los 6 niveles.
+- LevelManager.cs no fue modificado.
+
+Branch sugerida:
+avance-20-config-pausa-fix
+
+Comandos Git:
+git init
+git checkout -b avance-20-config-pausa-fix
+git remote add origin https://github.com/DzzAlzz/Project-Beat.git
+git add .
+git commit -m "Avance 20 - configuracion pausa fix estable"
+git push origin avance-20-config-pausa-fix

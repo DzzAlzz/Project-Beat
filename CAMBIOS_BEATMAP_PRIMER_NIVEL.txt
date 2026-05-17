@@ -1,0 +1,18 @@
+CAMBIOS BEATMAP PRIMER NIVEL - ACELERADA
+=========================================
+
+Archivo modificado:
+- Assets/Beatmaps/acelerada.json
+
+Qué se hizo:
+- Se rehizo el beatmap completo del primer nivel ACELERADA.
+- Antes las notas terminaban cerca del segundo 42, aunque el audio dura aprox. 61.4 segundos.
+- Ahora el mapa cubre desde el segundo 2.0 hasta el segundo 60.4.
+- Se mantuvo el estilo naranja/neón del nivel y los datos base del nivel.
+- No se modificó LevelManager ni la lógica principal del juego.
+- Se dejó una copia de seguridad del mapa anterior en Assets/Beatmaps/acelerada_original_backup.json.
+
+Notas técnicas:
+- Total de notas nuevas: 235
+- BPM usado: 150
+- Última nota: segundo 60.4 aprox.
