@@ -1,0 +1,7 @@
+Nivel 2 implementado realmente:
+- Assets/Audio/RitmoFunk_Level2.mp3
+- Assets/Beatmaps/level2_ritmofunk.json
+- Assets/Levels/Level_RitmoFunk_2.asset
+- ProjectBeat_Demo.unity: LevelManager contiene 2 niveles
+- LevelManager.cs guarda la seleccion del nivel antes de recargar la escena
+Prueba: Play > ESC > Select Level > flecha derecha > RITMO FUNK 2 > Enter.

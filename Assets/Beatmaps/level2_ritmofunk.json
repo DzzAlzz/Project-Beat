@@ -1,0 +1,412 @@
+{
+  "songName": "RITMO FUNK 2",
+  "artist": "Funk BR - Nivel 2",
+  "bpm": 132,
+  "offset": 0.0,
+  "audio": "RitmoFunk_Level2",
+  "leadTime": 1.7,
+  "noteSpeed": 7.6,
+  "background": "neon_green",
+  "notes": [
+    {
+      "lane": 0,
+      "time": 1.4
+    },
+    {
+      "lane": 1,
+      "time": 1.72
+    },
+    {
+      "lane": 2,
+      "time": 2.04
+    },
+    {
+      "lane": 3,
+      "time": 2.36
+    },
+    {
+      "lane": 0,
+      "time": 2.68
+    },
+    {
+      "lane": 1,
+      "time": 2.98
+    },
+    {
+      "lane": 2,
+      "time": 3.28
+    },
+    {
+      "lane": 3,
+      "time": 3.58
+    },
+    {
+      "lane": 0,
+      "time": 4.0
+    },
+    {
+      "lane": 2,
+      "time": 4.0
+    },
+    {
+      "lane": 1,
+      "time": 4.32
+    },
+    {
+      "lane": 3,
+      "time": 4.32
+    },
+    {
+      "lane": 3,
+      "time": 4.64
+    },
+    {
+      "lane": 2,
+      "time": 4.94
+    },
+    {
+      "lane": 1,
+      "time": 5.24
+    },
+    {
+      "lane": 0,
+      "time": 5.54
+    },
+    {
+      "lane": 0,
+      "time": 5.96
+    },
+    {
+      "lane": 2,
+      "time": 6.28
+    },
+    {
+      "lane": 1,
+      "time": 6.6
+    },
+    {
+      "lane": 3,
+      "time": 6.92
+    },
+    {
+      "lane": 0,
+      "time": 7.24
+    },
+    {
+      "lane": 1,
+      "time": 7.54
+    },
+    {
+      "lane": 2,
+      "time": 7.84
+    },
+    {
+      "lane": 3,
+      "time": 8.14
+    },
+    {
+      "lane": 0,
+      "time": 8.56
+    },
+    {
+      "lane": 3,
+      "time": 8.56
+    },
+    {
+      "lane": 1,
+      "time": 8.88
+    },
+    {
+      "lane": 2,
+      "time": 8.88
+    },
+    {
+      "lane": 3,
+      "time": 9.2
+    },
+    {
+      "lane": 2,
+      "time": 9.5
+    },
+    {
+      "lane": 1,
+      "time": 9.8
+    },
+    {
+      "lane": 0,
+      "time": 10.1
+    },
+    {
+      "lane": 1,
+      "time": 10.52
+    },
+    {
+      "lane": 1,
+      "time": 10.84
+    },
+    {
+      "lane": 2,
+      "time": 10.84
+    },
+    {
+      "lane": 2,
+      "time": 11.16
+    },
+    {
+      "lane": 0,
+      "time": 11.48
+    },
+    {
+      "lane": 3,
+      "time": 11.48
+    },
+    {
+      "lane": 0,
+      "time": 11.8
+    },
+    {
+      "lane": 1,
+      "time": 12.1
+    },
+    {
+      "lane": 2,
+      "time": 12.4
+    },
+    {
+      "lane": 3,
+      "time": 12.7
+    },
+    {
+      "lane": 0,
+      "time": 13.12
+    },
+    {
+      "lane": 1,
+      "time": 13.44
+    },
+    {
+      "lane": 2,
+      "time": 13.76
+    },
+    {
+      "lane": 3,
+      "time": 14.08
+    },
+    {
+      "lane": 3,
+      "time": 14.4
+    },
+    {
+      "lane": 2,
+      "time": 14.7
+    },
+    {
+      "lane": 1,
+      "time": 15.0
+    },
+    {
+      "lane": 0,
+      "time": 15.3
+    },
+    {
+      "lane": 0,
+      "time": 15.72
+    },
+    {
+      "lane": 2,
+      "time": 15.72
+    },
+    {
+      "lane": 1,
+      "time": 16.04
+    },
+    {
+      "lane": 3,
+      "time": 16.04
+    },
+    {
+      "lane": 0,
+      "time": 16.36
+    },
+    {
+      "lane": 1,
+      "time": 16.66
+    },
+    {
+      "lane": 2,
+      "time": 16.96
+    },
+    {
+      "lane": 3,
+      "time": 17.26
+    },
+    {
+      "lane": 0,
+      "time": 17.68
+    },
+    {
+      "lane": 2,
+      "time": 17.92
+    },
+    {
+      "lane": 1,
+      "time": 18.16
+    },
+    {
+      "lane": 3,
+      "time": 18.4
+    },
+    {
+      "lane": 3,
+      "time": 18.64
+    },
+    {
+      "lane": 2,
+      "time": 18.94
+    },
+    {
+      "lane": 1,
+      "time": 19.24
+    },
+    {
+      "lane": 0,
+      "time": 19.54
+    },
+    {
+      "lane": 0,
+      "time": 19.96
+    },
+    {
+      "lane": 3,
+      "time": 19.96
+    },
+    {
+      "lane": 1,
+      "time": 20.2
+    },
+    {
+      "lane": 2,
+      "time": 20.2
+    },
+    {
+      "lane": 0,
+      "time": 20.44
+    },
+    {
+      "lane": 1,
+      "time": 20.66
+    },
+    {
+      "lane": 2,
+      "time": 20.88
+    },
+    {
+      "lane": 3,
+      "time": 21.1
+    },
+    {
+      "lane": 1,
+      "time": 21.44
+    },
+    {
+      "lane": 1,
+      "time": 21.68
+    },
+    {
+      "lane": 2,
+      "time": 21.68
+    },
+    {
+      "lane": 2,
+      "time": 21.92
+    },
+    {
+      "lane": 0,
+      "time": 22.16
+    },
+    {
+      "lane": 3,
+      "time": 22.16
+    },
+    {
+      "lane": 3,
+      "time": 22.4
+    },
+    {
+      "lane": 2,
+      "time": 22.62
+    },
+    {
+      "lane": 1,
+      "time": 22.84
+    },
+    {
+      "lane": 0,
+      "time": 23.06
+    },
+    {
+      "lane": 0,
+      "time": 23.4
+    },
+    {
+      "lane": 1,
+      "time": 23.64
+    },
+    {
+      "lane": 2,
+      "time": 23.88
+    },
+    {
+      "lane": 3,
+      "time": 24.12
+    },
+    {
+      "lane": 0,
+      "time": 24.36
+    },
+    {
+      "lane": 1,
+      "time": 24.58
+    },
+    {
+      "lane": 2,
+      "time": 24.8
+    },
+    {
+      "lane": 3,
+      "time": 25.02
+    },
+    {
+      "lane": 0,
+      "time": 25.36
+    },
+    {
+      "lane": 2,
+      "time": 25.36
+    },
+    {
+      "lane": 1,
+      "time": 25.6
+    },
+    {
+      "lane": 3,
+      "time": 25.6
+    },
+    {
+      "lane": 3,
+      "time": 25.84
+    },
+    {
+      "lane": 2,
+      "time": 26.06
+    },
+    {
+      "lane": 1,
+      "time": 26.28
+    },
+    {
+      "lane": 0,
+      "time": 26.5
+    }
+  ]
+}
