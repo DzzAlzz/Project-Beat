@@ -1,0 +1,15 @@
+AVANCE 16 - RESULTADOS UI
+
+Cambios realizados:
+- Pantalla de resultados visualmente más clara.
+- Ranking grande y destacado.
+- Estadísticas ordenadas: puntaje, precisión, max combo y conteo de hits.
+- Animación simple de aparición del panel final.
+- Atajo Q para volver al selector al finalizar.
+- Se mantiene el flujo Intro -> Menú -> Arcade -> Selector -> Gameplay.
+
+No se agregaron:
+- Configuración avanzada.
+- Hold Notes.
+- Sliders reales.
+- Niveles 4 a 7.
