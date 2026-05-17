@@ -1,0 +1,24 @@
+PROJECT BEAT - CONFIGURACION EN PAUSA
+
+Cambios agregados:
+- Nueva opcion CONFIGURACION en el menu de pausa.
+- Submenu con categorias separadas:
+  1) VER CONTROLES
+  2) GRAFICOS
+  3) SONIDO
+- Controles visibles dentro del juego.
+- Barra de brillo con overlay visual.
+- Barra de volumen general.
+- Barra de volumen de musica usando Shift + izquierda/derecha.
+- Navegacion con teclado manteniendo el estilo neon actual.
+
+Controles del submenu:
+- Arriba/Abajo o W/S: moverse entre secciones.
+- Izquierda/Derecha o A/D: ajustar brillo o volumen general.
+- Shift + Izquierda/Derecha: ajustar volumen de musica.
+- Enter: volver cuando esta seleccionada la opcion VOLVER.
+- ESC: regresar al menu de pausa.
+
+Notas:
+- LevelManager.cs no fue modificado.
+- No se borraron niveles ni beatmaps existentes.

@@ -1,0 +1,11 @@
+PROJECT BEAT - NIVEL 4 ESTRELAR
+
+Cambios realizados:
+- Agregado cuarto nivel: ESTRELAR.
+- Canción: Estrelar.MP3.
+- Beatmap completo hasta 90.0 segundos.
+- 365 notas generadas con dificultad superior al nivel 3, pero jugable.
+- Texto del selector: Nivel 4.
+- Tema visual nuevo: blanco/neón futurista con detalles celeste/plateado.
+- Compatible con scoring, partículas, offset y pantalla de resultados.
+- LevelManager.cs no fue modificado. Solo se actualizó la referencia de niveles en la escena.

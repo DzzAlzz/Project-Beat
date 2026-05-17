@@ -1,0 +1,13 @@
+Project Beat - Rediseño UI comercial
+
+Cambios aplicados:
+- Menú de pausa rediseñado con tarjeta central tipo glass/neón.
+- Selector de nivel rediseñado con estética arcade moderna.
+- Botones grandes con contenedores visuales, iconos, glow y selección animada.
+- Mejor contraste, jerarquía visual y tipografía mediante TextMeshPro.
+- Fade y escala suave al abrir/cerrar menús.
+- Se mantiene la navegación con flechas/WASD, Enter/Espacio y ESC.
+- No se modificó LevelManager ni la lógica principal del juego.
+
+Archivo principal modificado:
+Assets/Scripts/Runtime/PauseMenu.cs

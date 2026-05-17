@@ -1,0 +1,12 @@
+PROJECT BEAT - CONFIGURACION CON SLIDERS VISUALES
+
+Cambios realizados:
+- Se mantuvo el submenú CONFIGURACION estable.
+- Se reemplazaron las barras de texto por elementos UI reales de Unity.
+- Brillo y Volumen general ahora usan barra base, relleno dinamico, handle/indicador y glow.
+- Se eliminó cualquier uso de barras tipo #### o [====].
+- Se conservó solo Volumen general.
+- Se mantiene navegación por teclado con W/S y A/D.
+- No se modificó LevelManager.cs.
+- No se alteraron los 6 niveles.
+- Se mantuvo compatibilidad con pausa, scoring, partículas, resultados y offset.
