@@ -1,0 +1,11 @@
+CAMBIOS CONFIGURACION UI - ESPACIADO Y SIMBOLOS
+
+- Se eliminaron/reemplazaron simbolos especiales que podian aparecer como cubitos.
+- Se reemplazaron marcadores no compatibles por texto simple ASCII.
+- Se mejoro el espaciado entre VER CONTROLES, GRAFICOS, SONIDO y VOLVER.
+- Se bajo levemente el cuerpo del panel para separar mejor las secciones del titulo CONFIGURACION.
+- Las barras ahora usan caracteres compatibles: [====o----].
+- Se mantiene solo Volumen general.
+- Se mantiene navegacion con teclado.
+- LevelManager.cs no fue modificado.
+- Se conservan los 6 niveles.
