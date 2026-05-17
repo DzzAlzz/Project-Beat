@@ -1,0 +1,48 @@
+CAMBIOS - SCORING JUSTO PROJECT BEAT
+
+Objetivo:
+Mejorar la puntuación para que el jugador no quede siempre en rango D, sin modificar LevelManager ni romper la lógica principal.
+
+Archivos modificados:
+- Assets/Scripts/Runtime/ScoreManager.cs
+- Assets/Scripts/Runtime/GameController.cs
+- Assets/Scenes/ProjectBeat_Demo.unity
+
+Cambios aplicados:
+1) Ventanas de timing más justas:
+   - Perfect: 0.09 s
+   - Good:    0.17 s
+   - Bad:     0.26 s
+
+2) Scoring actualizado:
+   - Perfect: 1000 puntos base
+   - Good:    780 puntos base
+   - Bad:     420 puntos base
+
+3) Combo mejorado:
+   - Perfect y Good aumentan combo.
+   - Bad ya no reinicia totalmente el combo: lo baja a la mitad.
+   - Miss sí reinicia el combo.
+
+4) Multiplicadores:
+   - x2 desde combo 10
+   - x3 desde combo 25
+   - x4 desde combo 50
+   - x5 desde combo 75
+
+5) Accuracy más amigable:
+   - Perfect: 100%
+   - Good:     80%
+   - Bad:      45%
+   - Miss:      0%
+
+6) Rangos más alcanzables:
+   - S+ = 98% y sin Miss
+   - S  = 94%+
+   - A  = 85%+
+   - B  = 72%+
+   - C  = 55%+
+   - D  = menos de 55%
+
+Nota:
+No se modificó LevelManager.
