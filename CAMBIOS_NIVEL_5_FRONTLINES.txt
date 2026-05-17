@@ -1,0 +1,14 @@
+PROJECT BEAT - NIVEL 5 FRONTLINES
+
+Cambios realizados:
+- Se agregó la canción Frontlines.mp3.
+- Se creó el beatmap Assets/Beatmaps/frontlines.json.
+- Se agregó Level_Frontlines_5.asset con título FRONTLINES y subtítulo Nivel 5.
+- Se actualizó la escena para incluir el nivel 5 en el LevelManager sin modificar LevelManager.cs.
+- Se agregó temática NeonRedBlack: fondo negro con detalles rojos neón.
+- Dificultad superior al Nivel 4, con patrones progresivos y jugables.
+
+Notas del beatmap:
+- Duración aproximada: 89.81 segundos.
+- BPM usado: 150.
+- Notas generadas: 529.
