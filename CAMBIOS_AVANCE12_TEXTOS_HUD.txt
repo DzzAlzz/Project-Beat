@@ -1,0 +1,26 @@
+PROJECT BEAT - AVANCE 12
+Rama sugerida: avance-12-textos-hud
+
+Este avance representa una mejora de presentacion/HUD sobre el avance 11.
+
+Cambios incluidos:
+- Se mantienen los 3 niveles del avance anterior.
+- Textos secundarios del selector ordenados como Nivel 1, Nivel 2 y Nivel 3.
+- Mejor lectura de titulo/subtitulo dentro del selector.
+- HUD de gameplay mas limpio y legible.
+- Mejor separacion visual entre puntuacion, precision, combo y feedback.
+- Se mantiene el sistema de offset basico.
+- Se mantienen scoring justo y particulas simples.
+
+No incluye todavia:
+- Intro cinematografica.
+- Configuracion avanzada.
+- Hold Notes.
+- Sliders reales.
+- Selector de modos.
+- Resultados modernos.
+- Niveles 4 a 7.
+
+Estado:
+- Version historica separada.
+- Lista para subir como branch avance-12-textos-hud.

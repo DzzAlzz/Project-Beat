@@ -1,0 +1,12 @@
+AVANCE 11 - SELECTOR DE NIVELES CORREGIDO
+
+Cambios principales:
+- Se mantiene el contenido de 3 niveles del avance 10.
+- Se corrige el texto del segundo nivel: RITMO FUNK 2 -> RITMO FUNK.
+- El texto secundario ahora queda limpio como Nivel 1, Nivel 2 y Nivel 3.
+- Se evita el uso de simbolos especiales que puedan aparecer como cubitos.
+- Se mantiene una UI intermedia/simple, sin llegar a la version final moderna.
+- No se agregan intro, configuracion, hold notes, sliders ni resultados modernos.
+
+Branch sugerida:
+avance-11-selector
