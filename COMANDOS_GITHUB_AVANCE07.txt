@@ -1,0 +1,6 @@
+git init
+git checkout -b avance-07-beatmap-nivel1
+git remote add origin https://github.com/DzzAlzz/Project-Beat.git
+git add .
+git commit -m "Avance 07 - beatmap nivel 1 completo"
+git push origin avance-07-beatmap-nivel1
