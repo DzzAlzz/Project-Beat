@@ -1,0 +1,13 @@
+Project Beat - Detalles visuales PRO
+
+Cambios aplicados:
+- Glow sutil en la opcion seleccionada del menu de pausa.
+- Pulso leve del fondo sincronizado con el beat de la musica durante gameplay.
+- Animacion de inicio de nivel con fade in/out, nombre del track y texto de preparacion.
+- Se mantuvo LevelManager intacto.
+- No se modificaron beatmaps, scoring ni particulas.
+
+Archivos modificados:
+- Assets/Scripts/Runtime/PauseMenu.cs
+- Assets/Scripts/Runtime/BackgroundThemeController.cs
+- Assets/Scripts/Runtime/GameplayUI.cs
