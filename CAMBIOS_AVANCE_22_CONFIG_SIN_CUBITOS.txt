@@ -1,0 +1,13 @@
+PROJECT BEAT - AVANCE 22
+
+Cambios realizados:
+- Eliminados caracteres Unicode en PauseMenu.cs que podían verse como cubitos.
+- Reemplazados hints con texto compatible: [W/S], [A/D], [ESC].
+- Mejorado espaciado del submenú CONFIGURACION.
+- Mejor alineación de secciones VER CONTROLES, GRAFICOS, SONIDO y VOLVER.
+- Se mantienen barras básicas de texto para brillo y volumen.
+- No se agregan sliders reales todavía.
+- LevelManager.cs no fue modificado.
+
+Branch sugerida:
+avance-22-config-sin-cubitos

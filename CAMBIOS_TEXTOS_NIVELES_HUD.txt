@@ -1,0 +1,5 @@
+Corrección de textos bajo títulos de canciones:
+- ACELERADA conserva su título y ahora muestra Nivel 1 debajo.
+- RITMO FUNK elimina el 2 del título y muestra Nivel 2 debajo.
+- SUMMER VACATION conserva su título y muestra Nivel 3 debajo.
+- No se modificó LevelManager ni la lógica principal.

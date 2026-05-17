@@ -1,0 +1,22 @@
+CAMBIOS - INTRO Y MENU DE MODOS
+
+Se agregó una pantalla de introducción moderna al iniciar Project Beat:
+- Splash screen con texto PROJECT BEAT.
+- Fade in / fade out suave.
+- Transición a menú principal.
+
+Se agregó menú principal de modos:
+- Modo ARCADE disponible.
+- Segundo modo visualmente preparado como PROXIMAMENTE.
+- Navegación con W/S, flechas, Enter y Espacio.
+- Estética neón coherente con el resto del proyecto.
+
+Integración:
+- ARCADE abre el selector de niveles existente.
+- No se modificó LevelManager.
+- No se borraron niveles ni beatmaps.
+- Al seleccionar nivel, el juego inicia normalmente.
+
+Archivos modificados/agregados:
+- Assets/Scripts/Runtime/StartupFlowController.cs
+- Assets/Scripts/Runtime/PauseMenu.cs

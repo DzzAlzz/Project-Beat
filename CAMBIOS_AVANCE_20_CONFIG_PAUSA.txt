@@ -1,0 +1,13 @@
+PROJECT BEAT - AVANCE 20
+
+Cambios principales:
+- Se agregó una opción CONFIGURACION al menú de pausa.
+- Se agregó un submenú básico con Ver Controles, Gráficos, Sonido y Volver.
+- Se incorporó control básico de brillo mediante overlay.
+- Se incorporó control básico de volumen general mediante AudioListener.volume.
+- Se validan opciones con conteos constantes para evitar IndexOutOfRangeException.
+- Se mantienen los 6 niveles existentes.
+- No se agregan todavía sliders reales, Hold Notes ni Nivel 7.
+
+Rama sugerida:
+avance-20-config-pausa
