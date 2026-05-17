@@ -1,0 +1,26 @@
+AVANCE 25 - HUD REORGANIZADO
+
+Cambios realizados:
+- ESC | Pausa fue movido al bloque del HUD donde están título/puntuación.
+- PREC fue ubicado debajo de la puntuación, en el lado derecho.
+- Se agrupó en una misma zona:
+  - Nombre del nivel
+  - Nivel
+  - Puntuación
+  - Precisión
+  - ESC Pausa
+- Se liberó la parte superior/central e inferior del gameplay para no tapar carriles ni notas.
+- Se mantienen indicadores D/F/J/K debajo de los carriles.
+- No se agregaron Hold Notes.
+- LevelManager.cs no fue modificado.
+
+Branch sugerida:
+avance-25-hud-reorganizado
+
+Comandos sugeridos:
+git init
+git checkout -b avance-25-hud-reorganizado
+git remote add origin https://github.com/DzzAlzz/Project-Beat.git
+git add .
+git commit -m "Avance 25 - HUD reorganizado"
+git push origin avance-25-hud-reorganizado
