@@ -1,0 +1,17 @@
+Project Beat - Nivel 3: SUMMER VACATION
+
+Cambios realizados:
+- Se agregó Assets/Audio/Summer Vacation.mp3.
+- Se creó Assets/Beatmaps/summer_vacation.json.
+- Se creó Assets/Levels/Level_SummerVacation_3.asset.
+- Se integró el tercer nivel al LevelManager de la escena ProjectBeat_Demo.
+- Se actualizó DemoSceneBuilder para conservar el nivel 3 si se reconstruye la escena desde el menú de Unity.
+
+Datos del beatmap:
+- Duración del audio: 138.6 segundos.
+- BPM base usado: 134.
+- Offset base: 0.64 s.
+- Notas generadas: 488.
+- Dificultad: más alta que nivel 2, con progresión de inicio, desarrollo y final intenso.
+
+No se modificó LevelManager.cs ni la lógica principal del gameplay.

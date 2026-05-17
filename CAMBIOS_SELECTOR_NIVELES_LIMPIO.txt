@@ -1,0 +1,10 @@
+CAMBIOS SELECTOR DE NIVELES
+
+- Se ajustó el texto pequeño del selector para mostrar:
+  Nivel 1 • LISTO PARA JUGAR
+  Nivel 2 • LISTO PARA JUGAR
+  Nivel 3 • LISTO PARA JUGAR
+- Se cambió el título del segundo nivel de "RITMO FUNK 2" a "RITMO FUNK".
+- Se reemplazó el símbolo de flecha que podía verse como cubo por caracteres simples compatibles: < y >.
+- Se mantuvo intacto LevelManager y la lógica principal.
+- Se conservaron estilos, animaciones y estructura actual del menú.
