@@ -1,0 +1,14 @@
+COMANDOS PARA SUBIR ESTE AVANCE A GITHUB
+=======================================
+
+Abrir Git Bash dentro de esta carpeta del proyecto y ejecutar:
+
+git init
+git checkout -b avance-10-nivel3
+git remote add origin https://github.com/DzzAlzz/Project-Beat.git
+git add .
+git commit -m "Avance 10 - nivel 3 Summer Vacation"
+git push origin avance-10-nivel3
+
+IMPORTANTE:
+No usar git push origin main --force para este avance.

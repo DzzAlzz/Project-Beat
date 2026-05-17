@@ -1,0 +1,13 @@
+COMANDOS PARA SUBIR ESTE AVANCE A GITHUB
+
+Abrir Git Bash dentro de la carpeta del proyecto y ejecutar:
+
+git init
+git checkout -b avance-12-textos-hud
+git remote add origin https://github.com/DzzAlzz/Project-Beat.git
+git add .
+git commit -m "Avance 12 - textos y HUD corregidos"
+git push origin avance-12-textos-hud
+
+IMPORTANTE:
+No usar git push origin main --force para este avance.

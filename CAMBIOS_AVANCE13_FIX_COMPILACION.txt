@@ -1,0 +1,20 @@
+AVANCE 13 - FIX COMPILACION
+
+Se corrigio el error de compilacion que provocaba Safe Mode en Unity.
+
+Cambios:
+- Se agregaron las variables internas faltantes para la intro simple de nivel.
+- Se mantuvo el pulido visual del avance 13.
+- No se agregaron sistemas avanzados.
+- Se conserva como rama historica: avance-13-vfx.
+
+Branch sugerida:
+avance-13-vfx
+
+Comandos Git sugeridos:
+git init
+git checkout -b avance-13-vfx
+git remote add origin https://github.com/DzzAlzz/Project-Beat.git
+git add .
+git commit -m "Avance 13 - detalles visuales pro"
+git push origin avance-13-vfx

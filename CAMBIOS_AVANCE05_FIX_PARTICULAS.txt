@@ -1,0 +1,23 @@
+PROJECT BEAT - AVANCE 05
+Corrección y estabilización de partículas
+
+Cambios principales:
+- Se mantiene la base del avance 04 con 2 niveles.
+- Se corrige el manejo del ParticleSystem para evitar el error:
+  "Setting the duration while system is still playing is not supported".
+- Las partículas se detienen y limpian antes de configurar sus propiedades.
+- Feedback visual simple conservado: flash, color, partículas básicas.
+- PERFECT / GOOD / MISS y combo básico siguen funcionando.
+- No se agregan sistemas avanzados: sin intro, sin configuración, sin Hold Notes,
+  sin resultados modernos ni niveles 3 a 7.
+
+Branch sugerida:
+avance-05-fix-particulas
+
+Comandos Git sugeridos:
+git init
+git checkout -b avance-05-fix-particulas
+git remote add origin https://github.com/DzzAlzz/Project-Beat.git
+git add .
+git commit -m "Avance 05 - fix particulas"
+git push origin avance-05-fix-particulas

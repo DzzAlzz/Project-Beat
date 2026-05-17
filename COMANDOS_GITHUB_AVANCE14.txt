@@ -1,0 +1,13 @@
+COMANDOS PARA SUBIR ESTE AVANCE A GITHUB
+
+Abrir Git Bash en la carpeta Project Beat y ejecutar:
+
+git init
+git checkout -b avance-14-vfx-fix
+git remote add origin https://github.com/DzzAlzz/Project-Beat.git
+git add .
+git commit -m "Avance 14 - fix compilación detalles visuales"
+git push origin avance-14-vfx-fix
+
+IMPORTANTE:
+No usar git push origin main --force para este avance.

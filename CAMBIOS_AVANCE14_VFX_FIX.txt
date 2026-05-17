@@ -1,0 +1,25 @@
+AVANCE 14 - VFX FIX
+
+Objetivo:
+Este avance representa una etapa de mantenimiento y corrección del avance 13.
+
+Cambios principales:
+- Corrección de errores de compilación relacionados con el sistema visual.
+- Intro simple del nivel funcionando sin entrar en Safe Mode.
+- Glow de selección estable.
+- Animaciones suaves de fade y escala estabilizadas.
+- Pulso visual del fondo conservado de forma simple.
+- HUD y textos ordenados.
+- Offset básico funcionando.
+- Scoring y partículas estables.
+
+No incluido todavía:
+- Configuración avanzada.
+- Hold Notes.
+- Sliders reales.
+- Resultados modernos finales.
+- Niveles 4 a 7.
+- UI final completa.
+
+Rama recomendada:
+avance-14-vfx-fix
