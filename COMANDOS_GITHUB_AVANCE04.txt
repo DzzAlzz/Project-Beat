@@ -1,0 +1,11 @@
+Comandos para subir este avance como branch:
+
+git init
+git checkout -b avance-04-particulas
+git remote add origin https://github.com/DzzAlzz/Project-Beat.git
+git add .
+git commit -m "Avance 04 - partículas y feedback visual"
+git push origin avance-04-particulas
+
+IMPORTANTE:
+No usar git push origin main --force con este avance.

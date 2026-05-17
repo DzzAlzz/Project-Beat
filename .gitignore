@@ -1,0 +1,40 @@
+# ──────────────────────────────────────────
+#  .gitignore para Unity - Project Beat
+# ──────────────────────────────────────────
+
+# Carpetas que Unity regenera automáticamente (NO subir)
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Uu]ser[Ss]ettings/
+
+# Archivos de caché de Assets
+*.pidb.meta
+*.pdb.meta
+*.mdb.meta
+
+# Archivos del sistema operativo
+.DS_Store
+.DS_Store?
+._*
+Thumbs.db
+Desktop.ini
+
+# Archivos de IDEs
+.vs/
+.vscode/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.csproj
+*.sln
+
+# Carpeta de niveles generados (se crean al pulsar Build Demo Scene)
+Assets/Levels/
+
+# Archivos de escena compilados temporales
+Assets/Scenes/*.unity.backup
