@@ -1,0 +1,23 @@
+PROJECT BEAT - AVANCE 07
+
+Objetivo:
+Mejorar el beatmap del Nivel 1 para que la canción ACELERADA no quede con espacios vacíos al final.
+
+Cambios realizados:
+- Se rehízo/mejoró el beatmap de ACELERADA.
+- Las notas ahora se distribuyen hasta casi el final de la canción.
+- Se mantiene el sistema de scoring justo del avance 06.
+- Se mantienen partículas y feedback básico estable.
+- Se conservan 2 niveles funcionales.
+
+No incluido todavía:
+- Intro cinematográfica.
+- Configuración avanzada.
+- Hold Notes.
+- Sliders reales.
+- Selector de modos.
+- Resultados modernos.
+- Niveles 3 a 7.
+
+Branch sugerida:
+avance-07-beatmap-nivel1

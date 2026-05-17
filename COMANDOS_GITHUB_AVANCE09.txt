@@ -1,0 +1,13 @@
+COMANDOS PARA SUBIR ESTE AVANCE A GITHUB
+
+Abrir Git Bash dentro de esta carpeta y ejecutar:
+
+git init
+git checkout -b avance-09-menus-ui
+git remote add origin https://github.com/DzzAlzz/Project-Beat.git
+git add .
+git commit -m "Avance 09 - menús UI mejorados"
+git push origin avance-09-menus-ui
+
+IMPORTANTE:
+No usar git push origin main --force en este avance.

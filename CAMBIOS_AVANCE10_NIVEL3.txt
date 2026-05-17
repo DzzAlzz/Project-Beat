@@ -1,0 +1,27 @@
+PROJECT BEAT - AVANCE 10
+=========================
+
+Objetivo:
+Agregar oficialmente el tercer nivel del juego como crecimiento de contenido,
+manteniendo el proyecto en una etapa intermedia de desarrollo.
+
+Cambios principales:
+- Se conservaron los 2 niveles del avance 09.
+- Se agregó el Nivel 3: SUMMER VACATION.
+- Se integró su audio y beatmap básico completo.
+- Se actualizó el selector/lista de niveles para mostrar 3 niveles.
+- Se mantuvo el sistema de offset básico.
+- Se mantuvo scoring justo y partículas simples.
+- La UI sigue siendo intermedia, no una versión final moderna.
+
+No incluye todavía:
+- Intro cinematográfica.
+- Configuración avanzada.
+- Hold Notes.
+- Sliders reales.
+- Selector de modos.
+- Resultados modernos.
+- Niveles 4 a 7.
+
+Branch sugerida:
+avance-10-nivel3

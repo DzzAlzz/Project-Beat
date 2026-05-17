@@ -1,0 +1,9 @@
+CAMBIOS NIVEL 2 SINCRONIZADO
+
+- Se reemplazó el beatmap Assets/Beatmaps/level2_ritmofunk.json por una versión extendida.
+- La canción dura aprox. 81.54 segundos.
+- El nuevo beatmap cubre desde 1.32s hasta 80.34s.
+- Total de notas: 325.
+- BPM estimado usado para la grilla: 123.00.
+- Se añadieron notas en beats, contratiempos, pares y fills para que haya jugabilidad durante toda la canción.
+- No se borraron niveles ni archivos anteriores.

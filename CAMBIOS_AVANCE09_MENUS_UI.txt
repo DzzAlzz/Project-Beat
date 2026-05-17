@@ -1,0 +1,21 @@
+AVANCE 09 - MENUS UI
+
+Objetivo:
+Primera mejora visual de los menús sin llegar a la interfaz final.
+
+Cambios:
+- Menú de pausa más ordenado.
+- Selector de niveles más claro.
+- Mejor contraste de texto.
+- Navegación con teclado ampliada: flechas, W/S, A/D, Enter y Espacio.
+- Mantiene solo 2 niveles.
+- Mantiene offset, scoring justo y partículas básicas.
+
+No incluye:
+- Intro cinematográfica.
+- Configuración avanzada.
+- Hold Notes.
+- Sliders reales.
+- Selector de modos.
+- Resultados modernos.
+- Niveles 3 a 7.
