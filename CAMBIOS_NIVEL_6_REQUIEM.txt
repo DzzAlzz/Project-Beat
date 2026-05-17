@@ -1,0 +1,15 @@
+PROJECT BEAT — NIVEL 6 REQUIEM
+
+Cambios realizados:
+- Se agregó la canción Requiem.mp3.
+- Se creó el beatmap Assets/Beatmaps/requiem.json.
+- Duración aproximada: 74.79 segundos.
+- Total de notas: 488.
+- Se creó Level_Requiem_6.asset con título REQUIEM y subtítulo Nivel 6.
+- Se agregó el nivel al selector actual mediante la escena, sin modificar LevelManager.cs.
+- Se agregó la temática NeonBossRequiem: fondo oscuro/cinemático con rojo oscuro, morado y blanco brillante.
+- Compatible con scoring, partículas, resultados, offset, intro y navegación actual.
+
+Notas de diseño:
+- Nivel pensado como estilo boss/final inspirado en Geometry Dash.
+- Dificultad superior al Nivel 5, pero evitando patrones imposibles o spam injusto.

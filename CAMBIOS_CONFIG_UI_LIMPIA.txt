@@ -1,0 +1,11 @@
+CAMBIOS CONFIGURACION UI LIMPIA
+
+- Se rediseño visualmente el submenú CONFIGURACION.
+- Se ordenaron las secciones: VER CONTROLES, GRAFICOS, SONIDO y VOLVER.
+- Se reemplazaron las barras con ######## por barras visuales tipo linea con marcador.
+- Se elimino la opcion Volumen musica.
+- Se dejo solo Volumen general.
+- Se mantuvo navegación con teclado.
+- Se mantuvo LevelManager.cs intacto.
+- Se conservaron los 6 niveles actuales.
+- Se mantuvo la validación estable del menú para evitar IndexOutOfRangeException.

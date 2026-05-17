@@ -1,0 +1,371 @@
+{
+  "songName": "Project Beat",
+  "artist": "Project Beat",
+  "bpm": 120,
+  "offset": 0.0,
+  "audio": "projectbeat_demo",
+  "leadTime": 2.0,
+  "noteSpeed": 6.5,
+  "notes": [
+    {
+      "lane": 0,
+      "time": 2.0
+    },
+    {
+      "lane": 1,
+      "time": 2.25
+    },
+    {
+      "lane": 2,
+      "time": 2.5
+    },
+    {
+      "lane": 3,
+      "time": 2.75
+    },
+    {
+      "lane": 1,
+      "time": 3.0
+    },
+    {
+      "lane": 2,
+      "time": 3.25
+    },
+    {
+      "lane": 0,
+      "time": 3.5
+    },
+    {
+      "lane": 3,
+      "time": 3.75
+    },
+    {
+      "lane": 0,
+      "time": 3.75
+    },
+    {
+      "lane": 0,
+      "time": 4.0
+    },
+    {
+      "lane": 2,
+      "time": 4.25
+    },
+    {
+      "lane": 1,
+      "time": 4.5
+    },
+    {
+      "lane": 3,
+      "time": 4.75
+    },
+    {
+      "lane": 3,
+      "time": 5.0
+    },
+    {
+      "lane": 2,
+      "time": 5.25
+    },
+    {
+      "lane": 1,
+      "time": 5.5
+    },
+    {
+      "lane": 0,
+      "time": 5.75
+    },
+    {
+      "lane": 1,
+      "time": 5.75
+    },
+    {
+      "lane": 0,
+      "time": 6.0
+    },
+    {
+      "lane": 1,
+      "time": 6.25
+    },
+    {
+      "lane": 2,
+      "time": 6.5
+    },
+    {
+      "lane": 3,
+      "time": 6.75
+    },
+    {
+      "lane": 1,
+      "time": 7.0
+    },
+    {
+      "lane": 2,
+      "time": 7.25
+    },
+    {
+      "lane": 0,
+      "time": 7.5
+    },
+    {
+      "lane": 3,
+      "time": 7.75
+    },
+    {
+      "lane": 0,
+      "time": 7.75
+    },
+    {
+      "lane": 0,
+      "time": 8.0
+    },
+    {
+      "lane": 2,
+      "time": 8.25
+    },
+    {
+      "lane": 1,
+      "time": 8.5
+    },
+    {
+      "lane": 3,
+      "time": 8.75
+    },
+    {
+      "lane": 3,
+      "time": 9.0
+    },
+    {
+      "lane": 2,
+      "time": 9.25
+    },
+    {
+      "lane": 1,
+      "time": 9.5
+    },
+    {
+      "lane": 0,
+      "time": 9.75
+    },
+    {
+      "lane": 1,
+      "time": 9.75
+    },
+    {
+      "lane": 0,
+      "time": 10.0
+    },
+    {
+      "lane": 1,
+      "time": 10.25
+    },
+    {
+      "lane": 2,
+      "time": 10.5
+    },
+    {
+      "lane": 3,
+      "time": 10.75
+    },
+    {
+      "lane": 1,
+      "time": 11.0
+    },
+    {
+      "lane": 2,
+      "time": 11.25
+    },
+    {
+      "lane": 0,
+      "time": 11.5
+    },
+    {
+      "lane": 3,
+      "time": 11.75
+    },
+    {
+      "lane": 0,
+      "time": 11.75
+    },
+    {
+      "lane": 0,
+      "time": 12.0
+    },
+    {
+      "lane": 2,
+      "time": 12.25
+    },
+    {
+      "lane": 1,
+      "time": 12.5
+    },
+    {
+      "lane": 3,
+      "time": 12.75
+    },
+    {
+      "lane": 3,
+      "time": 13.0
+    },
+    {
+      "lane": 2,
+      "time": 13.25
+    },
+    {
+      "lane": 1,
+      "time": 13.5
+    },
+    {
+      "lane": 0,
+      "time": 13.75
+    },
+    {
+      "lane": 1,
+      "time": 13.75
+    },
+    {
+      "lane": 0,
+      "time": 14.0
+    },
+    {
+      "lane": 1,
+      "time": 14.25
+    },
+    {
+      "lane": 2,
+      "time": 14.5
+    },
+    {
+      "lane": 3,
+      "time": 14.75
+    },
+    {
+      "lane": 1,
+      "time": 15.0
+    },
+    {
+      "lane": 2,
+      "time": 15.25
+    },
+    {
+      "lane": 0,
+      "time": 15.5
+    },
+    {
+      "lane": 3,
+      "time": 15.75
+    },
+    {
+      "lane": 0,
+      "time": 15.75
+    },
+    {
+      "lane": 0,
+      "time": 16.0
+    },
+    {
+      "lane": 2,
+      "time": 16.25
+    },
+    {
+      "lane": 1,
+      "time": 16.5
+    },
+    {
+      "lane": 3,
+      "time": 16.75
+    },
+    {
+      "lane": 3,
+      "time": 17.0
+    },
+    {
+      "lane": 2,
+      "time": 17.25
+    },
+    {
+      "lane": 1,
+      "time": 17.5
+    },
+    {
+      "lane": 0,
+      "time": 17.75
+    },
+    {
+      "lane": 1,
+      "time": 17.75
+    },
+    {
+      "lane": 0,
+      "time": 18.0
+    },
+    {
+      "lane": 1,
+      "time": 18.25
+    },
+    {
+      "lane": 2,
+      "time": 18.5
+    },
+    {
+      "lane": 3,
+      "time": 18.75
+    },
+    {
+      "lane": 1,
+      "time": 19.0
+    },
+    {
+      "lane": 2,
+      "time": 19.25
+    },
+    {
+      "lane": 0,
+      "time": 19.5
+    },
+    {
+      "lane": 3,
+      "time": 19.75
+    },
+    {
+      "lane": 0,
+      "time": 19.75
+    },
+    {
+      "lane": 0,
+      "time": 20.0
+    },
+    {
+      "lane": 2,
+      "time": 20.25
+    },
+    {
+      "lane": 1,
+      "time": 20.5
+    },
+    {
+      "lane": 3,
+      "time": 20.75
+    },
+    {
+      "lane": 3,
+      "time": 21.0
+    },
+    {
+      "lane": 2,
+      "time": 21.25
+    },
+    {
+      "lane": 1,
+      "time": 21.5
+    },
+    {
+      "lane": 0,
+      "time": 21.75
+    },
+    {
+      "lane": 1,
+      "time": 21.75
+    }
+  ]
+}
