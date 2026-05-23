@@ -1,0 +1,31 @@
+PROJECT BEAT - AVANCE 29
+Hold Notes Visual Fix / Polish
+
+Branch recomendada:
+avance-29-hold-notes-visual-fix
+
+Cambios principales:
+- Se conserva la mecanica de Hold Notes del avance 28.
+- Se reemplaza el cuerpo rectangular/deformado por un trail segmentado y delgado.
+- Las Hold Notes ahora se componen visualmente de:
+  * cabeza de nota normal
+  * cola/trail luminosa fina
+  * nucleo brillante central
+  * marcador final pequeno
+- El trail se alinea al carril y usa ancho progresivo para simular perspectiva.
+- Se evita que las Hold Notes parezcan bloques gigantes o bugueados.
+- Se mantiene compatibilidad con carriles en perspectiva tipo Festival/Guitar Hero.
+- Se conserva timing, scoring, combo, offset, resultados y particulas.
+- LevelManager.cs no fue modificado.
+
+Archivos principales modificados:
+- Assets/Scripts/Runtime/NoteObject.cs
+
+Comandos sugeridos para GitHub:
+
+git init
+git checkout -b avance-29-hold-notes-visual-fix
+git remote add origin https://github.com/DzzAlzz/Project-Beat.git
+git add .
+git commit -m "Avance 29 - fix visual Hold Notes"
+git push origin avance-29-hold-notes-visual-fix

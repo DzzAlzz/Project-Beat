@@ -1,0 +1,33 @@
+AVANCE 30 - HOLD NOTES POLISH
+
+Objetivo:
+- Refinar las Hold Notes del avance 29 sin agregar nuevas mecanicas.
+- Mejorar precision, lectura visual, comodidad y justicia de timing.
+
+Cambios principales:
+- Ventana de inicio de Hold Notes ligeramente mas permisiva.
+- Tolerancia al soltar cerca del final de la Hold Note.
+- Penalizacion por soltar antes mas justa: baja el combo, pero no lo destruye completamente.
+- Bonus de Hold Notes ajustado para no inflar demasiado el puntaje.
+- Trail visual mas delgado, limpio y menos saturado.
+- End marker mas claro para indicar cuando soltar.
+- Mejor escalado visual en perspectiva tipo Festival/Guitar Hero.
+
+Se mantiene:
+- 7 niveles + Tutorial.
+- Carriles en perspectiva.
+- HUD reorganizado.
+- Configuracion con sliders.
+- Scoring, combo, offset, resultados y particulas.
+- LevelManager intacto.
+
+Branch sugerida:
+avance-30-holdnotes-polish
+
+Comandos Git:
+git init
+git checkout -b avance-30-holdnotes-polish
+git remote add origin https://github.com/DzzAlzz/Project-Beat.git
+git add .
+git commit -m "Avance 30 - polish de Hold Notes"
+git push origin avance-30-holdnotes-polish

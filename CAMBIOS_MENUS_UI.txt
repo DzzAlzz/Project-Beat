@@ -1,0 +1,20 @@
+PROJECT BEAT - MEJORA DE MENUS UI
+
+Cambios aplicados:
+- Se mejoro PauseMenu.cs sin modificar LevelManager ni la logica principal.
+- Menu de pausa con fondo oscuro, tarjeta central, linea superior y borde naranja.
+- Menu de seleccion de nivel con panel mas legible y texto centrado.
+- Navegacion mejorada: flechas, WASD, Enter/Espacio y ESC.
+- Opcion seleccionada con escala, brillo/pulso y marcado visual.
+- Fade suave al abrir/cerrar menu y transicion suave al selector de nivel.
+- Se agregaron sombras en textos TMP para mejorar contraste.
+
+Controles:
+- ESC: abrir/cerrar pausa o volver desde selector de nivel.
+- Arriba/Abajo o W/S: navegar opciones del menu pausa.
+- Izquierda/Derecha o A/D: cambiar nivel en selector.
+- Enter/Espacio: confirmar.
+
+Nota:
+- No se modifico LevelManager.
+- No se cambio la logica base de gameplay.
