@@ -1,0 +1,21 @@
+PROJECT BEAT - AVANCE 32 CREDITOS UI FIX
+
+Cambios realizados:
+- Rehecho desde Avance 31 estable.
+- Se agrega opcion CREDITOS al menu de pausa.
+- Se agrega panel PB_UI_CreditsGroup usando RectTransform y CanvasGroup.
+- Se corrige el error de compilacion causado por comillas sin escapar en el texto de creditos.
+- Se valida OptionCount = 6 para evitar IndexOutOfRangeException.
+- ENTER / ESC vuelven desde creditos al menu de pausa.
+- No se modifica LevelManager.
+- No se agregan nuevas mecanicas gameplay.
+
+Conservado:
+- 7 niveles + Tutorial.
+- Hold Notes.
+- HUD.
+- Scoring.
+- Offset.
+- Configuracion.
+- Resultados.
+- Particulas.

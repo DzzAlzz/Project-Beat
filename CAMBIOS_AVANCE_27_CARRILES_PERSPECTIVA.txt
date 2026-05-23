@@ -1,0 +1,33 @@
+AVANCE 27 - CARRILES EN PERSPECTIVA ESTABLE
+
+Branch sugerida:
+avance-27-carriles-perspectiva-estable
+
+Objetivo:
+Cambiar la presentación visual del gameplay hacia una pista musical tipo Fortnite Festival / Guitar Hero / Rock Band, sin modificar el LevelManager ni el timing interno del juego.
+
+Cambios principales:
+- Se agregó PerspectiveHighwayController.cs.
+- Los carriles se reposicionan visualmente como una pista en perspectiva.
+- Parte superior más angosta y parte inferior más ancha.
+- Líneas neón convergentes para sensación de profundidad.
+- Línea de golpe inferior tipo Festival/Guitar Hero.
+- Las notas escalan visualmente mientras caen, dando sensación de acercamiento.
+- Se mantiene el timing exacto actual porque solo cambia la presentación visual.
+- HUD reorganizado, tutorial, sliders, scoring, partículas, resultados y offset se conservan.
+- No se agregaron Hold Notes.
+- LevelManager.cs no fue modificado.
+
+Archivos principales modificados/agregados:
+- Assets/Scripts/Runtime/PerspectiveHighwayController.cs
+- Assets/Scripts/Runtime/GameController.cs
+- Assets/Scripts/Runtime/NoteObject.cs
+
+Comandos para GitHub:
+
+git init
+git checkout -b avance-27-carriles-perspectiva-estable
+git remote add origin https://github.com/DzzAlzz/Project-Beat.git
+git add .
+git commit -m "Avance 27 - carriles en perspectiva estable"
+git push origin avance-27-carriles-perspectiva-estable

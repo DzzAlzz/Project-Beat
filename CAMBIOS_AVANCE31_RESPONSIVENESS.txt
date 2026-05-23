@@ -1,0 +1,18 @@
+PROJECT BEAT - AVANCE 31 GAMEPLAY RESPONSIVENESS
+
+Objetivo:
+- Mejorar la sensacion de respuesta del gameplay sin cambiar BPM, canciones ni beatmaps.
+
+Cambios aplicados:
+- Cache de PauseMenu en BeatmapPlayer y LaneInput para evitar busquedas FindObjectOfType en cada frame.
+- Input de carriles evaluado al inicio de Update para mejorar respuesta percibida.
+- Ajuste leve de ventanas de inicio para Hold Notes, sin alterar notas normales.
+- Tolerancia de release de Hold Notes aumentada de forma controlada para reducir sensacion injusta.
+- Configuracion de targetFrameRate para gameplay mas estable y fluido.
+- Se mantiene LevelManager intacto.
+
+Compatibilidad:
+- 7 niveles + Tutorial.
+- Hold Notes.
+- Carriles en perspectiva.
+- HUD, scoring, offset, resultados, particulas y configuracion.

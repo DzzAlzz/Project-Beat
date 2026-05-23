@@ -1,0 +1,13 @@
+AVANCE 26 - Tutorial Mode
+
+- Agregado modo TUTORIAL al menu principal.
+- Agregado Nivel 0 TUTORIAL al selector antes de Nivel 1.
+- Integrada cancion projectbeat_demo.mp3.
+- Beatmap facil y lento para enseñar D/F/J/K.
+- Tema visual gris/neutro para tutorial.
+- Overlay explicativo de controles, combo, precision y pausa.
+- Se conservan 7 niveles, sliders, HUD, scoring, particulas, resultados y offset.
+- No se agregan Hold Notes.
+
+Branch sugerida:
+  avance-26-tutorial-mode
