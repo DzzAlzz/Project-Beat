@@ -1,0 +1,11 @@
+AVANCE 42.1 - Navigation Architecture Fix
+
+Correccion aplicada:
+- MENU PRINCIPAL ya no depende de recargar escenas con SceneManager.LoadScene.
+- PauseMenu solo limpia el estado del nivel y delega la visualizacion del menu inicial a StartupFlowController.
+- StartupFlowController queda como autoridad unica para mostrar PROJECT BEAT / TUTORIAL / ARCADE / PROXIMAMENTE.
+- Se mantiene la pantalla breve CARGANDO... y luego se oculta correctamente.
+- Se desactiva GameController al volver al menu para evitar gameplay activo detras.
+
+Causa del problema:
+El flujo anterior mezclaba PauseMenu, SceneManager.LoadScene y flags de StartupFlowController. Cuando la escena no se reconstruia en el orden esperado, el juego quedaba en CARGANDO o no mostraba el menu inicial.
