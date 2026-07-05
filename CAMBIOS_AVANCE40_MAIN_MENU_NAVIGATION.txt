@@ -1,0 +1,10 @@
+AVANCE 40 - MAIN MENU SCENE NAVIGATION
+
+- Se corrigio el flujo de MENU PRINCIPAL desde pausa.
+- Al seleccionar MENU PRINCIPAL se limpia el estado del nivel activo.
+- Se detienen audios, notas, efectos y particulas residuales antes de recargar la escena.
+- El menu principal vuelve a mostrarse como al iniciar Project Beat desde cero.
+- Se agrego musica exclusiva de menu principal: Timecop1983.mp3.
+- La musica de menu se reproduce en loop solamente en el menu principal.
+- La musica se detiene al entrar a Tutorial o Arcade.
+- No se modificaron BPM, canciones de niveles, timing, scoring, Hold Notes, offset, resultados ni LevelManager.
