@@ -1,0 +1,69 @@
+AVANCE 85 – SISTEMA DE LOGROS POR PERFIL
+
+Base usada:
+- ProjectBeat_Avance84_UnifiedLoadingScreenPolish.zip
+
+Importante:
+- Se descartó el Avance 85 anterior del countdown/mensaje inicial.
+- Este avance reemplaza ese enfoque por el sistema de LOGROS.
+
+Archivos modificados:
+- Assets/Scripts/Runtime/StartupFlowController.cs
+- Assets/Scripts/Runtime/GameController.cs
+
+Archivos agregados:
+- Assets/Scripts/Runtime/ProfileAchievementStorage.cs
+- Assets/Scripts/Runtime/AchievementNotification.cs
+- CAMBIOS_AVANCE_85_ACHIEVEMENTS_SYSTEM.txt
+
+Mejoras implementadas:
+- Nuevo botón LOGROS debajo de ESTADÍSTICAS en el menú principal.
+- Ícono de trofeo generado por código con estética dorada/neón.
+- Panel LOGROS con estilo morado/cian/magenta coherente con Project Beat.
+- El panel muestra logros bloqueados y desbloqueados del perfil actual.
+- Si no hay perfil cargado, muestra aviso para cargar partida desde PERFIL.
+- Logros guardados por perfil usando PlayerPrefs + JSON.
+- Al eliminar un perfil, también se eliminan sus logros.
+- Al crear NUEVA PARTIDA se desbloquea PRIMERA PARTIDA.
+- Al terminar un nivel se revisan logros según resultados finales ya calculados.
+- Notificación lateral derecha tipo logro de videojuego durante aproximadamente 5 segundos.
+- La notificación tiene trofeo, texto LOGRO DESBLOQUEADO, nombre y descripción.
+- No se vuelve a mostrar un logro ya desbloqueado en el mismo perfil.
+
+Logros incluidos:
+1. PRIMERA PARTIDA
+   - Crear una nueva partida en un perfil.
+2. PRIMER BEAT
+   - Completar cualquier nivel por primera vez.
+3. RITMO INICIAL
+   - Alcanzar combo 50 en cualquier nivel.
+4. BUENA PRECISION
+   - Terminar un nivel con 90% o más de precisión.
+5. RANGO A
+   - Obtener rango A o superior en cualquier nivel.
+6. RANGO S
+   - Obtener rango S o superior en cualquier nivel.
+7. FULL COMBO
+   - Completar un nivel sin fallos.
+8. MAESTRO DEL RITMO
+   - Completar todos los niveles disponibles.
+
+Guardado:
+- Se usa la clave ProjectBeat.ProfileAchievements.v1.<profileId>.
+- Cada perfil conserva sus propios logros.
+- Los logros no se mezclan entre usuarios.
+- Se llama PlayerPrefs.Save() al desbloquear logros.
+
+No se modificó:
+- Gameplay base.
+- LevelManager.
+- Canciones.
+- Sistema de puntuación.
+- Hit detection.
+- Timing.
+- Velocidad de notas.
+- Selector de niveles.
+- Pausa.
+- Configuración.
+- Resultados.
+- Bloqueo/desbloqueo de niveles.

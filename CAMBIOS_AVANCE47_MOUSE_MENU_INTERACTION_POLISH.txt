@@ -1,0 +1,23 @@
+AVANCE 47 - MOUSE MENU INTERACTION POLISH
+
+Objetivo:
+Mejorar la interacción con mouse en los menús principales sin modificar gameplay, scoring, timing, BPM, canciones, Hold Notes, offset ni LevelManager.
+
+Cambios realizados:
+- Menú de pausa: se mantiene interacción por mouse y teclado.
+- Menú Configuración: se agregaron zonas clickeables para seleccionar opciones.
+- Sliders de brillo, intensidad visual y volumen: ahora aceptan click y arrastre con mouse.
+- Resolución, modo pantalla y sensibilidad visual: ahora se pueden cambiar con clic.
+- Botón VOLVER en Configuración: ahora es clickeable.
+- Selector de niveles: flecha izquierda y derecha clickeables.
+- Selector de niveles: opción INICIAR clickeable.
+- Selector de niveles: se agregó botón VOLVER clickeable.
+- Cursor personalizado del avance 46 se mantiene en menús y no interfiere con gameplay.
+- Navegación por teclado W/S, A/D, ENTER y ESC se mantiene intacta.
+
+Validaciones esperadas:
+- Sin duplicar cursor.
+- Sin romper teclado.
+- Sin tocar lógica de gameplay.
+- Sin modificar LevelManager.
+- Sin cambios en canciones, timing, scoring ni Hold Notes.

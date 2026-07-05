@@ -1,0 +1,30 @@
+AVANCE 60 – REFINAMIENTO VISUAL DEL SELECTOR DE NIVELES (VERSIÓN TURQUESA VIVA)
+
+Base utilizada:
+- Avance 59.
+- Unity 6000.3.11f1.
+
+Archivo modificado:
+- Assets/Scripts/Runtime/PauseMenu.cs
+
+Mejoras visuales implementadas:
+- Selector de niveles rehacido con estética turquesa/cian viva.
+- Fondo completo opaco para ocultar gameplay, carriles, HUD y elementos detrás.
+- Base oscura refinada con degradados turquesa, neblina luminosa y detalles futuristas.
+- Panel central menos opaco y menos plano, con color oscuro azul verdoso, borde cian y glow.
+- Nombre del track más protagonista, brillante y con mayor presencia.
+- Textos y controles con colores cian/turquesa, blanco y pequeños acentos naranjas.
+- Partículas, líneas de energía, barras de ecualizador y anillos con animación suave.
+- Mantención del funcionamiento original del selector.
+
+No se modificó:
+- Gameplay.
+- LevelManager.
+- Canciones.
+- Resultados.
+- Configuración.
+- Sistema de pausa.
+- Sistema de puntuación.
+- Flujo de escenas.
+- Lógica de selección de niveles.
+- Navegación A/D, ENTER, ESC y mouse.

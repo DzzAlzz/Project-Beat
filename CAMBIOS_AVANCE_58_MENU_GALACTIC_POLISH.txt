@@ -1,0 +1,39 @@
+AVANCE 58 - REDISEÑO VISUAL MÁS VIVO DEL MENÚ PRINCIPAL
+
+Base utilizada:
+- Avance 57 MainMenuArtPolish.
+- Unity 6000.3.11f1.
+
+Archivo modificado:
+- Assets/Scripts/Runtime/StartupFlowController.cs
+
+Mejoras implementadas:
+- Cambio de paleta del menú principal hacia morado, rosado, violeta, magenta y cian.
+- Fondo galáctico con degradado morado/rosado para reducir la sensación de fondo negro plano.
+- Nebulosas suaves con glow radial detrás del panel principal.
+- Partículas tipo estrellas galácticas con brillo animado.
+- Barras tipo ecualizador y líneas de onda adaptadas a la nueva estética neón galáctica.
+- Título PROJECT BEAT con mayor presencia visual y glow rosado/morado.
+- Botones con colores más vivos, bordes neón y selección más llamativa.
+- Botón de Configuración ajustado visualmente a la nueva estética.
+- Animaciones suaves de brillo, pulso, partículas y fondo.
+
+No se modificó:
+- Gameplay.
+- LevelManager.
+- Selector de niveles.
+- Sistema de pausa.
+- Configuración.
+- Resultados.
+- Canciones.
+- Sistema de puntuación.
+- Flujo de escenas.
+- Lógica de navegación.
+- Eventos de clic.
+
+Validación recomendada en Unity:
+- Abrir en Unity 6000.3.11f1.
+- Verificar que no aparezca Safe Mode.
+- Probar navegación W/S, ENTER y mouse.
+- Probar botón Configuración.
+- Revisar consola sin errores.

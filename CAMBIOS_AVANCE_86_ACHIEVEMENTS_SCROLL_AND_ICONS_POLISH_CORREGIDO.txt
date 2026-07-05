@@ -1,0 +1,17 @@
+REENTREGA AVANCE 86 – ACHIEVEMENTS SCROLL AND ICONS POLISH CORREGIDO
+
+Base: Avance 85 – Achievements System.
+
+Corrección realizada:
+- Se corrigieron errores de compilación provocados por parámetros float enviados a métodos CreateText que esperan int en StartupFlowController.cs.
+- Se mantuvo el panel LOGROS con scroll vertical.
+- Se mantuvo el botón LOGROS con trofeo cian/celeste/neón.
+- Se mantuvo la notificación lateral con trofeo cian/neón.
+- Se mantuvieron iconos distintos para cada logro.
+
+Archivos modificados:
+- Assets/Scripts/Runtime/StartupFlowController.cs
+- Assets/Scripts/Runtime/AchievementNotification.cs
+
+Nota:
+Esta reentrega reemplaza al ZIP anterior del Avance 86 que generaba Safe Mode por errores de compilación.
