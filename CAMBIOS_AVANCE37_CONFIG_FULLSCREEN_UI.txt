@@ -1,0 +1,8 @@
+AVANCE 37 - CONFIGURACION FULLSCREEN UI
+
+- Se transforma Configuracion en una pantalla interna de mayor tamano.
+- El panel ahora ocupa casi toda la pantalla para evitar compresion visual.
+- Se reorganizan Controles, Graficos, Sonido y Volver con mayor espaciado.
+- Se alinean sliders y valores a la derecha.
+- Se mantienen resoluciones, modo pantalla, accesibilidad visual y volumen.
+- No se modifica gameplay, scoring, timing, BPM, canciones, Hold Notes, offset, resultados ni LevelManager.

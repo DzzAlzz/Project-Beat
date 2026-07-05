@@ -1,0 +1,28 @@
+AVANCE 89 – CORRECCIÓN DE LAYOUT Y ESPACIADO DEL MENÚ DE CONFIGURACIÓN
+
+Base utilizada:
+- Avance 88 – SettingsExpansionAndScrollPolish.
+
+Archivos modificados:
+- Assets/Scripts/Runtime/PauseMenu.cs
+
+Ajustes realizados:
+- Se corrigieron márgenes internos del panel de CONFIGURACIÓN.
+- Se reubicó el contenido del ScrollViewport para evitar que los textos se corten por la izquierda.
+- Se reubicaron valores de la derecha para evitar recortes en resolución, modo pantalla, porcentajes y opciones ON/OFF.
+- Se ajustó el ancho visible del viewport y del content del scroll.
+- Se reajustó la posición de sliders y zonas de interacción con mouse.
+- Se amplió el recorrido del scroll para que VOLVER pueda verse completo.
+- Se reajustó la barra de scroll para que no tape contenido ni valores.
+- Se conservaron las opciones agregadas en Avance 88:
+  * Calidad Visual
+  * Efectos de Combo
+  * Aura de Combo
+  * Restaurar Valores
+- No se agregaron opciones nuevas.
+- No se modificó gameplay, puntuación, precisión, combo, timing, perfiles, estadísticas, logros, selector, pausa ni resultados.
+
+Validación realizada en esta entrega:
+- ZIP generado correctamente.
+- ZIP no vacío.
+- Integridad del ZIP comprobada.

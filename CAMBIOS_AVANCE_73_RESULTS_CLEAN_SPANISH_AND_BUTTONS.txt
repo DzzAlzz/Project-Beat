@@ -1,0 +1,43 @@
+AVANCE 73 – LIMPIEZA TOTAL Y ADAPTACIÓN DEL PANEL DE RESULTADOS
+
+Base: Avance 72.
+Versión objetivo: Unity 6000.3.11f1.
+
+Archivos modificados:
+- Assets/Scripts/Runtime/GameplayUI.cs
+- Assets/Scripts/Runtime/GameController.cs
+
+Cambios implementados:
+- La pantalla de resultados ahora usa un overlay completo y casi opaco para que no se vea el fondo del gameplay detrás.
+- Se ocultó el HUD de gameplay durante resultados, incluyendo puntuación, precisión, pista, combo, multiplicador, aura y teclas D/F/J/K.
+- Se eliminaron los rectángulos/glows grandes que quedaban como sobrantes detrás del panel de resultados.
+- Se tradujeron los juicios de resultados:
+  PERFECT -> PERFECTO
+  GOOD -> BIEN
+  MISS -> MAL
+  FAIL -> FALLO
+- Se mantuvieron los colores distintivos de PERFECTO, BIEN, MAL y FALLO.
+- Se mantuvo la diferenciación visual de rangos S+, S, A, B, C y rangos inferiores.
+- Las opciones de resultados ahora tienen botones reales para:
+  SIGUIENTE NIVEL
+  REINICIAR
+  VOLVER
+- Los botones tienen estilo morado/neón/cian y quedan mejor preparados para futura interacción táctil en Android.
+- SIGUIENTE NIVEL conserva su lógica previa y muestra CARGANDO... antes de cargar el siguiente nivel.
+- Si no hay siguiente nivel disponible, el botón SIGUIENTE NIVEL se oculta.
+
+No modificado:
+- Gameplay
+- LevelManager
+- Canciones
+- Sistema de puntuación
+- Hit detection
+- Timing
+- Velocidad de notas
+- Lógica de notas y hold notes
+- Menú principal
+- Ayuda
+- Créditos
+- Configuración
+- Selector de niveles
+- Menú de pausa
