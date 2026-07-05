@@ -42,7 +42,7 @@ namespace ProjectBeat.Runtime
         private int selectedOption;
         private int selectedSettingsOption;
         private const int OptionCount = 6;
-        private const int SettingsOptionCount = 4;
+        private const int SettingsOptionCount = 6;
 
         private const string BrightnessPrefsKey = "ProjectBeat_Brightness";
         private const string MasterVolumePrefsKey = "ProjectBeat_MasterVolume";
@@ -80,6 +80,11 @@ namespace ProjectBeat.Runtime
         private Image brightnessSliderGlow;
         private RectTransform brightnessSliderHandle;
         private TMP_Text brightnessValueText;
+        private Image effectsSliderFill;
+        private Image effectsSliderGlow;
+        private RectTransform effectsSliderHandle;
+        private TMP_Text effectsValueText;
+        private TMP_Text sensitivityValueText;
         private Image volumeSliderFill;
         private Image volumeSliderGlow;
         private RectTransform volumeSliderHandle;
@@ -307,6 +312,12 @@ namespace ProjectBeat.Runtime
             else if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter) || Input.GetKeyDown(KeyCode.Space))
             {
                 if (selectedSettingsOption == 3)
+                {
+                    VisualAccessibilitySettings.ToggleSensitivityMode();
+                    ApplyVisualAudioSettings();
+                    RefreshSettingsPanel();
+                }
+                else if (selectedSettingsOption == 5)
                     ExitSettings();
             }
             else if (Input.GetKeyDown(KeyCode.Escape))
@@ -324,10 +335,16 @@ namespace ProjectBeat.Runtime
                     PlayerPrefs.SetFloat(BrightnessPrefsKey, brightness);
                     break;
                 case 2:
+                    VisualAccessibilitySettings.AdjustIntensity(delta > 0f ? 1 : -1);
+                    break;
+                case 3:
+                    VisualAccessibilitySettings.ToggleSensitivityMode();
+                    break;
+                case 4:
                     masterVolume = Mathf.Clamp01(masterVolume + delta);
                     PlayerPrefs.SetFloat(MasterVolumePrefsKey, masterVolume);
                     break;
-                case 3:
+                case 5:
                     // ENTER vuelve; izquierda/derecha no hacen nada aqui.
                     break;
             }
@@ -621,23 +638,30 @@ namespace ProjectBeat.Runtime
             grt.offsetMax = Vector2.zero;
 
             CreateFullScreenImage(groupGO.transform, "PB_Settings_Dim", new Color(0f, 0f, 0f, 0.35f), 0);
-            CreateCard(groupGO.transform, "PB_Settings_Card", new Vector2(760f, 610f), Vector2.zero, 1);
-            CreateLine(groupGO.transform, "PB_Settings_TopLine", new Vector2(0f, 292f), new Vector2(610f, 4f), NeonCyan, 2);
-            CreateLine(groupGO.transform, "PB_Settings_BottomLine", new Vector2(0f, -292f), new Vector2(420f, 3f), NeonOrange, 3);
+            CreateCard(groupGO.transform, "PB_Settings_Card", new Vector2(840f, 730f), Vector2.zero, 1);
+            CreateLine(groupGO.transform, "PB_Settings_TopLine", new Vector2(0f, 350f), new Vector2(650f, 4f), NeonCyan, 2);
+            CreateLine(groupGO.transform, "PB_Settings_BottomLine", new Vector2(0f, -350f), new Vector2(460f, 3f), NeonOrange, 3);
 
-            settingsTitleText = CreateTmp(groupGO.transform, "PB_Settings_Title", "CONFIGURACION", new Vector2(0f, 238f), new Vector2(660f, 54f), 36f, NeonYellow, 4, FontStyles.Bold, 5f);
-            settingsBodyText = CreateTmp(groupGO.transform, "PB_Settings_Body", "", new Vector2(0f, -8f), new Vector2(660f, 370f), 20f, TextNormal, 5, FontStyles.Normal, 1.2f);
+            settingsTitleText = CreateTmp(groupGO.transform, "PB_Settings_Title", "CONFIGURACION", new Vector2(0f, 305f), new Vector2(700f, 54f), 34f, NeonYellow, 4, FontStyles.Bold, 5f);
+            settingsBodyText = CreateTmp(groupGO.transform, "PB_Settings_Body", "", new Vector2(-10f, 20f), new Vector2(700f, 525f), 17f, TextNormal, 5, FontStyles.Normal, 1.0f);
             settingsBodyText.alignment = TextAlignmentOptions.TopLeft;
             settingsBodyText.enableWordWrapping = true;
-            settingsHintText = CreateTmp(groupGO.transform, "PB_Settings_Hint", "", new Vector2(0f, -252f), new Vector2(690f, 44f), 17f, TextDim, 6, FontStyles.Normal, 1.0f);
+            settingsHintText = CreateTmp(groupGO.transform, "PB_Settings_Hint", "", new Vector2(0f, -318f), new Vector2(730f, 44f), 16f, TextDim, 6, FontStyles.Normal, 1.0f);
 
-            CreateSliderVisual(groupGO.transform, "PB_Settings_BrightnessSlider", new Vector2(70f, 28f), out brightnessSliderFill, out brightnessSliderGlow, out brightnessSliderHandle);
-            brightnessValueText = CreateTmp(groupGO.transform, "PB_Settings_BrightnessValue", "100%", new Vector2(290f, 28f), new Vector2(90f, 28f), 18f, NeonYellow, 7, FontStyles.Bold, 1.0f);
-            brightnessValueText.alignment = TextAlignmentOptions.Left;
+            CreateSliderVisual(groupGO.transform, "PB_Settings_BrightnessSlider", new Vector2(88f, 122f), out brightnessSliderFill, out brightnessSliderGlow, out brightnessSliderHandle);
+            brightnessValueText = CreateTmp(groupGO.transform, "PB_Settings_BrightnessValue", "100%", new Vector2(325f, 122f), new Vector2(120f, 28f), 18f, NeonYellow, 7, FontStyles.Bold, 1.0f);
+            brightnessValueText.alignment = TextAlignmentOptions.Right;
 
-            CreateSliderVisual(groupGO.transform, "PB_Settings_VolumeSlider", new Vector2(70f, -88f), out volumeSliderFill, out volumeSliderGlow, out volumeSliderHandle);
-            volumeValueText = CreateTmp(groupGO.transform, "PB_Settings_VolumeValue", "100%", new Vector2(290f, -88f), new Vector2(90f, 28f), 18f, NeonYellow, 7, FontStyles.Bold, 1.0f);
-            volumeValueText.alignment = TextAlignmentOptions.Left;
+            CreateSliderVisual(groupGO.transform, "PB_Settings_EffectsSlider", new Vector2(88f, -22f), out effectsSliderFill, out effectsSliderGlow, out effectsSliderHandle);
+            effectsValueText = CreateTmp(groupGO.transform, "PB_Settings_EffectsValue", "MEDIO", new Vector2(335f, -22f), new Vector2(150f, 28f), 18f, NeonYellow, 7, FontStyles.Bold, 1.0f);
+            effectsValueText.alignment = TextAlignmentOptions.Right;
+
+            sensitivityValueText = CreateTmp(groupGO.transform, "PB_Settings_SensitivityValue", "OFF", new Vector2(335f, -128f), new Vector2(150f, 28f), 18f, NeonYellow, 7, FontStyles.Bold, 1.0f);
+            sensitivityValueText.alignment = TextAlignmentOptions.Right;
+
+            CreateSliderVisual(groupGO.transform, "PB_Settings_VolumeSlider", new Vector2(88f, -232f), out volumeSliderFill, out volumeSliderGlow, out volumeSliderHandle);
+            volumeValueText = CreateTmp(groupGO.transform, "PB_Settings_VolumeValue", "100%", new Vector2(325f, -232f), new Vector2(120f, 28f), 18f, NeonYellow, 7, FontStyles.Bold, 1.0f);
+            volumeValueText.alignment = TextAlignmentOptions.Right;
 
             RefreshSettingsPanel();
         }
@@ -765,37 +789,53 @@ namespace ProjectBeat.Runtime
 
             string controls = SectionTitle(0, "VER CONTROLES");
             string graphics = SectionTitle(1, "GRAFICOS");
-            string sound = SectionTitle(2, "SONIDO");
-            string back = selectedSettingsOption == 3
-                ? "<size=22><color=#FFF000><b>> VOLVER</b></color></size>"
-                : "<size=21><color=#FF6A00><b>  VOLVER</b></color></size>";
+            string effects = SectionTitle(2, "INTENSIDAD EFECTOS VISUALES");
+            string sensitivity = SectionTitle(3, "MODO SENSIBILIDAD VISUAL");
+            string sound = SectionTitle(4, "SONIDO");
+            string back = selectedSettingsOption == 5
+                ? "<size=21><color=#FFF000><b>> VOLVER</b></color></size>"
+                : "<size=20><color=#FF6A00><b>  VOLVER</b></color></size>";
 
             settingsBodyText.text =
                 controls + "\n" +
-                "<size=16><color=#FFFFFF>D / F / J / K</color>    Carriles        <color=#FFFFFF>ESC</color>    Pausa\n" +
-                "<color=#FFFFFF>ENTER</color>        Confirmar       <color=#FFFFFF>W / S</color>   Navegar\n" +
-                "<color=#FFFFFF>F2 / F3 / F4</color>   Ajustar / resetear offset</size>\n\n" +
-                "<color=#224455>----------------------------------------------</color>\n\n" +
+                "<size=14><color=#FFFFFF>D/F/J/K</color> Carriles   <color=#FFFFFF>ESC</color> Pausa   <color=#FFFFFF>ENTER</color> Confirmar   <color=#FFFFFF>F1-F4</color> Offset</size>\n" +
+                "<color=#224455>────────────────────────────────────</color>\n" +
                 graphics + "\n" +
-                "<size=17><color=#DDEEFF>Brillo</color></size>\n\n\n" +
-                "<color=#224455>----------------------------------------------</color>\n\n" +
+                "<size=15><color=#DDEEFF>Brillo general del juego</color></size>\n\n\n" +
+                effects + "\n" +
+                "<size=14><color=#DDEEFF>Controla glow, flashes, partículas, fondos y transiciones.</color></size>\n\n\n" +
+                sensitivity + "\n" +
+                "<size=14><color=#DDEEFF>Reduce destellos rápidos para mayor comodidad visual.</color></size>\n\n" +
+                "<color=#224455>────────────────────────────────────</color>\n" +
                 sound + "\n" +
-                "<size=17><color=#DDEEFF>Volumen general</color></size>\n\n\n" +
-                "<color=#224455>----------------------------------------------</color>\n\n" +
+                "<size=15><color=#DDEEFF>Volumen general</color></size>\n\n\n" +
                 back;
 
             UpdateSliderVisual(brightnessSliderFill, brightnessSliderGlow, brightnessSliderHandle, brightnessValueText, brightness, 0.55f, 1.35f, selectedSettingsOption == 1);
-            UpdateSliderVisual(volumeSliderFill, volumeSliderGlow, volumeSliderHandle, volumeValueText, masterVolume, 0f, 1f, selectedSettingsOption == 2);
+            UpdateSliderVisual(effectsSliderFill, effectsSliderGlow, effectsSliderHandle, effectsValueText, VisualAccessibilitySettings.IntensityIndex, 0f, 4f, selectedSettingsOption == 2);
+            UpdateSliderVisual(volumeSliderFill, volumeSliderGlow, volumeSliderHandle, volumeValueText, masterVolume, 0f, 1f, selectedSettingsOption == 4);
 
-            settingsHintText.text = "<color=#00F1FF>[W/S]</color> Seleccionar    <color=#FFF000>[A/D]</color> Ajustar barra    <color=#FF6A00>[ESC]</color> Volver";
+            if (effectsValueText != null)
+            {
+                effectsValueText.text = VisualAccessibilitySettings.IntensityName;
+                effectsValueText.color = selectedSettingsOption == 2 ? NeonYellow : TextNormal;
+            }
+
+            if (sensitivityValueText != null)
+            {
+                sensitivityValueText.text = VisualAccessibilitySettings.SensitivityMode ? "ON" : "OFF";
+                sensitivityValueText.color = selectedSettingsOption == 3 ? NeonYellow : TextNormal;
+            }
+
+            settingsHintText.text = "<color=#00F1FF>[W/S]</color> Seleccionar    <color=#FFF000>[A/D]</color> Ajustar / Cambiar    <color=#FF6A00>[ESC]</color> Volver";
         }
 
         private string SectionTitle(int optionIndex, string title)
         {
             if (selectedSettingsOption == optionIndex)
-                return "<size=21><color=#FFF000><b>> " + title + "</b></color></size>";
+                return "<size=19><color=#FFF000><b>> " + title + "</b></color></size>";
 
-            return "<size=20><color=#00F1FF><b>  " + title + "</b></color></size>";
+            return "<size=18><color=#00F1FF><b>  " + title + "</b></color></size>";
         }
 
         private string MakeCleanBar(float value, float min, float max)
