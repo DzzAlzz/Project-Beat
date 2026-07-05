@@ -1,0 +1,32 @@
+AVANCE 69 - UNIFICAR CREDITOS DEL MENU DE PAUSA
+
+Base usada:
+- Avance 68 corregido.
+
+Archivo modificado:
+- Assets/Scripts/Runtime/PauseMenu.cs
+
+Cambios realizados:
+- Se reemplazo el contenido antiguo de CREDITOS dentro del menu de pausa.
+- El panel de CREDITOS de pausa ahora usa el mismo contenido del panel nuevo del menu principal.
+- Se cambio "Curso" por "Asignatura".
+- Se cambio "Inspiracion" por "Inspiraciones".
+- Se agrego Geometry Dash a las inspiraciones.
+- Se mantiene la frase final: "Feel the rhythm."
+- Se ajusto la estetica del panel hacia morado/rosado/cian para que sea coherente con el menu principal.
+- Se mantuvo el funcionamiento actual: ENTER o ESC vuelven al menu de pausa.
+
+No modificado:
+- Gameplay
+- LevelManager
+- Canciones
+- Sistema de puntuacion
+- Selector de niveles
+- Menu principal
+- Ayuda / Como jugar
+- Configuracion
+- Resultados
+- Flujo de escenas
+
+Validacion del ZIP:
+- Archivo generado y verificado como comprimido valido.

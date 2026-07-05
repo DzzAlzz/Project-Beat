@@ -178,7 +178,7 @@ namespace ProjectBeat.Runtime
             float beatFrac = beat - Mathf.Floor(beat);
             float beatHit = Mathf.Clamp01(1f - beatFrac / 0.18f);
             float wave = 0.5f + 0.5f * Mathf.Sin(beat * Mathf.PI * 2f);
-            float targetPulse = (beatHit * 0.75f + wave * 0.25f) * pulseIntensity;
+            float targetPulse = (beatHit * 0.75f + wave * 0.25f) * pulseIntensity * VisualAccessibilitySettings.PulseMultiplier;
             currentPulse = Mathf.Lerp(currentPulse, targetPulse, Time.deltaTime * pulseSmooth);
 
             float scale = 1f + currentPulse;
