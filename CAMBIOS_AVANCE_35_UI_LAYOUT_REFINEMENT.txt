@@ -1,0 +1,16 @@
+PROJECT BEAT - AVANCE 35 UI LAYOUT REFINEMENT
+
+Cambios realizados:
+- Reorganizacion visual del menu Configuracion.
+- Panel de configuracion mas alto y amplio.
+- Mayor separacion entre Graficos, Intensidad de Efectos Visuales, Modo Sensibilidad Visual, Sonido y Volver.
+- Sliders reposicionados para evitar superposicion visual.
+- Valores alineados a la derecha.
+- Textos y descripciones alineados a la izquierda.
+- Hint inferior reposicionado.
+- Se mantiene la navegacion por teclado.
+- No se modifico gameplay, scoring, timing, canciones, Hold Notes, offset ni resultados.
+- LevelManager se mantiene intacto.
+
+Rama sugerida:
+avance-35-ui-layout-refinement

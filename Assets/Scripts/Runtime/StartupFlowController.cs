@@ -14,6 +14,7 @@ namespace ProjectBeat.Runtime
     public class StartupFlowController : MonoBehaviour
     {
         public const string SkipStartupPrefsKey = "ProjectBeat.SkipStartupIntro";
+        public const string ForceMainMenuPrefsKey = "ProjectBeat.ForceMainMenu";
 
         private Canvas canvas;
         private CanvasGroup rootGroup;
@@ -32,6 +33,16 @@ namespace ProjectBeat.Runtime
         private float pulse;
         private GameController gameController;
         private PauseMenu pauseMenu;
+        private AudioSource menuMusicSource;
+        private AudioClip menuMusicClip;
+        private TMP_Text menuTitleText;
+        private Image rgbAuraImage;
+        private Image topRgbLine;
+        private Image bottomRgbLine;
+        private Image[] ambientBars;
+
+        private const string MenuMusicResourcePath = "Timecop1983";
+        private static bool forceMainMenuInMemory;
 
         private static readonly Color BgDark = new Color(0.003f, 0.006f, 0.014f, 0.96f);
         private static readonly Color Panel = new Color(0.015f, 0.035f, 0.065f, 0.92f);
@@ -47,7 +58,15 @@ namespace ProjectBeat.Runtime
             if (SceneManager.GetActiveScene().name.ToLower().Contains("preview")) return;
             if (FindObjectOfType<StartupFlowController>() != null) return;
 
-            if (PlayerPrefs.GetInt(SkipStartupPrefsKey, 0) == 1)
+            bool forceMainMenu = forceMainMenuInMemory || PlayerPrefs.GetInt(ForceMainMenuPrefsKey, 0) == 1;
+            if (forceMainMenu)
+            {
+                forceMainMenuInMemory = false;
+                PlayerPrefs.SetInt(ForceMainMenuPrefsKey, 0);
+                PlayerPrefs.SetInt(SkipStartupPrefsKey, 0);
+                PlayerPrefs.Save();
+            }
+            else if (PlayerPrefs.GetInt(SkipStartupPrefsKey, 0) == 1)
             {
                 PlayerPrefs.SetInt(SkipStartupPrefsKey, 0);
                 PlayerPrefs.Save();
@@ -56,6 +75,14 @@ namespace ProjectBeat.Runtime
 
             GameObject go = new GameObject("StartupFlowController");
             go.AddComponent<StartupFlowController>();
+        }
+
+        public static void RequestMainMenuOnNextLoad()
+        {
+            forceMainMenuInMemory = true;
+            PlayerPrefs.SetInt(ForceMainMenuPrefsKey, 1);
+            PlayerPrefs.SetInt(SkipStartupPrefsKey, 0);
+            PlayerPrefs.Save();
         }
 
         private void Awake()
@@ -68,6 +95,7 @@ namespace ProjectBeat.Runtime
 
             Time.timeScale = 1f;
             BuildUI();
+            SetupMenuMusic();
             StartCoroutine(FlowRoutine());
         }
 
@@ -118,6 +146,7 @@ namespace ProjectBeat.Runtime
         {
             menuGroup.interactable = false;
             menuGroup.blocksRaycasts = false;
+            StopMenuMusic();
             yield return Fade(rootGroup, 1f, 0f, 0.35f);
 
             if (LevelManager.Instance != null)
@@ -136,6 +165,7 @@ namespace ProjectBeat.Runtime
         {
             menuGroup.interactable = false;
             menuGroup.blocksRaycasts = false;
+            StopMenuMusic();
             yield return Fade(rootGroup, 1f, 0f, 0.35f);
 
             if (pauseMenu != null)
@@ -161,6 +191,30 @@ namespace ProjectBeat.Runtime
             target.anchoredPosition = basePos;
         }
 
+        private void SetupMenuMusic()
+        {
+            if (menuMusicSource != null) return;
+
+            menuMusicClip = Resources.Load<AudioClip>(MenuMusicResourcePath);
+            if (menuMusicClip == null) return;
+
+            menuMusicSource = gameObject.AddComponent<AudioSource>();
+            menuMusicSource.clip = menuMusicClip;
+            menuMusicSource.loop = true;
+            menuMusicSource.playOnAwake = false;
+            menuMusicSource.spatialBlend = 0f;
+            menuMusicSource.volume = 0.46f;
+            menuMusicSource.priority = 32;
+            menuMusicSource.ignoreListenerPause = true;
+            menuMusicSource.Play();
+        }
+
+        private void StopMenuMusic()
+        {
+            if (menuMusicSource == null) return;
+            menuMusicSource.Stop();
+        }
+
         private void BuildUI()
         {
             canvas = new GameObject("StartupCanvas").AddComponent<Canvas>();
@@ -177,10 +231,6 @@ namespace ProjectBeat.Runtime
 
             Image bg = CreateImage("Background", canvas.transform, BgDark);
             Stretch(bg.rectTransform);
-
-            // Lineas neon sutiles para dar identidad de juego ritmico.
-            CreateLine("TopNeon", canvas.transform, new Vector2(0f, 245f), new Vector2(620f, 3f), NeonOrange);
-            CreateLine("BottomNeon", canvas.transform, new Vector2(0f, -245f), new Vector2(420f, 2f), NeonCyan);
 
             splashGroup = CreateGroup("Splash", canvas.transform);
             TMP_Text logo = CreateText("Logo", splashGroup.transform, "PROJECT BEAT", 54, NeonYellow, FontStyles.Bold);
@@ -202,6 +252,7 @@ namespace ProjectBeat.Runtime
             panel.sprite = MakeSprite(new Color(1f,1f,1f,1f));
 
             TMP_Text title = CreateText("MenuTitle", menuGroup.transform, "PROJECT BEAT", 42, NeonYellow, FontStyles.Bold);
+            menuTitleText = title;
             title.alignment = TextAlignmentOptions.Center;
             title.rectTransform.anchoredPosition = new Vector2(0f, 156f);
             title.rectTransform.sizeDelta = new Vector2(520f, 70f);
@@ -311,11 +362,12 @@ namespace ProjectBeat.Runtime
             return tmp;
         }
 
-        private void CreateLine(string name, Transform parent, Vector2 pos, Vector2 size, Color color)
+        private Image CreateLine(string name, Transform parent, Vector2 pos, Vector2 size, Color color)
         {
             Image img = CreateImage(name, parent, color);
             img.rectTransform.sizeDelta = size;
             img.rectTransform.anchoredPosition = pos;
+            return img;
         }
 
         private Sprite MakeSprite(Color color)
