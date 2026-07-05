@@ -1,0 +1,23 @@
+AVANCE 45 - Tutorial Panel + Main Menu Flow Fix (corrección real)
+===============================================================
+
+Base: ProjectBeat_Avance44_MainMenuStateIsolationFix
+
+Cambios aplicados:
+- TutorialOverlayController ahora solo existe si el nivel actual es TUTORIAL.
+- El panel de tutorial se mantiene visible durante el Tutorial.
+- El panel de tutorial se oculta automáticamente mientras el juego está en pausa.
+- El panel de tutorial se destruye si el jugador cambia a un nivel distinto.
+- MENU PRINCIPAL destruye overlays de tutorial antes de volver al menú.
+- MENU PRINCIPAL cambia el estado base fuera de Tutorial antes de recargar, para evitar que las instrucciones se reconstruyan detrás del menú inicial.
+- StartupFlowController expone IsMainMenuVisible para que otros overlays sepan cuándo deben ocultarse.
+- StartupFlowController destruye overlays de tutorial al mostrar el menú principal.
+- Se mantiene el flujo CARGANDO... antes del regreso al menú inicial.
+- No se modifican BPM, timing, scoring, Hold Notes, offset, canciones ni LevelManager.
+
+Pruebas recomendadas:
+1. Entrar a Tutorial: el panel de instrucciones debe estar visible.
+2. Pausar en Tutorial: el panel debe ocultarse detrás de pausa.
+3. Continuar: el panel debe volver.
+4. Ir a Menu Principal: no debe verse panel tutorial detrás.
+5. Entrar a Arcade/otro nivel: no debe aparecer panel tutorial.
