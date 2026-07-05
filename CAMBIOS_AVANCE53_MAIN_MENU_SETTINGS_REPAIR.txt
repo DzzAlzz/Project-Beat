@@ -1,0 +1,28 @@
+AVANCE 53 - REPARACION REAL DE CONFIGURACION DEL MENU PRINCIPAL
+
+Base usada:
+- Avance 52.
+
+Archivo modificado:
+- Assets/Scripts/Runtime/PauseMenu.cs
+
+Causa raiz encontrada:
+- La configuracion del menu principal reutilizaba correctamente el SettingsGroup del PauseMenu.
+- Sin embargo, ese SettingsGroup es hijo de pauseGroup.
+- En Avance 52, al abrir configuracion desde el menu principal se llamaba a ShowPauseGroup(false).
+- Eso dejaba el CanvasGroup padre con fadeTarget = 0 / alpha = 0.
+- Resultado: el panel podia existir, pero los textos, valores, sliders y opciones quedaban invisibles por el CanvasGroup padre.
+
+Correccion aplicada:
+- OpenSettingsFromMainMenu ahora mantiene visible pauseGroup mientras abre la configuracion.
+- Se fuerza fadeAlpha = 1 y fadeTarget = 1 al abrir desde el menu principal.
+- Se asegura pauseGroup.alpha = 1, interactable = true y blocksRaycasts = true.
+- Se conserva el mismo SettingsGroup de PauseMenu.
+- No se creo un segundo Canvas.
+- No se creo una segunda configuracion.
+- No se modifico LevelManager, selector de niveles, pausa, resultados, gameplay, puntuacion, canciones ni escenas.
+
+Resultado esperado:
+- Al pulsar el engranaje del menu principal aparecen todas las opciones de Configuracion:
+  Brillo General, Resolucion, Modo Pantalla, Intensidad Efectos Visuales,
+  Modo Sensibilidad Visual, Volumen General y Volver.

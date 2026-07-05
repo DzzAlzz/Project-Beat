@@ -1,0 +1,55 @@
+AVANCE 81 – REDISEÑO DEL CURSOR Y CREACIÓN DEL LOGO / ICONO DEL JUEGO
+
+BASE
+- Se tomó como base el Avance 80.
+
+ARCHIVOS MODIFICADOS
+- Assets/Scripts/Runtime/ProjectBeatCursorController.cs
+- Assets/Resources/ProjectBeatCursor.png
+- Assets/Art/UI/Icons/ProjectBeatIcon.png
+- Assets/Art/UI/Icons/ProjectBeatIcon.ico
+
+ARCHIVOS AGREGADOS
+- Assets/Resources/ProjectBeatCursorHover.png
+- Assets/Resources/ProjectBeatCursorHover.png.meta
+- Assets/Art/UI/Branding/ProjectBeatLogo.png
+- Assets/Art/UI/Branding/ProjectBeatLogo.png.meta
+- Assets/Art/UI/Branding.meta
+- CAMBIOS_AVANCE_81_CURSOR_AND_GAME_LOGO_POLISH.txt
+
+MEJORAS DEL CURSOR
+- Se reemplazó el cursor anterior por un diseño más pulido, neón y completo.
+- Nuevo cursor con borde brillante, relleno morado/cian y acento musical.
+- Se agregó textura hover propia: ProjectBeatCursorHover.png.
+- Se aumentó el tamaño del cursor visual UI para que se aprecie mejor en build.
+- Se agregó respuesta visual al click con escala, leve desplazamiento y rotación.
+- Se mantiene el pulso de click.
+- Se conserva fallback al cursor normal del sistema si el cursor personalizado falla.
+- El cursor sigue usando un Canvas Overlay con sorting alto para que funcione también en ejecutable.
+
+MEJORAS DEL LOGO / ICONO
+- Se reemplazó el icono anterior por un emblema PB más llamativo.
+- Nuevo icono con estética morada/cian/magenta, barras de ecualizador y pulso musical.
+- Se actualizó ProjectBeatIcon.png.
+- Se actualizó ProjectBeatIcon.ico con múltiples tamaños.
+- Se agregó ProjectBeatLogo.png para usos futuros dentro del proyecto.
+
+IMPORTANTE PARA EL EJECUTABLE
+- Para ver el icono nuevo en ProjectBeat.exe hay que generar un build nuevo desde Unity.
+- Si Windows sigue mostrando el icono antiguo, puede ser caché de iconos de Windows; crear un nuevo acceso directo o reiniciar el explorador puede actualizarlo.
+
+NO SE MODIFICÓ
+- Gameplay.
+- LevelManager.
+- Canciones.
+- Puntuación.
+- Hit detection.
+- Selector de niveles.
+- Menú principal.
+- Pantalla inicial.
+- Perfiles.
+- Estadísticas.
+- Pausa.
+- Configuración.
+- Resultados.
+- Bloqueo/desbloqueo de niveles.

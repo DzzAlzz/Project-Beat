@@ -1,0 +1,47 @@
+AVANCE 76 – AJUSTE DEL HUD EN GAMEPLAY Y MEJORA GENERAL DE FLUIDEZ / SINCRONIZACIÓN
+
+Base usada:
+- Avance 75.
+
+Archivos modificados:
+- Assets/Scripts/Runtime/GameplayUI.cs
+- Assets/Scripts/Runtime/NoteObject.cs
+- Assets/Scripts/Runtime/GameController.cs
+
+Cambios en HUD de puntuación en curso:
+- Se aumentó el tamaño del panel HUD superior derecho.
+- Se redistribuyó la información para evitar textos montados.
+- Se separó mejor nombre del nivel, puntuación, precisión y [ESC] Pausa.
+- Se ajustaron márgenes, tamaños de texto y líneas decorativas.
+- Se mantuvo la estética morada / magenta / cian / neón.
+- El HUD sigue mostrando la misma información y no altera cálculo de puntuación ni precisión.
+
+Cambios de fluidez / sincronización:
+- Se revisó el movimiento visual de las notas.
+- La posición de las notas ahora avanza de forma lineal según el tiempo musical calibrado.
+- Se evita que SmoothStep altere visualmente la llegada de la nota al hit zone.
+- El easing se conserva solo para escala/profundidad visual, no para la posición temporal.
+- Se reforzó la configuración de responsividad con targetFrameRate alto y vSync desactivado.
+- Se limitó maximumDeltaTime para reducir saltos grandes de frame durante gameplay.
+
+No se modificó:
+- LevelManager.
+- Canciones.
+- Beatmaps.
+- Sistema de puntuación.
+- Cálculo de precisión.
+- Cálculo de combo.
+- Cálculo de rango.
+- Hit detection base.
+- Lógica de notas.
+- Lógica de hold notes.
+- Menú principal.
+- Pausa.
+- Configuración.
+- Resultados.
+- Selector de niveles.
+
+Notas:
+- Los cambios de fluidez son visuales y de responsividad segura.
+- No se cambió la dificultad ni las ventanas de juicio.
+- F1/F2/F3/F4 de calibración se mantienen.
