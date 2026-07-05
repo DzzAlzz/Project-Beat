@@ -11,9 +11,9 @@ namespace ProjectBeat.Runtime
     {
         [Header("Screen Flash")]
         [SerializeField] private float flashDuration = 0.16f;
-        [SerializeField] private float perfectFlashAlpha = 0.22f;
-        [SerializeField] private float goodFlashAlpha = 0.13f;
-        [SerializeField] private float badFlashAlpha = 0.08f;
+        [SerializeField] private float perfectFlashAlpha = 0.16f;
+        [SerializeField] private float goodFlashAlpha = 0.095f;
+        [SerializeField] private float badFlashAlpha = 0.055f;
 
         [Header("Audio Duck")]
         [SerializeField] private bool useAudioDuck = true;
@@ -21,9 +21,9 @@ namespace ProjectBeat.Runtime
         [SerializeField] private float duckDuration = 0.055f;
 
         [Header("Particles")]
-        [SerializeField] private int perfectParticles = 22;
-        [SerializeField] private int goodParticles = 13;
-        [SerializeField] private int badParticles = 7;
+        [SerializeField] private int perfectParticles = 16;
+        [SerializeField] private int goodParticles = 10;
+        [SerializeField] private int badParticles = 5;
 
         private Image flashImage;
         private float flashTimer;
@@ -53,22 +53,29 @@ namespace ProjectBeat.Runtime
             bool perfect = judgement == JudgementType.Perfect;
             bool good = judgement == JudgementType.Good;
 
-            int count = perfect ? perfectParticles : good ? goodParticles : badParticles;
-            float speed = perfect ? 4.6f : good ? 3.4f : 2.3f;
-            float size = perfect ? 0.13f : good ? 0.10f : 0.075f;
-            float life = perfect ? 0.48f : good ? 0.34f : 0.22f;
+            float particleMul = VisualAccessibilitySettings.ParticleMultiplier;
+            float flashMul = VisualAccessibilitySettings.FlashMultiplier;
+            float glowMul = VisualAccessibilitySettings.GlowMultiplier;
 
-            SpawnParticleBurst(worldPosition, laneColor, count, speed, size, life);
+            int baseCount = perfect ? perfectParticles : good ? goodParticles : badParticles;
+            int count = Mathf.RoundToInt(baseCount * particleMul);
+            float speed = (perfect ? 3.8f : good ? 2.9f : 2.0f) * Mathf.Lerp(0.65f, 1.0f, glowMul);
+            float size = (perfect ? 0.105f : good ? 0.085f : 0.065f) * Mathf.Lerp(0.75f, 1.05f, glowMul);
+            float life = (perfect ? 0.40f : good ? 0.30f : 0.20f) * Mathf.Lerp(0.75f, 1.0f, glowMul);
+
+            if (count > 0)
+                SpawnParticleBurst(worldPosition, laneColor, count, speed, size, life);
 
             Color flashColor = perfect
-                ? new Color(laneColor.r, laneColor.g, laneColor.b, perfectFlashAlpha)
+                ? new Color(laneColor.r, laneColor.g, laneColor.b, perfectFlashAlpha * flashMul)
                 : good
-                    ? new Color(laneColor.r, laneColor.g, laneColor.b, goodFlashAlpha)
-                    : new Color(1f, 0.25f, 0.20f, badFlashAlpha);
+                    ? new Color(laneColor.r, laneColor.g, laneColor.b, goodFlashAlpha * flashMul)
+                    : new Color(1f, 0.25f, 0.20f, badFlashAlpha * flashMul);
 
-            TriggerScreenFlash(flashColor);
+            if (flashColor.a > 0.005f)
+                TriggerScreenFlash(flashColor);
 
-            if ((perfect || good) && useAudioDuck)
+            if ((perfect || good) && useAudioDuck && !VisualAccessibilitySettings.SensitivityMode)
                 TriggerAudioDuck();
         }
 

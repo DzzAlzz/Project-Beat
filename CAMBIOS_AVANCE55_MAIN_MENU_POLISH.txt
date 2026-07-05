@@ -1,0 +1,45 @@
+AVANCE 55 - PULIDO VISUAL DEL MENU PRINCIPAL
+
+Base utilizada:
+- Avance 54.
+- Unity 6000.3.11f1.
+
+Archivos modificados:
+- Assets/Scripts/Runtime/StartupFlowController.cs
+
+Objetos UI modificados por codigo:
+- StartupCanvas / MainMenu
+- MainPanel
+- TutorialButton
+- ArcadeButton
+- FutureButton
+- ExitButton
+- SettingsGearButton
+
+Mejoras implementadas:
+- La opcion seleccionada ahora tiene glow suave.
+- La opcion seleccionada aumenta ligeramente su escala.
+- La transicion entre opciones es mas suave.
+- Se agrego pulso visual al navegar y confirmar.
+- Se mejoro el espaciado y proporcion del panel central.
+- Se amplio ligeramente el boton de configuracion.
+- Se agrego hover visual mas evidente al boton de configuracion.
+- Se mantuvieron los colores principales e identidad visual de Project Beat.
+
+Sistemas NO modificados:
+- LevelManager
+- Gameplay
+- Selector de niveles
+- Sistema de pausa
+- Configuracion
+- Resultados
+- Canciones
+- Sistema de puntuacion
+- Flujo de escenas
+
+Validacion esperada:
+- Tutorial carga igual que en Avance 54.
+- Arcade abre el selector igual que en Avance 54.
+- Configuracion sigue abriendo correctamente desde el engranaje.
+- Navegacion W/S, ENTER y mouse se mantiene.
+- Sin cambios de version de Unity.
