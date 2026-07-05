@@ -1,0 +1,27 @@
+AVANCE 80 - ICONO DEL EJECUTABLE Y CORRECCION DEL CURSOR EN BUILD
+
+BASE
+- Usado Avance 79 como base.
+
+ARCHIVOS MODIFICADOS
+- Assets/Scripts/Runtime/ProjectBeatCursorController.cs
+- ProjectSettings/ProjectSettings.asset
+
+ARCHIVOS AGREGADOS
+- Assets/Art/UI/Icons/ProjectBeatIcon.png
+- Assets/Art/UI/Icons/ProjectBeatIcon.ico
+- Assets/Resources/ProjectBeatCursor.png
+
+CAMBIOS IMPLEMENTADOS
+- Se agrego un icono personalizado de Project Beat con estilo morado/cian/neon.
+- Se configuraron iconos Standalone/Windows dentro de ProjectSettings para el ejecutable.
+- Se agrego un cursor como asset en Resources para asegurar que se incluya en el build.
+- Se reforzo ProjectBeatCursorController para que el cursor no dependa solo de Cursor.SetCursor.
+- Se agrego un cursor visual por Canvas UI con sorting order alto para menus/paneles.
+- El cursor visual se muestra en pantalla inicial, menu principal, selector, configuracion, ayuda, creditos, perfil, estadisticas, pausa y resultados.
+- Si el cursor visual no puede crearse, se mantiene visible el cursor normal del sistema como fallback.
+- Se reviso Cursor.visible y Cursor.lockState para evitar cursor invisible o bloqueado en build.
+
+NOTAS
+- No se modifico gameplay, niveles, perfiles, estadisticas, selector, pausa, configuracion, resultados, bloqueo de niveles ni pantalla inicial.
+- Para que el .exe muestre el icono, generar nuevamente el build desde Unity despues de abrir este avance.

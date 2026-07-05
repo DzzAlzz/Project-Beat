@@ -1,0 +1,64 @@
+AVANCE 82 – SUAVIZADO GENERAL, NITIDEZ VISUAL Y FLUIDEZ 60Hz–240Hz
+
+BASE
+- Usado Avance 81 como base.
+
+ARCHIVOS MODIFICADOS
+- Assets/Scripts/Runtime/GameController.cs
+- Assets/Scripts/Runtime/Conductor.cs
+- Assets/Scripts/Runtime/NoteObject.cs
+- ProjectSettings/QualitySettings.asset
+- Assets/Art/Sprites/*.png.meta
+
+ARCHIVOS AGREGADOS
+- Assets/Scripts/Runtime/ProjectBeatPerformanceSettings.cs
+
+AJUSTES DE FLUIDEZ / REFRESCO
+- Se agregó ProjectBeatPerformanceSettings para aplicar ajustes globales al iniciar el juego.
+- Application.targetFrameRate configurado a 240 FPS.
+- QualitySettings.vSyncCount configurado en 0 para evitar limitar el juego por vSync interno.
+- Antialiasing elevado al menos a 4x en runtime.
+- AnisotropicFiltering activado en runtime.
+- Time.maximumDeltaTime limitado para evitar saltos visuales grandes después de pausas o cambios de foco.
+- Time.fixedDeltaTime se estabiliza a 120 Hz si estaba por encima de ese valor.
+
+REDUCCIÓN DE LATENCIA PERCIBIDA
+- GameController.CalibratedSongPosition ahora usa el tiempo musical vivo calculado directamente desde AudioSettings.dspTime.
+- Esto evita depender del orden de Update entre Conductor, LaneInput y notas.
+- Se reduce una posible sensación de input atrasado de 1 frame en monitores de alto refresco.
+- No se modificaron ventanas de hit, puntuación, precisión, combo ni dificultad.
+
+SINCRONIZACIÓN AUDIO / NOTAS
+- Conductor expone GetLiveSongPosition() para consultar el tiempo musical actual desde DSP.
+- Conductor.Update sigue actualizando SongPosition, pero la jugabilidad puede consultar el tiempo vivo.
+- Se mantiene el offset/calibración existente.
+- No se cambiaron canciones ni beatmaps.
+
+NITIDEZ Y SUAVIZADO DE NOTAS
+- NoteObject ahora genera un sprite procedural anti-aliased para la cabeza de las notas.
+- El sprite mantiene forma de nota LED/neón, pero con bordes más suaves y contornos menos ásperos.
+- Las hold notes usan un sprite procedural más suave para sus segmentos/cuerpo visual.
+- Se mejoró el filtrado de texturas runtime con Bilinear, Clamp y aniso level 4 en sprites procedurales.
+- No se alteró la lógica de notas ni hold notes.
+
+IMPORT SETTINGS / CALIDAD VISUAL
+- Se actualizaron metas de sprites principales para evitar compresión en Standalone/Default.
+- Se elevó anisotropía de sprites principales para mejor nitidez.
+- Se ajustó QualitySettings para usar antialiasing 4x y vSync desactivado.
+
+NO MODIFICADO
+- LevelManager
+- Canciones
+- Beatmaps
+- Sistema de puntuación
+- Cálculo de precisión/rango/combo
+- Hit detection base
+- Dificultad
+- Perfiles
+- Estadísticas
+- Bloqueo/desbloqueo de niveles
+- Menús y flujo de escenas
+
+NOTA DE VALIDACIÓN
+- Se verificó la integridad del ZIP final.
+- La compilación real debe comprobarse dentro de Unity 6000.3.11f1, ya que este entorno no ejecuta el editor de Unity.

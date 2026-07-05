@@ -15,10 +15,15 @@ namespace ProjectBeat.Runtime
         private GameController controller;
         private LaneInput      lane;
         private SpriteRenderer sr;
+        private SpriteRenderer noteGlowRenderer;
+        private SpriteRenderer noteCoreRenderer;
+        private Color baseNoteColor;
+        private float noteLedSeed;
         private SpriteRenderer[] holdTrailSegments;
         private SpriteRenderer[] holdCoreSegments;
         private SpriteRenderer holdEndRenderer;
         private static Sprite holdTrailSprite;
+        private static Sprite softNoteSprite;
 
         private Vector3 spawnPos;
         private Vector3 hitPos;
@@ -43,7 +48,8 @@ namespace ProjectBeat.Runtime
         // Mantiene el timing del beatmap, pero agrega una tolerancia humana
         // para que soltar cerca del final no se sienta injusto.
         private const float HoldReleaseGrace = 0.18f;
-        private const float HoldReadabilityFade = 0.92f;
+        private const float HoldReadabilityFade = 0.96f;
+        private const string BrightnessPrefsKey = "ProjectBeat_Brightness";
 
         public float HitTime  { get; private set; }
         public bool  IsJudged { get; private set; }
@@ -83,7 +89,10 @@ namespace ProjectBeat.Runtime
             transform.localScale = Vector3.one * 0.5f;
 
             if (sr == null) sr = GetComponent<SpriteRenderer>();
-            sr.color = color;
+            baseNoteColor = color;
+            noteLedSeed = Random.Range(0f, 1000f);
+            sr.color = MakeLedBodyColor(color, 1f);
+            SetupNoteLedVisual(color);
 
             holdDirection = (spawnPos - hitPos).sqrMagnitude > 0.0001f
                 ? (spawnPos - hitPos).normalized
@@ -122,7 +131,8 @@ namespace ProjectBeat.Runtime
                 SpriteRenderer trailRenderer = trail.AddComponent<SpriteRenderer>();
                 trailRenderer.sprite = holdTrailSprite;
                 trailRenderer.sortingOrder = sr != null ? sr.sortingOrder - 2 : 5;
-                trailRenderer.color = new Color(color.r, color.g, color.b, 0.22f);
+                Color trailColor = Color.Lerp(color, Color.white, 0.10f);
+                trailRenderer.color = WithAlpha(trailColor, 0.30f * Mathf.Max(0.80f, VisualAccessibilitySettings.GlowMultiplier));
                 holdTrailSegments[i] = trailRenderer;
 
                 GameObject core = new GameObject("HoldTrail_Core_" + i);
@@ -130,7 +140,8 @@ namespace ProjectBeat.Runtime
                 SpriteRenderer coreRenderer = core.AddComponent<SpriteRenderer>();
                 coreRenderer.sprite = holdTrailSprite;
                 coreRenderer.sortingOrder = sr != null ? sr.sortingOrder - 1 : 6;
-                coreRenderer.color = new Color(1f, 1f, 1f, 0.35f);
+                Color coreColor = Color.Lerp(color, Color.white, 0.42f);
+                coreRenderer.color = WithAlpha(coreColor, 0.52f * Mathf.Max(0.80f, VisualAccessibilitySettings.GlowMultiplier));
                 holdCoreSegments[i] = coreRenderer;
             }
 
@@ -139,25 +150,164 @@ namespace ProjectBeat.Runtime
             holdEndRenderer = end.AddComponent<SpriteRenderer>();
             holdEndRenderer.sprite = sr != null && sr.sprite != null ? sr.sprite : holdTrailSprite;
             holdEndRenderer.sortingOrder = sr != null ? sr.sortingOrder : 10;
-            holdEndRenderer.color = new Color(color.r, color.g, color.b, 0.85f);
+            holdEndRenderer.color = WithAlpha(Color.Lerp(color, Color.white, 0.18f), 0.95f * Mathf.Max(0.85f, VisualAccessibilitySettings.GlowMultiplier));
 
-            UpdateHoldBody(fullHoldLength, 0.22f, 0.72f);
+            UpdateHoldBody(fullHoldLength, 0.24f, 0.82f);
         }
 
         private static void EnsureHoldTrailSprite()
         {
             if (holdTrailSprite != null) return;
 
-            Texture2D tex = new Texture2D(8, 8, TextureFormat.RGBA32, false);
-            tex.name = "PB_HoldTrail_RuntimeSprite";
-            tex.filterMode = FilterMode.Bilinear;
-            Color32 white = new Color32(255, 255, 255, 255);
-            Color32[] pixels = new Color32[64];
-            for (int i = 0; i < pixels.Length; i++) pixels[i] = white;
-            tex.SetPixels32(pixels);
-            tex.Apply(false, true);
+            Texture2D tex = CreateRoundedRectTexture("PB_HoldTrail_SoftRuntimeSprite", 32, 32, 8f, 2.4f);
+            holdTrailSprite = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), new Vector2(0.5f, 0.5f), 32f);
+        }
 
-            holdTrailSprite = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), new Vector2(0.5f, 0.5f), 8f);
+        private static void EnsureSoftNoteSprite()
+        {
+            if (softNoteSprite != null) return;
+
+            Texture2D tex = CreateRoundedRectTexture("PB_Note_SoftNeonRuntimeSprite", 128, 42, 13f, 2.2f);
+            softNoteSprite = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), new Vector2(0.5f, 0.5f), 100f);
+        }
+
+        private static Texture2D CreateRoundedRectTexture(string textureName, int width, int height, float radius, float feather)
+        {
+            Texture2D tex = new Texture2D(width, height, TextureFormat.RGBA32, true);
+            tex.name = textureName;
+            tex.filterMode = FilterMode.Bilinear;
+            tex.wrapMode = TextureWrapMode.Clamp;
+            tex.anisoLevel = 4;
+
+            Color32[] pixels = new Color32[width * height];
+            float halfW = (width - 1) * 0.5f;
+            float halfH = (height - 1) * 0.5f;
+            float innerW = Mathf.Max(0f, halfW - radius);
+            float innerH = Mathf.Max(0f, halfH - radius);
+
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    float px = Mathf.Abs(x - halfW);
+                    float py = Mathf.Abs(y - halfH);
+                    float dx = Mathf.Max(px - innerW, 0f);
+                    float dy = Mathf.Max(py - innerH, 0f);
+                    float dist = Mathf.Sqrt(dx * dx + dy * dy) - radius;
+                    float alpha = 1f - Mathf.SmoothStep(-feather, feather, dist);
+
+                    // Pequeña caída interna en el borde para un contorno más limpio
+                    // sin volver la nota borrosa. El color final lo da SpriteRenderer.color.
+                    alpha = Mathf.Clamp01(alpha);
+                    byte a = (byte)Mathf.RoundToInt(alpha * 255f);
+                    pixels[y * width + x] = new Color32(255, 255, 255, a);
+                }
+            }
+
+            tex.SetPixels32(pixels);
+            tex.Apply(true, true);
+            return tex;
+        }
+
+        private void SetupNoteLedVisual(Color color)
+        {
+            if (sr == null) return;
+
+            EnsureSoftNoteSprite();
+            Sprite baseSprite = softNoteSprite != null ? softNoteSprite : sr.sprite;
+            if (baseSprite == null)
+            {
+                EnsureHoldTrailSprite();
+                baseSprite = holdTrailSprite;
+            }
+
+            // Avance 82: reemplazo visual seguro por un sprite procedural
+            // anti-aliased del mismo tamaño aproximado que la nota original.
+            // Mejora bordes/contornos sin tocar timing, hit detection ni puntuación.
+            if (softNoteSprite != null)
+                sr.sprite = softNoteSprite;
+
+            if (noteGlowRenderer == null)
+            {
+                GameObject glow = new GameObject("Note_LED_Glow");
+                glow.transform.SetParent(transform, false);
+                noteGlowRenderer = glow.AddComponent<SpriteRenderer>();
+                noteGlowRenderer.sprite = baseSprite;
+                noteGlowRenderer.sortingOrder = sr.sortingOrder - 2;
+            }
+
+            if (noteCoreRenderer == null)
+            {
+                GameObject core = new GameObject("Note_LED_Core");
+                core.transform.SetParent(transform, false);
+                noteCoreRenderer = core.AddComponent<SpriteRenderer>();
+                noteCoreRenderer.sprite = baseSprite;
+                noteCoreRenderer.sortingOrder = sr.sortingOrder + 1;
+            }
+
+            // Base estable: la nota principal mantiene su forma original, pero gana luz interna.
+            sr.color = MakeLedBodyColor(color, 1f);
+            if (noteGlowRenderer != null)
+            {
+                noteGlowRenderer.color = WithAlpha(Color.Lerp(color, Color.white, 0.08f), 0.38f * Mathf.Max(0.75f, VisualAccessibilitySettings.GlowMultiplier));
+                noteGlowRenderer.transform.localScale = new Vector3(1.34f, 1.42f, 1f);
+            }
+
+            if (noteCoreRenderer != null)
+            {
+                noteCoreRenderer.color = WithAlpha(Color.Lerp(color, Color.white, 0.48f), 0.40f);
+                noteCoreRenderer.transform.localScale = new Vector3(0.56f, 0.36f, 1f);
+            }
+        }
+
+        private void UpdateNoteLedVisual(float approachLerp, bool held)
+        {
+            if (sr == null) return;
+
+            float brightness = Mathf.Clamp(PlayerPrefs.GetFloat(BrightnessPrefsKey, 1f), 0.55f, 1.35f);
+            float brightnessComp = Mathf.Lerp(1f, 1.22f, Mathf.InverseLerp(1f, 1.35f, brightness));
+            float nearHit = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01((approachLerp - 0.76f) / 0.24f));
+            float pulse = 0.5f + 0.5f * Mathf.Sin((Time.time + noteLedSeed) * (held ? 13f : 8f));
+            float ledEnergy = Mathf.Clamp01(0.52f + nearHit * 0.30f + pulse * 0.10f);
+            if (held) ledEnergy = Mathf.Clamp01(ledEnergy + 0.18f);
+
+            sr.color = MakeLedBodyColor(baseNoteColor, brightnessComp);
+
+            if (noteGlowRenderer != null)
+            {
+                noteGlowRenderer.sortingOrder = sr.sortingOrder - 2;
+                noteGlowRenderer.enabled = sr.enabled;
+                float glowAlpha = (0.25f + ledEnergy * 0.22f) * Mathf.Max(0.70f, VisualAccessibilitySettings.GlowMultiplier) * brightnessComp;
+                noteGlowRenderer.color = WithAlpha(Color.Lerp(baseNoteColor, Color.white, 0.06f), Mathf.Clamp01(glowAlpha));
+                float sx = held ? 1.45f : Mathf.Lerp(1.24f, 1.44f, ledEnergy);
+                float sy = held ? 1.34f : Mathf.Lerp(1.30f, 1.52f, ledEnergy);
+                noteGlowRenderer.transform.localScale = new Vector3(sx, sy, 1f);
+            }
+
+            if (noteCoreRenderer != null)
+            {
+                noteCoreRenderer.sortingOrder = sr.sortingOrder + 1;
+                noteCoreRenderer.enabled = sr.enabled;
+                Color coreColor = Color.Lerp(baseNoteColor, Color.white, 0.50f + 0.16f * ledEnergy);
+                noteCoreRenderer.color = WithAlpha(coreColor, Mathf.Clamp01((0.30f + 0.24f * ledEnergy) * brightnessComp));
+                noteCoreRenderer.transform.localScale = new Vector3(Mathf.Lerp(0.45f, 0.62f, ledEnergy), Mathf.Lerp(0.26f, 0.40f, ledEnergy), 1f);
+            }
+        }
+
+        private static Color MakeLedBodyColor(Color color, float brightnessComp)
+        {
+            Color boosted = Color.Lerp(color, Color.white, 0.12f);
+            boosted.r = Mathf.Clamp01(boosted.r * 1.08f * brightnessComp);
+            boosted.g = Mathf.Clamp01(boosted.g * 1.08f * brightnessComp);
+            boosted.b = Mathf.Clamp01(boosted.b * 1.08f * brightnessComp);
+            boosted.a = 1f;
+            return boosted;
+        }
+
+        private static Color WithAlpha(Color color, float alpha)
+        {
+            color.a = Mathf.Clamp01(alpha);
+            return color;
         }
 
         private void SetHoldSorting(int headSorting)
@@ -203,15 +353,22 @@ namespace ProjectBeat.Runtime
         {
             float span = HitTime - spawnTime;
             float raw  = span <= 0.0001f ? 1f : Mathf.InverseLerp(spawnTime, HitTime, t);
-            float lerp = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(raw));
+
+            // Avance 76: la posición de la nota avanza linealmente con el tiempo musical
+            // calibrado. Antes se aplicaba SmoothStep también a la posición, lo que podía
+            // sentirse como aceleración/desaceleración visual y generar sensación de desync.
+            float lerp = Mathf.Clamp01(raw);
+            float visualEase = Mathf.SmoothStep(0f, 1f, lerp);
 
             transform.position = Vector3.Lerp(spawnPos, hitPos, lerp);
 
-            // Perspectiva visual tipo rhythm highway.
-            float perspectiveScale = Mathf.Lerp(0.50f, 1.18f, lerp);
+            // Perspectiva visual tipo rhythm highway. La escala conserva easing visual,
+            // pero no altera el tiempo ni la posición de llegada al hit zone.
+            float perspectiveScale = Mathf.Lerp(0.50f, 1.18f, visualEase);
             if (sr != null)
                 sr.sortingOrder = Mathf.RoundToInt(Mathf.Lerp(7f, 16f, lerp));
             SetHoldSorting(sr != null ? sr.sortingOrder : 10);
+            UpdateNoteLedVisual(lerp, false);
 
             if (spawnPulseTimer > 0f)
             {
@@ -228,9 +385,9 @@ namespace ProjectBeat.Runtime
 
             if (IsHoldNote)
             {
-                float visibleLength = fullHoldLength * Mathf.Lerp(0.68f, 1.04f, lerp);
+                float visibleLength = fullHoldLength * Mathf.Lerp(0.68f, 1.04f, visualEase);
                 // Trail más delgado y legible: evita saturar la pista en perspectiva.
-                UpdateHoldBody(visibleLength, Mathf.Lerp(0.105f, 0.185f, lerp), Mathf.Lerp(0.36f, 0.68f, lerp));
+                UpdateHoldBody(visibleLength, Mathf.Lerp(0.135f, 0.225f, visualEase), Mathf.Lerp(0.54f, 0.86f, visualEase));
             }
         }
 
@@ -246,12 +403,13 @@ namespace ProjectBeat.Runtime
                 float pulse = 0.75f + Mathf.Sin(Time.time * 12f) * 0.12f;
                 sr.color = new Color(c.r, c.g, c.b, Mathf.Clamp01(pulse));
             }
+            UpdateNoteLedVisual(1f, true);
 
             float holdProgress = holdDuration <= 0.001f ? 1f : Mathf.Clamp01((t - HitTime) / holdDuration);
             float remainingLength = Mathf.Lerp(fullHoldLength, 0.06f, Mathf.SmoothStep(0f, 1f, holdProgress));
 
             // Mientras se mantiene, el trail se limpia progresivamente y no invade otros carriles.
-            UpdateHoldBody(remainingLength, 0.175f, Mathf.Lerp(0.72f, 0.16f, holdProgress));
+            UpdateHoldBody(remainingLength, 0.205f, Mathf.Lerp(0.86f, 0.24f, holdProgress));
 
             if (lane != null && lane.WasKeyReleasedThisFrame)
             {
@@ -332,7 +490,9 @@ namespace ProjectBeat.Runtime
 
             length = Mathf.Max(0.01f, length);
             width = Mathf.Clamp(width, 0.045f, 0.22f);
-            alpha = Mathf.Clamp01(alpha * HoldReadabilityFade);
+            float brightness = Mathf.Clamp(PlayerPrefs.GetFloat(BrightnessPrefsKey, 1f), 0.55f, 1.35f);
+            float brightnessComp = Mathf.Lerp(1f, 1.28f, Mathf.InverseLerp(1f, 1.35f, brightness));
+            alpha = Mathf.Clamp01(alpha * HoldReadabilityFade * Mathf.Max(0.80f, VisualAccessibilitySettings.GlowMultiplier) * brightnessComp);
 
             Quaternion laneRotation = Quaternion.FromToRotation(Vector3.up, holdDirection);
             float segmentLength = Mathf.Max(0.05f, length / HoldTrailSegmentCount * 0.78f);
@@ -355,7 +515,7 @@ namespace ProjectBeat.Runtime
                     trail.transform.rotation = laneRotation;
                     trail.transform.localScale = new Vector3(perspectiveWidth, segmentLength * 0.86f, 1f);
                     Color c = trail.color;
-                    c.a = Mathf.Clamp01(perspectiveAlpha * 0.46f);
+                    c.a = Mathf.Clamp01(perspectiveAlpha * 0.58f);
                     trail.color = c;
                     trail.enabled = length > 0.08f;
                 }
@@ -367,7 +527,7 @@ namespace ProjectBeat.Runtime
                     core.transform.rotation = laneRotation;
                     core.transform.localScale = new Vector3(perspectiveWidth * 0.28f, segmentLength * 0.82f, 1f);
                     Color c = core.color;
-                    c.a = Mathf.Clamp01(perspectiveAlpha * 0.62f);
+                    c.a = Mathf.Clamp01(perspectiveAlpha * 0.82f);
                     core.color = c;
                     core.enabled = length > 0.08f;
                 }
@@ -378,7 +538,7 @@ namespace ProjectBeat.Runtime
                 holdEndRenderer.transform.position = transform.position + holdDirection * length;
                 holdEndRenderer.transform.rotation = laneRotation;
                 // End marker más claro pero pequeño: comunica cuándo soltar sin tapar gameplay.
-                float endScale = Mathf.Clamp(width * 1.75f, 0.18f, 0.36f);
+                float endScale = Mathf.Clamp(width * 1.95f, 0.22f, 0.42f);
                 holdEndRenderer.transform.localScale = new Vector3(endScale, endScale * 0.50f, 1f);
                 Color c = holdEndRenderer.color;
                 c.a = Mathf.Clamp01(alpha * 0.92f);
