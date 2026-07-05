@@ -77,6 +77,25 @@ namespace ProjectBeat.Runtime
         private RectTransform hudInfoPanel;
         private TMP_Text pauseHintHudText;
 
+        // Avance 64 rehecho: feedback visual más vivo, pero compacto y no invasivo.
+        private Outline judgementOutline;
+        private Outline comboOutline;
+        private Outline multiplierOutline;
+        private Shadow judgementShadow;
+        private Shadow comboShadow;
+        private Shadow multiplierShadow;
+        private Vector3 judgementBaseScale = Vector3.one;
+        private Vector3 comboBaseScale = Vector3.one;
+        private Vector3 multiplierBaseScale = Vector3.one;
+        private Vector2 judgementBasePos;
+        private bool feedbackPolishReady;
+        private float judgementPopTimer;
+        private float multiplierPopTimer;
+        private int lastComboValue;
+        private int lastMultiplierValue = 1;
+        private const float JudgementPopDur = 0.28f;
+        private const float MultiplierPopDur = 0.22f;
+
         // ── Init ──────────────────────────────────────────────────────────
         public void Initialize(BeatmapData beatmap)
         {
@@ -95,6 +114,9 @@ namespace ProjectBeat.Runtime
             displayedScore = targetScore = 0;
             RepositionGameplayHud();
             EnsureGameplayKeyIndicators();
+            EnsureFeedbackPolish();
+            lastComboValue = 0;
+            lastMultiplierValue = 1;
             ShowJudgement("");
             UpdateStats(0, 0, 100f, 1);
             ShowLevelIntro(beatmap);
@@ -179,21 +201,37 @@ namespace ProjectBeat.Runtime
         // ── Stats ─────────────────────────────────────────────────────────
         public void UpdateStats(int score, int combo, float accuracy, int multiplier = 1)
         {
+            EnsureFeedbackPolish();
+
             // Score animates to target
             targetScore = score;
             if (score > displayedScore) scorePopTimer = ScorePopDur;
 
-            // Combo pop size
-            float sz = comboPopTimer > 0f
-                ? Mathf.Lerp(44f, 58f, comboPopTimer / ComboPop)
-                : 44f;
+            // Pop compacto al subir combo: visible, pero sin dominar la pantalla.
+            if (combo > lastComboValue && combo > 1)
+                comboPopTimer = ComboPop;
+            lastComboValue = combo;
+
+            if (multiplier != lastMultiplierValue)
+            {
+                multiplierPopTimer = MultiplierPopDur;
+                lastMultiplierValue = multiplier;
+            }
+
+            float comboSize = comboPopTimer > 0f
+                ? Mathf.Lerp(30f, 38f, comboPopTimer / ComboPop)
+                : 30f;
 
             if (comboText != null)
             {
                 if (combo > 1)
-                    comboText.text = $"<b><size={sz:0}><color=#ffdd00>{combo}</color>" +
-                                     $"<color=#ff9900>x</color></size></b> " +
-                                     $"<size=24><color=#ffeeaa>COMBO</color></size>";
+                {
+                    string comboColor = GetComboColorHex(combo, multiplier);
+                    comboText.text = $"<b><size={comboSize:0}><color={comboColor}>{combo}x</color></size></b> " +
+                                     $"<size=18><color=#DDEEFF>COMBO</color></size>";
+                    comboText.enableWordWrapping = false;
+                    comboText.richText = true;
+                }
                 else
                     comboText.text = "";
             }
@@ -202,16 +240,18 @@ namespace ProjectBeat.Runtime
                 accuracyText.text = $"<color=#ffaa44>PREC</color> " +
                                     $"<b><color=#ffffff>{accuracy:0.00}%</color></b>";
 
-            // Multiplier badge
+            // Multiplier badge compacto: más vivo, pero sin tamaño exagerado.
             if (multiplierText != null)
             {
                 if (multiplier > 1)
                 {
-                    string mc = multiplier switch
-                    {
-                        2 => "#88ff88", 3 => "#ffdd00", 4 => "#ff55ff", _ => "#ffffff"
-                    };
-                    multiplierText.text = $"<b><color={mc}>x{multiplier}</color></b>";
+                    string multiplierColor = GetMultiplierColorHex(multiplier);
+                    float multSize = multiplierPopTimer > 0f
+                        ? Mathf.Lerp(22f, 28f, multiplierPopTimer / MultiplierPopDur)
+                        : 22f;
+                    multiplierText.text = $"<b><size={multSize:0}><color={multiplierColor}>x{multiplier}</color></size></b>";
+                    multiplierText.enableWordWrapping = false;
+                    multiplierText.richText = true;
                 }
                 else multiplierText.text = "";
             }
@@ -221,23 +261,43 @@ namespace ProjectBeat.Runtime
         public void ShowJudgement(string msg)
         {
             if (judgementText == null) return;
-            Color c = msg switch
-            {
-                "PERFECT" => ColPerfect, "GOOD" => ColGood,
-                "BAD"     => ColBad,     "MISS" => ColMiss,
-                _         => Color.white
-            };
+            EnsureFeedbackPolish();
+
+            Color c = GetJudgementColor(msg);
             string styled = msg switch
             {
-                "PERFECT" => "<b><size=54>* PERFECTO *</size></b>",
-                "GOOD"    => "<b><size=46>• BIEN</size></b>",
-                "BAD"     => "<b><size=38>/\\ MAL</size></b>",
-                "MISS"    => "<b><size=36>X FALLO</size></b>",
-                _         => ""
+                "PERFECT" => "<b><size=38>PERFECTO</size></b>",
+                "GOOD"    => "<b><size=34>BIEN</size></b>",
+                "BAD"     => "<b><size=30>MAL</size></b>",
+                "MISS"    => "<b><size=30>FALLO</size></b>",
+                _          => ""
             };
-            judgementText.text  = styled;
-            judgementText.color = new Color(c.r, c.g, c.b, 1f);
-            judgementTimer      = JudgeFade;
+
+            judgementText.text = styled;
+            judgementText.color = new Color(c.r, c.g, c.b, string.IsNullOrEmpty(styled) ? 0f : 1f);
+            judgementText.fontStyle = FontStyles.Bold;
+            judgementText.characterSpacing = msg == "PERFECT" ? 2.2f : 1.4f;
+            judgementText.enableWordWrapping = false;
+            judgementText.richText = true;
+
+            if (judgementOutline != null)
+            {
+                judgementOutline.effectColor = new Color(c.r, c.g, c.b, msg == "PERFECT" ? 0.58f : 0.42f);
+                judgementOutline.effectDistance = msg == "PERFECT" ? new Vector2(2.2f, -2.2f) : new Vector2(1.6f, -1.6f);
+            }
+            if (judgementShadow != null)
+            {
+                judgementShadow.effectColor = new Color(0f, 0f, 0f, 0.82f);
+                judgementShadow.effectDistance = new Vector2(2f, -2f);
+            }
+
+            RectTransform rt = judgementText.GetComponent<RectTransform>();
+            if (rt != null)
+                rt.anchoredPosition = judgementBasePos;
+            judgementText.transform.localScale = judgementBaseScale * 1.05f;
+
+            judgementTimer = string.IsNullOrEmpty(styled) ? 0f : JudgeFade;
+            judgementPopTimer = string.IsNullOrEmpty(styled) ? 0f : JudgementPopDur;
         }
 
         // ── Combo pop ─────────────────────────────────────────────────────
@@ -422,6 +482,98 @@ namespace ProjectBeat.Runtime
             }
         }
 
+
+        // ── Avance 64 rehecho: pulido compacto de feedback ─────────────────
+        private void EnsureFeedbackPolish()
+        {
+            if (feedbackPolishReady) return;
+
+            SetupFeedbackText(judgementText, ref judgementOutline, ref judgementShadow, new Vector2(1.6f, -1.6f));
+            SetupFeedbackText(comboText, ref comboOutline, ref comboShadow, new Vector2(1.2f, -1.2f));
+            SetupFeedbackText(multiplierText, ref multiplierOutline, ref multiplierShadow, new Vector2(1.1f, -1.1f));
+
+            if (judgementText != null)
+            {
+                judgementBaseScale = judgementText.transform.localScale;
+                RectTransform rt = judgementText.GetComponent<RectTransform>();
+                if (rt != null)
+                {
+                    judgementBasePos = rt.anchoredPosition;
+                    rt.sizeDelta = new Vector2(Mathf.Max(rt.sizeDelta.x, 420f), Mathf.Max(rt.sizeDelta.y, 74f));
+                }
+            }
+            if (comboText != null)
+                comboBaseScale = comboText.transform.localScale;
+            if (multiplierText != null)
+                multiplierBaseScale = multiplierText.transform.localScale;
+
+            feedbackPolishReady = true;
+        }
+
+        private void SetupFeedbackText(TMP_Text tmp, ref Outline outline, ref Shadow shadow, Vector2 outlineDistance)
+        {
+            if (tmp == null) return;
+
+            tmp.richText = true;
+            tmp.enableWordWrapping = false;
+            tmp.raycastTarget = false;
+
+            outline = tmp.GetComponent<Outline>();
+            if (outline == null) outline = tmp.gameObject.AddComponent<Outline>();
+            outline.effectColor = new Color(0f, 0f, 0f, 0.42f);
+            outline.effectDistance = outlineDistance;
+
+            shadow = tmp.GetComponent<Shadow>();
+            if (shadow == null) shadow = tmp.gameObject.AddComponent<Shadow>();
+            shadow.effectColor = new Color(0f, 0f, 0f, 0.78f);
+            shadow.effectDistance = new Vector2(1.8f, -1.8f);
+        }
+
+        private Color GetJudgementColor(string msg)
+        {
+            return msg switch
+            {
+                "PERFECT" => ColPerfect,
+                "GOOD"    => new Color(0.18f, 0.95f, 1f),
+                "BAD"     => ColBad,
+                "MISS"    => ColMiss,
+                _          => Color.white
+            };
+        }
+
+        private string GetComboColorHex(int combo, int multiplier)
+        {
+            if (combo >= 100 || multiplier >= 5) return "#FF66F5";
+            if (combo >= 50  || multiplier >= 4) return "#FFF36B";
+            if (combo >= 25  || multiplier >= 3) return "#8DFF7A";
+            if (combo >= 10  || multiplier >= 2) return "#00F1FF";
+            return "#FFE680";
+        }
+
+        private string GetMultiplierColorHex(int multiplier)
+        {
+            return multiplier switch
+            {
+                2 => "#00F1FF",
+                3 => "#8DFF7A",
+                4 => "#FFF36B",
+                5 => "#FF66F5",
+                _ => "#FFFFFF"
+            };
+        }
+
+        private Color GetMultiplierColor(int multiplier)
+        {
+            return multiplier switch
+            {
+                2 => new Color(0f, 0.95f, 1f, 1f),
+                3 => new Color(0.55f, 1f, 0.48f, 1f),
+                4 => new Color(1f, 0.95f, 0.35f, 1f),
+                5 => new Color(1f, 0.38f, 0.95f, 1f),
+                _ => Color.white
+            };
+        }
+
         // ── Results ───────────────────────────────────────────────────────
         public void ShowResults(ScoreManager sm, BeatmapData beatmap)
         {
@@ -470,6 +622,16 @@ namespace ProjectBeat.Runtime
 
             resultAnimTimer = ResultAnimDur;
             if (resultCard != null) resultCard.localScale = new Vector3(0.92f, 0.92f, 1f);
+        }
+
+
+        public void HideResults()
+        {
+            if (resultGroup == null) return;
+
+            resultGroup.alpha = 0f;
+            resultGroup.interactable = false;
+            resultGroup.blocksRaycasts = false;
         }
 
         private Color GetRankColor(string rank)
@@ -579,6 +741,7 @@ namespace ProjectBeat.Runtime
             if (hudInfoPanel == null || pauseHintHudText == null) RepositionGameplayHud();
             EnsureGameplayKeyIndicators();
             UpdateGameplayKeyIndicators();
+            EnsureFeedbackPolish();
 
             // Level intro fade + subtle scale
             if (introGroup != null && introTimer > 0f)
@@ -593,18 +756,56 @@ namespace ProjectBeat.Runtime
                 if (introTimer <= 0f) introGroup.alpha = 0f;
             }
 
-            // Judgement fade
+            // Judgement fade: pop pequeño, subida leve y desaparición limpia.
             if (judgementText != null && judgementTimer > 0f)
             {
                 judgementTimer -= Time.deltaTime;
+                float life = 1f - Mathf.Clamp01(judgementTimer / JudgeFade);
+                float fade = Mathf.Clamp01(judgementTimer / (JudgeFade * 0.42f));
                 Color c = judgementText.color;
-                c.a = Mathf.Clamp01(judgementTimer / (JudgeFade * 0.35f));
+                c.a = fade;
                 judgementText.color = c;
-                if (judgementTimer <= 0f) judgementText.text = "";
+
+                if (judgementPopTimer > 0f)
+                    judgementPopTimer -= Time.deltaTime;
+
+                float pop = judgementPopTimer > 0f ? Mathf.Clamp01(judgementPopTimer / JudgementPopDur) : 0f;
+                float scale = 1f + 0.08f * pop;
+                judgementText.transform.localScale = judgementBaseScale * scale;
+
+                RectTransform jrt = judgementText.GetComponent<RectTransform>();
+                if (jrt != null)
+                    jrt.anchoredPosition = judgementBasePos + new Vector2(0f, life * 10f);
+
+                if (judgementTimer <= 0f)
+                {
+                    judgementText.text = "";
+                    judgementText.transform.localScale = judgementBaseScale;
+                    if (jrt != null) jrt.anchoredPosition = judgementBasePos;
+                }
             }
 
-            // Combo pop decay
+            // Combo/multiplicador: pulso controlado, sin invadir la pista.
             if (comboPopTimer > 0f) comboPopTimer -= Time.deltaTime;
+            if (comboText != null)
+            {
+                float comboPulse = comboPopTimer > 0f ? Mathf.Clamp01(comboPopTimer / ComboPop) : 0f;
+                comboText.transform.localScale = comboBaseScale * (1f + 0.06f * comboPulse);
+                if (comboOutline != null)
+                    comboOutline.effectColor = new Color(0f, 0.95f, 1f, Mathf.Lerp(0.22f, 0.52f, comboPulse));
+            }
+
+            if (multiplierPopTimer > 0f) multiplierPopTimer -= Time.deltaTime;
+            if (multiplierText != null)
+            {
+                float multPulse = multiplierPopTimer > 0f ? Mathf.Clamp01(multiplierPopTimer / MultiplierPopDur) : 0f;
+                multiplierText.transform.localScale = multiplierBaseScale * (1f + 0.10f * multPulse);
+                if (multiplierOutline != null)
+                {
+                    Color mc = GetMultiplierColor(lastMultiplierValue);
+                    multiplierOutline.effectColor = new Color(mc.r, mc.g, mc.b, Mathf.Lerp(0.25f, 0.64f, multPulse));
+                }
+            }
 
             // Milestone banner fade
             if (milestoneText != null && milestoneTimer > 0f)

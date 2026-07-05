@@ -1,0 +1,26 @@
+AVANCE 61 - CORRECCION DE BOTONES MOUSE EN SELECTOR TURQUESA
+
+Base: Avance 60 - LevelSelectorTurquoiseRefinedUI.
+
+Cambios realizados:
+- Se corrigieron las flechas clickeables del selector de niveles.
+- Se agregaron botones visuales reales para izquierda y derecha, con hover, glow y efecto de pulsacion.
+- Se ajustaron las zonas de clic para que queden encima de la UI y no bloqueadas por textos o capas visuales.
+- Se quito la duplicacion de flechas dentro del texto principal y se dejaron flechas como botones independientes.
+- Se mejoro la sensacion al pasar el mouse: hover mas vivo, escala suave, brillo y color activo.
+- Se mantuvo la estetica turquesa/cian del Avance 60.
+
+Archivos modificados:
+- Assets/Scripts/Runtime/PauseMenu.cs
+
+No se modifico:
+- LevelManager
+- Gameplay
+- Canciones
+- Resultados
+- Configuracion
+- Sistema de pausa
+- Sistema de puntuacion
+- Flujo de escenas
+- Logica del selector
+- Navegacion A/D, ENTER, ESC y mouse
