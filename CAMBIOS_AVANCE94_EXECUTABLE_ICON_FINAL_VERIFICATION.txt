@@ -1,0 +1,59 @@
+AVANCE 94 – VERIFICACIÓN DEFINITIVA DEL ICONO DEL EJECUTABLE
+
+BASE
+- Se mantiene como base ProjectBeat_Avance93_SettingsClickFixAndExecutableLogo.zip.
+- Unity obligatorio: 6000.3.11f1.
+
+CAMBIO PRINCIPAL
+- Se reforzó la asignación del icono/logo personalizado de Project Beat para el ejecutable generado por Build And Run.
+
+ARCHIVOS DEL ICONO
+- Assets/Art/UI/Branding/ProjectBeat_ExecutableIcon.png
+- Assets/Art/UI/Branding/ProjectBeat_ExecutableIcon.ico
+
+CORRECCIÓN ADICIONAL
+- El PNG del icono del ejecutable queda importado como Texture2D/Default para que Unity pueda usarlo mejor como icono de aplicación.
+- Se agregó un script SOLO de editor:
+
+  Assets/Scripts/Editor/ProjectBeatExecutableIconFinalizer.cs
+
+FUNCIONAMIENTO DEL SCRIPT
+- Al abrir el proyecto en Unity, aplica automáticamente el icono del ejecutable.
+- Antes de generar un build Standalone, vuelve a aplicar el icono para evitar que Unity use el icono por defecto.
+- También agrega un menú manual:
+
+  Project Beat > Aplicar icono del ejecutable
+
+IMPORTANTE
+- El icono del archivo de escena .unity dentro del editor puede seguir mostrando el icono normal de Unity.
+- Eso es correcto y no afecta el ejecutable.
+- Lo que debe cambiar es el icono del archivo Project Beat.exe generado por el build.
+
+VALIDACIÓN RECOMENDADA
+1. Abrir el proyecto en Unity 6000.3.11f1.
+2. Esperar que Unity termine de compilar scripts.
+3. Ir a Project Beat > Aplicar icono del ejecutable.
+4. Crear una carpeta nueva y limpia para el build.
+5. Usar Build And Run.
+6. Revisar el icono del Project Beat.exe generado.
+7. Si Windows aún muestra el icono viejo, reiniciar el Explorador de Windows o probar el .exe en otra carpeta nueva, porque Windows puede mantener caché de iconos.
+
+NO SE MODIFICÓ
+- Gameplay.
+- LevelManager.
+- Canciones.
+- Timing.
+- Hit detection.
+- Puntuación.
+- Precisión.
+- Combo.
+- Lógica de notas.
+- Menús.
+- Pausa.
+- Resultados.
+- Configuración.
+- Perfiles.
+- Estadísticas.
+- Logros.
+- Easter eggs.
+- Sistema de localización/idiomas no fue agregado ni recuperado.

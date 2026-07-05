@@ -1,0 +1,50 @@
+AVANCE 97 – CORRECCION DE MAPEO TACTIL ANDROID Y LIMPIEZA DE PAUSA MOVIL
+
+BASE
+- ProjectBeat_Avance96_AndroidTouchPauseAndMultitouchFix.zip
+
+OBJETIVO
+- Corregir el problema donde los botones tactiles D/F/J/K no golpeaban el carril correcto en Android.
+- Quitar el boton PAUSA tactil superior derecho porque se montaba sobre el HUD y generaba una experiencia visual confusa en telefono.
+
+CAMBIOS REALIZADOS
+- Se ajusto MobileTouchControls.cs.
+- El HUD tactil ahora resuelve los carriles en orden seguro:
+  1) por nombre de objeto Lane_0, Lane_1, Lane_2, Lane_3;
+  2) por LaneIndex cuando ya fue inicializado;
+  3) por posicion X izquierda a derecha como respaldo.
+- Esto evita que FindObjectsOfType entregue carriles en un orden incorrecto antes de que GameController termine de inicializar.
+- Los botones tactiles quedan asociados asi:
+  D -> Lane_0
+  F -> Lane_1
+  J -> Lane_2
+  K -> Lane_3
+- Se oculto el boton tactil de PAUSA superior derecho en Android.
+- Se mantuvo el HUD tactil de D/F/J/K.
+- Se redujo levemente el tamano de botones tactiles y se bajaron para limpiar la pantalla.
+
+NO MODIFICADO
+- LevelManager.
+- Beatmaps.
+- Canciones.
+- Timing.
+- Hit detection.
+- Sistema de puntuacion.
+- Precision.
+- Combo.
+- Logica interna de notas.
+- Logica de hold notes.
+- Selector de niveles.
+- Menus principales.
+- Resultados.
+- Configuracion.
+- Iconos del ejecutable/Android.
+- Sistema de idiomas/localizacion no fue recuperado.
+
+VALIDACION MANUAL RECOMENDADA
+- Abrir en Unity 6000.3.11f1.
+- Compilar APK Android nuevo.
+- Instalar en telefono real.
+- Probar tutorial y un nivel.
+- Confirmar que D golpea el carril D, F el carril F, J el carril J y K el carril K.
+- Confirmar que ya no aparece el boton PAUSA tactil superior derecho.

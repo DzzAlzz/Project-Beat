@@ -1,0 +1,50 @@
+AVANCE 79 – SCROLL DE ESTADISTICAS, BLOQUEO DE NIVELES POR PERFIL Y PANTALLA INICIAL
+
+BASE
+- Usado Avance 78 como base.
+
+ARCHIVOS MODIFICADOS
+- Assets/Scripts/Runtime/StartupFlowController.cs
+- Assets/Scripts/Runtime/PauseMenu.cs
+- Assets/Scripts/Runtime/ProfileStatsStorage.cs
+- Assets/Scripts/Runtime/GameController.cs
+
+CAMBIOS IMPLEMENTADOS
+
+1) Panel de ESTADISTICAS con scroll
+- El listado de estadísticas ahora se muestra dentro de un contenedor con ScrollRect.
+- El título, perfil actual y botón X quedan fijos.
+- La lista puede desplazarse hacia abajo con rueda del mouse/barra vertical.
+- Se eliminó el resumen reducido: ahora se pueden revisar todos los niveles guardados.
+- El contenido se organiza en bloques más limpios por nivel.
+
+2) Bloqueo/desbloqueo de niveles por perfil
+- El progreso de desbloqueo se guarda dentro de las estadísticas del perfil actual.
+- Al crear NUEVA PARTIDA se reinicia el progreso del perfil:
+  * ACELERADA queda desbloqueado.
+  * RITMO FUNK y niveles posteriores quedan bloqueados.
+- Al terminar un nivel, se desbloquea el siguiente nivel disponible para ese perfil.
+- Si se cambia/carga otro perfil, el selector usa el progreso de ese perfil.
+- Si un nivel está bloqueado, el selector muestra overlay BLOQUEADO.
+- Si se intenta iniciar un nivel bloqueado, aparece aviso: NIVEL BLOQUEADO.
+
+3) Pantalla inicial tipo “Presiona cualquier tecla”
+- Al iniciar el juego aparece primero una pantalla de presentación con PROJECT BEAT.
+- Se agregó texto: PRESIONA CUALQUIER TECLA / BOTON / TOCA LA PANTALLA.
+- El juego espera una entrada antes de mostrar el menú principal.
+- Acepta teclado, click del mouse y toque en pantalla.
+
+NO MODIFICADO
+- Gameplay base.
+- LevelManager.
+- Canciones.
+- Sistema de puntuación.
+- Cálculo de rango, precisión y combo.
+- Hit detection.
+- Timing de notas.
+- Lógica de notas y hold notes.
+- Pausa, configuración, resultados, ayuda y créditos.
+
+GUARDADO
+- Se mantiene PlayerPrefs + JSON.
+- El progreso de desbloqueo queda guardado por perfil junto a las estadísticas.

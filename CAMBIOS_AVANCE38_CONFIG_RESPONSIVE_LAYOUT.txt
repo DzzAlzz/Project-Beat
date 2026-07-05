@@ -1,0 +1,27 @@
+AVANCE 38 - CONFIGURACION RESPONSIVE LAYOUT
+
+Objetivo:
+Corregir la distribucion, escalado y adaptabilidad del menu Configuracion fullscreen.
+
+Cambios realizados:
+- Se centra mejor el contenido interno del panel de configuracion.
+- Se aumenta el tamano de textos principales y valores.
+- Se reduce el desplazamiento excesivo hacia la izquierda.
+- Se reorganizan las columnas de etiquetas, sliders y valores.
+- Se amplian sliders para mejor lectura visual.
+- Se mejora la separacion entre Controles, Graficos, Sonido y Volver.
+- Se mantiene la navegacion con teclado.
+
+Compatibilidad:
+- No se modifica gameplay.
+- No se modifica scoring.
+- No se modifica timing.
+- No se modifica BPM.
+- No se modifican canciones.
+- No se modifican Hold Notes.
+- No se modifica offset.
+- No se modifican resultados.
+- LevelManager se mantiene intacto.
+
+Estado:
+Version orientada a polish visual, responsive UI y alineacion profesional del menu Configuracion.

@@ -1,0 +1,29 @@
+AVANCE 70 - REDISEÑO VISUAL DEL MENÚ DE CONFIGURACIÓN
+
+Base utilizada:
+- Avance 69.
+
+Archivo modificado:
+- Assets/Scripts/Runtime/PauseMenu.cs
+
+Cambios visuales implementados:
+- Se actualizó el menú de CONFIGURACIÓN para que combine mejor con la estética morada/neón del menú principal.
+- Se ajustó el panel principal con fondo morado oscuro translúcido, glows magenta/cian y bordes de acento neón.
+- Se agregó una línea/acento magenta bajo el título para acercar la estética a los paneles de CRÉDITOS y CÓMO JUGAR.
+- Se retocaron separadores internos con tonos magenta/cian.
+- Se ajustaron los colores de encabezados, opciones, descripciones, valores y texto de ayuda.
+- Se actualizó el estilo visual de sliders: base más morada, glow magenta/cian y selección más luminosa.
+- Se mantuvieron todas las opciones existentes y su funcionamiento.
+
+No se modificó:
+- Gameplay.
+- LevelManager.
+- Canciones.
+- Sistema de puntuación.
+- Timing ni hit detection.
+- Selector de niveles.
+- Menú principal.
+- Ayuda / Cómo jugar.
+- Créditos.
+- Resultados.
+- Lógica real de configuración.

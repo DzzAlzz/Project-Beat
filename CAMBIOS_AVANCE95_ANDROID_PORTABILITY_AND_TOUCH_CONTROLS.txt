@@ -1,0 +1,65 @@
+AVANCE 95 – PORTABILIDAD ANDROID Y CONTROLES TÁCTILES MÓVILES
+
+BASE
+- Se trabajó sobre ProjectBeat_Avance94_ExecutableIconFinalVerification_FIXED_8ICONS.zip.
+- Se mantiene Unity 6000.3.11f1.
+
+OBJETIVO
+- Preparar Project Beat para portabilidad PC / Android sin migrar el juego a Android Studio desde cero.
+- Android Studio queda como herramienta opcional para abrir/compilar el proyecto Gradle exportado desde Unity.
+
+CAMBIOS REALIZADOS
+
+1) HUD táctil Android
+- Se agregó Assets/Scripts/Runtime/MobileTouchControls.cs.
+- El HUD se crea automáticamente en ejecución.
+- En Android muestra botones táctiles D, F, J, K y PAUSA.
+- En Windows/PC permanece oculto.
+- En el Editor puede activarse solo para pruebas desde:
+  Project Beat > Android > Probar HUD tactil en Editor > Activar
+
+2) Entrada táctil sin cambiar la lógica de gameplay
+- Se actualizó Assets/Scripts/Runtime/LaneInput.cs.
+- Se agregaron estados virtuales de press/release para botones táctiles.
+- Los botones táctiles reutilizan la misma lógica de TryHit usada por las teclas D/F/J/K.
+- Las hold notes también pueden mantenerse y soltarse usando los botones táctiles.
+- No se modificó el timing, las ventanas de hit, el cálculo de puntaje, precisión ni combo.
+
+3) Preparación Android
+- Se agregó Assets/Scripts/Editor/ProjectBeatAndroidPortabilityConfigurator.cs.
+- Se configuró nombre de producto Project Beat.
+- Se configuró Package Name Android: com.projectbeat.demo.
+- Se preparó orientación horizontal para móvil.
+- Se agregó menú:
+  Project Beat > Android > Configurar portabilidad Android
+- Antes de un build Android, el editor vuelve a aplicar la configuración técnica automáticamente.
+
+4) Iconos
+- Se mantiene el icono del ejecutable Windows corregido en Avance 94.
+- Se asignó el icono base de Project Beat también para la aplicación Android estándar.
+
+NO MODIFICADO
+- No se modificó LevelManager.
+- No se modificaron canciones.
+- No se modificaron beatmaps.
+- No se modificó hit detection.
+- No se modificó timing.
+- No se modificó velocidad de notas.
+- No se modificó puntuación, precisión ni combo.
+- No se recuperó ningún sistema de idiomas/localización.
+
+VALIDACIÓN RECOMENDADA
+1. Abrir el proyecto en Unity 6000.3.11f1.
+2. Esperar que compile sin errores.
+3. Probar en PC: el HUD táctil no debe aparecer.
+4. Para probar el HUD dentro del editor:
+   Project Beat > Android > Probar HUD tactil en Editor > Activar
+5. Probar que D/F/J/K táctiles golpeen notas y mantengan hold notes.
+6. Desactivar la prueba del HUD táctil en editor antes de entregar PC:
+   Project Beat > Android > Probar HUD tactil en Editor > Desactivar
+7. Para Android:
+   File > Build Profiles > Android > Switch Platform
+   Luego generar APK o exportar proyecto Gradle para abrir en Android Studio.
+
+ENTREGA
+- ProjectBeat_Avance95_AndroidPortabilityAndTouchControls.zip

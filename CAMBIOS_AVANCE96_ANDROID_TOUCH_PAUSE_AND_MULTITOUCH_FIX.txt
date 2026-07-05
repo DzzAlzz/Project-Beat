@@ -1,0 +1,55 @@
+AVANCE 96 – CORRECCIÓN ANDROID DE PAUSA TÁCTIL Y MULTITOUCH
+
+BASE:
+ProjectBeat_Avance95_AndroidPortabilityAndTouchControls.zip
+
+VERSIÓN:
+Unity 6000.3.11f1
+
+CAMBIOS APLICADOS:
+- Se corrigió el botón PAUSA del HUD táctil Android.
+- En Android, el botón PAUSA ya no abre el menú de pausa de escritorio.
+- Se agregó un overlay de pausa táctil propio para móvil con:
+  - CONTINUAR
+  - REINICIAR
+  - MENU PRINCIPAL
+- Se evita el panel morado/intermedio que aparecía al pausar desde Android.
+- Se reemplazó la entrada táctil dependiente de EventTrigger por lectura directa de Input.touchCount en Android.
+- Los botones D/F/J/K ahora soportan multitouch real en Android.
+- Los controles táctiles conservan la misma lógica de LaneInput sin modificar timing, puntuación ni beatmaps.
+- Se mejoró el feedback visual de LaneInput para que también responda al input táctil virtual.
+- Se oculta el cursor personalizado en Android.
+- En Windows/PC se mantiene el comportamiento normal del cursor y controles existentes.
+
+ARCHIVOS MODIFICADOS:
+- Assets/Scripts/Runtime/MobileTouchControls.cs
+- Assets/Scripts/Runtime/LaneInput.cs
+- Assets/Scripts/Runtime/ProjectBeatCursorController.cs
+
+NO MODIFICADO:
+- LevelManager
+- Canciones
+- Beatmaps
+- Timing
+- Hit detection
+- Puntuación
+- Precisión
+- Combo
+- Lógica de notas
+- Lógica de hold notes
+- Selector de niveles
+- Menú principal
+- Resultados
+- Sistemas de perfiles, estadísticas y logros
+- Icono del ejecutable
+
+VALIDACIÓN RECOMENDADA:
+1. Abrir el proyecto en Unity 6000.3.11f1.
+2. Cambiar a Android desde Build Profiles si no está activo.
+3. Generar un APK nuevo.
+4. Instalarlo en el celular.
+5. Entrar a un nivel.
+6. Probar D/F/J/K con varios dedos al mismo tiempo.
+7. Tocar PAUSA.
+8. Confirmar que aparece el overlay móvil y no el panel morado.
+9. Probar CONTINUAR, REINICIAR y MENU PRINCIPAL.

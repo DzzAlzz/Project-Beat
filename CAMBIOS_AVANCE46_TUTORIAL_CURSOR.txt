@@ -1,0 +1,10 @@
+AVANCE 46 - Tutorial Help Panel + Custom Cursor
+
+- Se restaura el panel de ayuda del Tutorial en el lado izquierdo.
+- El panel solo se muestra cuando el nivel activo es TUTORIAL.
+- El panel se oculta al pausar y vuelve al continuar.
+- El panel se destruye al cambiar a cualquier otro nivel o al volver al menu principal.
+- Se agrega cursor personalizado estilo Project Beat para menus.
+- Cursor con tonos celeste, morado y naranja.
+- El cursor se muestra en menus y se oculta durante gameplay.
+- No se modifica BPM, timing, scoring, Hold Notes, offset, canciones ni LevelManager.
