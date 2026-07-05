@@ -42,12 +42,16 @@ namespace ProjectBeat.Runtime
         private int selectedOption;
         private int selectedSettingsOption;
         private const int OptionCount = 6;
-        private const int SettingsOptionCount = 4;
+        private const int SettingsOptionCount = 8;
 
         private const string BrightnessPrefsKey = "ProjectBeat_Brightness";
         private const string MasterVolumePrefsKey = "ProjectBeat_MasterVolume";
+        private const string ResolutionPrefsKey = "ProjectBeat_ResolutionIndex";
+        private const string DisplayModePrefsKey = "ProjectBeat_DisplayModeIndex";
         private float brightness = 1f;
         private float masterVolume = 1f;
+        private int resolutionIndex = 3;
+        private int displayModeIndex = 0;
 
         private static readonly Color DeepDim = new Color(0.006f, 0.007f, 0.014f, 0.88f);
         private static readonly Color Glass = new Color(0.025f, 0.035f, 0.065f, 0.92f);
@@ -60,6 +64,15 @@ namespace ProjectBeat.Runtime
 
         private static readonly string[] OptionNames = { "CONTINUAR", "ELEGIR NIVEL", "REINICIAR", "CONFIGURACION", "CREDITOS", "SALIR" };
         private static readonly string[] OptionIcons = { "PLAY", "LEVEL", "RETRY", "SETUP", "INFO", "QUIT" };
+        private static readonly Vector2Int[] ResolutionOptions =
+        {
+            new Vector2Int(1280, 720),
+            new Vector2Int(1366, 768),
+            new Vector2Int(1600, 900),
+            new Vector2Int(1920, 1080),
+            new Vector2Int(2560, 1440)
+        };
+        private static readonly string[] DisplayModeNames = { "PANTALLA COMPLETA", "VENTANA", "VENTANA SIN BORDES" };
 
         private TMP_Text settingsMenuLabel;
         private TMP_Text[] menuLabels;
@@ -71,6 +84,19 @@ namespace ProjectBeat.Runtime
         private TMP_Text settingsTitleText;
         private TMP_Text settingsBodyText;
         private TMP_Text settingsHintText;
+        private TMP_Text controlsHeaderText;
+        private TMP_Text controlsDescriptionText;
+        private TMP_Text graphicsHeaderText;
+        private TMP_Text brightnessLabelText;
+        private TMP_Text resolutionLabelText;
+        private TMP_Text resolutionValueText;
+        private TMP_Text displayModeLabelText;
+        private TMP_Text displayModeValueText;
+        private TMP_Text effectsLabelText;
+        private TMP_Text sensitivityLabelText;
+        private TMP_Text soundHeaderText;
+        private TMP_Text volumeLabelText;
+        private TMP_Text settingsBackText;
         private CanvasGroup creditsGroup;
         private TMP_Text creditsTitleText;
         private TMP_Text creditsBodyText;
@@ -80,6 +106,11 @@ namespace ProjectBeat.Runtime
         private Image brightnessSliderGlow;
         private RectTransform brightnessSliderHandle;
         private TMP_Text brightnessValueText;
+        private Image effectsSliderFill;
+        private Image effectsSliderGlow;
+        private RectTransform effectsSliderHandle;
+        private TMP_Text effectsValueText;
+        private TMP_Text sensitivityValueText;
         private Image volumeSliderFill;
         private Image volumeSliderGlow;
         private RectTransform volumeSliderHandle;
@@ -306,7 +337,13 @@ namespace ProjectBeat.Runtime
             }
             else if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter) || Input.GetKeyDown(KeyCode.Space))
             {
-                if (selectedSettingsOption == 3)
+                if (selectedSettingsOption == 5)
+                {
+                    VisualAccessibilitySettings.ToggleSensitivityMode();
+                    ApplyVisualAudioSettings();
+                    RefreshSettingsPanel();
+                }
+                else if (selectedSettingsOption == 7)
                     ExitSettings();
             }
             else if (Input.GetKeyDown(KeyCode.Escape))
@@ -324,10 +361,26 @@ namespace ProjectBeat.Runtime
                     PlayerPrefs.SetFloat(BrightnessPrefsKey, brightness);
                     break;
                 case 2:
+                    resolutionIndex = WrapIndex(resolutionIndex + (delta > 0f ? 1 : -1), ResolutionOptions.Length);
+                    PlayerPrefs.SetInt(ResolutionPrefsKey, resolutionIndex);
+                    ApplyDisplaySettings();
+                    break;
+                case 3:
+                    displayModeIndex = WrapIndex(displayModeIndex + (delta > 0f ? 1 : -1), DisplayModeNames.Length);
+                    PlayerPrefs.SetInt(DisplayModePrefsKey, displayModeIndex);
+                    ApplyDisplaySettings();
+                    break;
+                case 4:
+                    VisualAccessibilitySettings.AdjustIntensity(delta > 0f ? 1 : -1);
+                    break;
+                case 5:
+                    VisualAccessibilitySettings.ToggleSensitivityMode();
+                    break;
+                case 6:
                     masterVolume = Mathf.Clamp01(masterVolume + delta);
                     PlayerPrefs.SetFloat(MasterVolumePrefsKey, masterVolume);
                     break;
-                case 3:
+                case 7:
                     // ENTER vuelve; izquierda/derecha no hacen nada aqui.
                     break;
             }
@@ -620,24 +673,61 @@ namespace ProjectBeat.Runtime
             grt.offsetMin = Vector2.zero;
             grt.offsetMax = Vector2.zero;
 
-            CreateFullScreenImage(groupGO.transform, "PB_Settings_Dim", new Color(0f, 0f, 0f, 0.35f), 0);
-            CreateCard(groupGO.transform, "PB_Settings_Card", new Vector2(760f, 610f), Vector2.zero, 1);
-            CreateLine(groupGO.transform, "PB_Settings_TopLine", new Vector2(0f, 292f), new Vector2(610f, 4f), NeonCyan, 2);
-            CreateLine(groupGO.transform, "PB_Settings_BottomLine", new Vector2(0f, -292f), new Vector2(420f, 3f), NeonOrange, 3);
+            CreateFullScreenImage(groupGO.transform, "PB_Settings_Dim", new Color(0f, 0f, 0f, 0.38f), 0);
+            CreateCard(groupGO.transform, "PB_Settings_Card", new Vector2(1520f, 900f), Vector2.zero, 1);
+            CreateLine(groupGO.transform, "PB_Settings_TopLine", new Vector2(0f, 425f), new Vector2(1260f, 4f), NeonCyan, 2);
+            CreateLine(groupGO.transform, "PB_Settings_BottomLine", new Vector2(0f, -420f), new Vector2(760f, 3f), NeonOrange, 3);
 
-            settingsTitleText = CreateTmp(groupGO.transform, "PB_Settings_Title", "CONFIGURACION", new Vector2(0f, 238f), new Vector2(660f, 54f), 36f, NeonYellow, 4, FontStyles.Bold, 5f);
-            settingsBodyText = CreateTmp(groupGO.transform, "PB_Settings_Body", "", new Vector2(0f, -8f), new Vector2(660f, 370f), 20f, TextNormal, 5, FontStyles.Normal, 1.2f);
-            settingsBodyText.alignment = TextAlignmentOptions.TopLeft;
-            settingsBodyText.enableWordWrapping = true;
-            settingsHintText = CreateTmp(groupGO.transform, "PB_Settings_Hint", "", new Vector2(0f, -252f), new Vector2(690f, 44f), 17f, TextDim, 6, FontStyles.Normal, 1.0f);
+            settingsTitleText = CreateTmp(groupGO.transform, "PB_Settings_Title", "CONFIGURACION", new Vector2(0f, 375f), new Vector2(900f, 56f), 36f, NeonYellow, 4, FontStyles.Bold, 5f);
+            settingsBodyText = CreateTmp(groupGO.transform, "PB_Settings_Body", "", new Vector2(0f, 0f), new Vector2(1f, 1f), 1f, TextNormal, 5, FontStyles.Normal, 0f);
+            settingsBodyText.enabled = false;
 
-            CreateSliderVisual(groupGO.transform, "PB_Settings_BrightnessSlider", new Vector2(70f, 28f), out brightnessSliderFill, out brightnessSliderGlow, out brightnessSliderHandle);
-            brightnessValueText = CreateTmp(groupGO.transform, "PB_Settings_BrightnessValue", "100%", new Vector2(290f, 28f), new Vector2(90f, 28f), 18f, NeonYellow, 7, FontStyles.Bold, 1.0f);
-            brightnessValueText.alignment = TextAlignmentOptions.Left;
+            controlsHeaderText = CreateTmp(groupGO.transform, "PB_Settings_ControlsHeader", "", new Vector2(-590f, 318f), new Vector2(500f, 28f), 18f, NeonCyan, 6, FontStyles.Bold, 2f);
+            controlsDescriptionText = CreateTmp(groupGO.transform, "PB_Settings_ControlsDescription", "", new Vector2(-585f, 292f), new Vector2(680f, 24f), 13f, TextDim, 7, FontStyles.Normal, 0f);
+            graphicsHeaderText = CreateTmp(groupGO.transform, "PB_Settings_GraphicsHeader", "", new Vector2(-590f, 242f), new Vector2(500f, 30f), 20f, NeonCyan, 8, FontStyles.Bold, 2f);
+            brightnessLabelText = CreateTmp(groupGO.transform, "PB_Settings_BrightnessLabel", "", new Vector2(-570f, 190f), new Vector2(520f, 42f), 16f, TextNormal, 9, FontStyles.Normal, 0f);
+            resolutionLabelText = CreateTmp(groupGO.transform, "PB_Settings_ResolutionLabel", "", new Vector2(-570f, 128f), new Vector2(520f, 42f), 16f, TextNormal, 10, FontStyles.Normal, 0f);
+            displayModeLabelText = CreateTmp(groupGO.transform, "PB_Settings_DisplayModeLabel", "", new Vector2(-570f, 66f), new Vector2(520f, 42f), 16f, TextNormal, 11, FontStyles.Normal, 0f);
+            effectsLabelText = CreateTmp(groupGO.transform, "PB_Settings_EffectsLabel", "", new Vector2(-570f, 4f), new Vector2(600f, 42f), 16f, TextNormal, 12, FontStyles.Normal, 0f);
+            sensitivityLabelText = CreateTmp(groupGO.transform, "PB_Settings_SensitivityLabel", "", new Vector2(-570f, -58f), new Vector2(600f, 42f), 16f, TextNormal, 13, FontStyles.Normal, 0f);
+            soundHeaderText = CreateTmp(groupGO.transform, "PB_Settings_SoundHeader", "", new Vector2(-590f, -150f), new Vector2(500f, 30f), 20f, NeonCyan, 14, FontStyles.Bold, 2f);
+            volumeLabelText = CreateTmp(groupGO.transform, "PB_Settings_VolumeLabel", "", new Vector2(-570f, -202f), new Vector2(520f, 42f), 16f, TextNormal, 15, FontStyles.Normal, 0f);
+            settingsBackText = CreateTmp(groupGO.transform, "PB_Settings_Back", "", new Vector2(-570f, -302f), new Vector2(520f, 46f), 22f, NeonOrange, 16, FontStyles.Bold, 1.5f);
 
-            CreateSliderVisual(groupGO.transform, "PB_Settings_VolumeSlider", new Vector2(70f, -88f), out volumeSliderFill, out volumeSliderGlow, out volumeSliderHandle);
-            volumeValueText = CreateTmp(groupGO.transform, "PB_Settings_VolumeValue", "100%", new Vector2(290f, -88f), new Vector2(90f, 28f), 18f, NeonYellow, 7, FontStyles.Bold, 1.0f);
-            volumeValueText.alignment = TextAlignmentOptions.Left;
+            TMP_Text[] leftLabels = { controlsHeaderText, controlsDescriptionText, graphicsHeaderText, brightnessLabelText, resolutionLabelText, displayModeLabelText, effectsLabelText, sensitivityLabelText, soundHeaderText, volumeLabelText, settingsBackText };
+            foreach (TMP_Text label in leftLabels)
+            {
+                if (label == null) continue;
+                label.alignment = TextAlignmentOptions.Left;
+                label.enableWordWrapping = true;
+            }
+
+            CreateLine(groupGO.transform, "PB_Settings_Separator_Top", new Vector2(0f, 266f), new Vector2(1220f, 2f), new Color(0f, 0.92f, 1f, 0.16f), 17);
+            CreateLine(groupGO.transform, "PB_Settings_Separator_Mid", new Vector2(0f, -108f), new Vector2(1220f, 2f), new Color(0f, 0.92f, 1f, 0.16f), 18);
+            CreateLine(groupGO.transform, "PB_Settings_Separator_Bottom", new Vector2(0f, -258f), new Vector2(1220f, 2f), new Color(0f, 0.92f, 1f, 0.16f), 19);
+
+            CreateSliderVisual(groupGO.transform, "PB_Settings_BrightnessSlider", new Vector2(225f, 190f), out brightnessSliderFill, out brightnessSliderGlow, out brightnessSliderHandle);
+            brightnessValueText = CreateTmp(groupGO.transform, "PB_Settings_BrightnessValue", "100%", new Vector2(610f, 190f), new Vector2(190f, 30f), 18f, NeonYellow, 20, FontStyles.Bold, 1.0f);
+            brightnessValueText.alignment = TextAlignmentOptions.Right;
+
+            resolutionValueText = CreateTmp(groupGO.transform, "PB_Settings_ResolutionValue", "1920x1080", new Vector2(555f, 128f), new Vector2(300f, 32f), 18f, NeonYellow, 21, FontStyles.Bold, 1.0f);
+            resolutionValueText.alignment = TextAlignmentOptions.Right;
+
+            displayModeValueText = CreateTmp(groupGO.transform, "PB_Settings_DisplayModeValue", "PANTALLA COMPLETA", new Vector2(520f, 66f), new Vector2(380f, 32f), 18f, NeonYellow, 22, FontStyles.Bold, 0.5f);
+            displayModeValueText.alignment = TextAlignmentOptions.Right;
+
+            CreateSliderVisual(groupGO.transform, "PB_Settings_EffectsSlider", new Vector2(225f, 4f), out effectsSliderFill, out effectsSliderGlow, out effectsSliderHandle);
+            effectsValueText = CreateTmp(groupGO.transform, "PB_Settings_EffectsValue", "MEDIO", new Vector2(610f, 4f), new Vector2(190f, 30f), 18f, NeonYellow, 23, FontStyles.Bold, 1.0f);
+            effectsValueText.alignment = TextAlignmentOptions.Right;
+
+            sensitivityValueText = CreateTmp(groupGO.transform, "PB_Settings_SensitivityValue", "OFF", new Vector2(610f, -58f), new Vector2(190f, 30f), 18f, NeonYellow, 24, FontStyles.Bold, 1.0f);
+            sensitivityValueText.alignment = TextAlignmentOptions.Right;
+
+            CreateSliderVisual(groupGO.transform, "PB_Settings_VolumeSlider", new Vector2(225f, -202f), out volumeSliderFill, out volumeSliderGlow, out volumeSliderHandle);
+            volumeValueText = CreateTmp(groupGO.transform, "PB_Settings_VolumeValue", "100%", new Vector2(610f, -202f), new Vector2(190f, 30f), 18f, NeonYellow, 25, FontStyles.Bold, 1.0f);
+            volumeValueText.alignment = TextAlignmentOptions.Right;
+
+            settingsHintText = CreateTmp(groupGO.transform, "PB_Settings_Hint", "", new Vector2(0f, -382f), new Vector2(1040f, 42f), 15f, TextDim, 26, FontStyles.Normal, 1.0f);
 
             RefreshSettingsPanel();
         }
@@ -740,8 +830,11 @@ namespace ProjectBeat.Runtime
         {
             brightness = PlayerPrefs.GetFloat(BrightnessPrefsKey, 1f);
             masterVolume = PlayerPrefs.GetFloat(MasterVolumePrefsKey, 1f);
+            resolutionIndex = Mathf.Clamp(PlayerPrefs.GetInt(ResolutionPrefsKey, 3), 0, ResolutionOptions.Length - 1);
+            displayModeIndex = Mathf.Clamp(PlayerPrefs.GetInt(DisplayModePrefsKey, 0), 0, DisplayModeNames.Length - 1);
             brightness = Mathf.Clamp(brightness, 0.55f, 1.35f);
             masterVolume = Mathf.Clamp01(masterVolume);
+            ApplyDisplaySettings();
         }
 
         private void ApplyVisualAudioSettings()
@@ -761,41 +854,117 @@ namespace ProjectBeat.Runtime
 
         private void RefreshSettingsPanel()
         {
-            if (settingsBodyText == null || settingsHintText == null) return;
+            if (settingsHintText == null) return;
 
-            string controls = SectionTitle(0, "VER CONTROLES");
-            string graphics = SectionTitle(1, "GRAFICOS");
-            string sound = SectionTitle(2, "SONIDO");
-            string back = selectedSettingsOption == 3
-                ? "<size=22><color=#FFF000><b>> VOLVER</b></color></size>"
-                : "<size=21><color=#FF6A00><b>  VOLVER</b></color></size>";
+            SetHeaderText(controlsHeaderText, 0, "VER CONTROLES");
+            if (controlsDescriptionText != null)
+                controlsDescriptionText.text = "D/F/J/K Carriles   ESC Pausa   ENTER Confirmar   F1-F4 Offset";
 
-            settingsBodyText.text =
-                controls + "\n" +
-                "<size=16><color=#FFFFFF>D / F / J / K</color>    Carriles        <color=#FFFFFF>ESC</color>    Pausa\n" +
-                "<color=#FFFFFF>ENTER</color>        Confirmar       <color=#FFFFFF>W / S</color>   Navegar\n" +
-                "<color=#FFFFFF>F2 / F3 / F4</color>   Ajustar / resetear offset</size>\n\n" +
-                "<color=#224455>----------------------------------------------</color>\n\n" +
-                graphics + "\n" +
-                "<size=17><color=#DDEEFF>Brillo</color></size>\n\n\n" +
-                "<color=#224455>----------------------------------------------</color>\n\n" +
-                sound + "\n" +
-                "<size=17><color=#DDEEFF>Volumen general</color></size>\n\n\n" +
-                "<color=#224455>----------------------------------------------</color>\n\n" +
-                back;
+            SetHeaderText(graphicsHeaderText, -1, "GRAFICOS");
+            SetOptionText(brightnessLabelText, 1, "Brillo General", "Ajusta la iluminacion general del juego.");
+            SetOptionText(resolutionLabelText, 2, "Resolucion", "Cambia la resolucion de pantalla.");
+            SetOptionText(displayModeLabelText, 3, "Modo Pantalla", "Alterna pantalla completa, ventana o sin bordes.");
+            SetOptionText(effectsLabelText, 4, "Intensidad Efectos Visuales", "Controla glow, flashes, particulas y transiciones.");
+            SetOptionText(sensitivityLabelText, 5, "Modo Sensibilidad Visual", "Reduce destellos rapidos para mayor comodidad visual.");
+            SetHeaderText(soundHeaderText, -1, "SONIDO");
+            SetOptionText(volumeLabelText, 6, "Volumen General", "Ajusta el volumen principal del juego.");
+
+            if (settingsBackText != null)
+            {
+                settingsBackText.text = selectedSettingsOption == 7
+                    ? "<color=#FFF000><b>> VOLVER</b></color>"
+                    : "<color=#FF6A00><b>  VOLVER</b></color>";
+            }
 
             UpdateSliderVisual(brightnessSliderFill, brightnessSliderGlow, brightnessSliderHandle, brightnessValueText, brightness, 0.55f, 1.35f, selectedSettingsOption == 1);
-            UpdateSliderVisual(volumeSliderFill, volumeSliderGlow, volumeSliderHandle, volumeValueText, masterVolume, 0f, 1f, selectedSettingsOption == 2);
+            UpdateSliderVisual(effectsSliderFill, effectsSliderGlow, effectsSliderHandle, effectsValueText, VisualAccessibilitySettings.IntensityIndex, 0f, 4f, selectedSettingsOption == 4);
+            UpdateSliderVisual(volumeSliderFill, volumeSliderGlow, volumeSliderHandle, volumeValueText, masterVolume, 0f, 1f, selectedSettingsOption == 6);
 
-            settingsHintText.text = "<color=#00F1FF>[W/S]</color> Seleccionar    <color=#FFF000>[A/D]</color> Ajustar barra    <color=#FF6A00>[ESC]</color> Volver";
+            if (resolutionValueText != null)
+            {
+                Vector2Int res = ResolutionOptions[Mathf.Clamp(resolutionIndex, 0, ResolutionOptions.Length - 1)];
+                resolutionValueText.text = (selectedSettingsOption == 2 ? "<color=#00F1FF><</color> " : "") + res.x + "x" + res.y + (selectedSettingsOption == 2 ? " <color=#00F1FF>></color>" : "");
+                resolutionValueText.color = selectedSettingsOption == 2 ? NeonYellow : TextNormal;
+            }
+
+            if (displayModeValueText != null)
+            {
+                displayModeValueText.text = (selectedSettingsOption == 3 ? "<color=#00F1FF><</color> " : "") + DisplayModeNames[Mathf.Clamp(displayModeIndex, 0, DisplayModeNames.Length - 1)] + (selectedSettingsOption == 3 ? " <color=#00F1FF>></color>" : "");
+                displayModeValueText.color = selectedSettingsOption == 3 ? NeonYellow : TextNormal;
+            }
+
+            if (effectsValueText != null)
+            {
+                effectsValueText.text = VisualAccessibilitySettings.IntensityName;
+                effectsValueText.color = selectedSettingsOption == 4 ? NeonYellow : TextNormal;
+            }
+
+            if (sensitivityValueText != null)
+            {
+                sensitivityValueText.text = VisualAccessibilitySettings.SensitivityMode ? "ON" : "OFF";
+                sensitivityValueText.color = selectedSettingsOption == 5 ? NeonYellow : TextNormal;
+            }
+
+            settingsHintText.text = "<color=#00F1FF>[W/S]</color> Seleccionar    <color=#FFF000>[A/D]</color> Ajustar / Cambiar    <color=#FF6A00>[ESC]</color> Volver";
+        }
+
+        private void SetHeaderText(TMP_Text text, int optionIndex, string title)
+        {
+            if (text == null) return;
+            bool selected = optionIndex >= 0 && selectedSettingsOption == optionIndex;
+            text.text = selected ? "<color=#FFF000><b>> " + title + "</b></color>" : "<color=#00F1FF><b>  " + title + "</b></color>";
+            text.color = selected ? NeonYellow : NeonCyan;
+        }
+
+        private void SetOptionText(TMP_Text text, int optionIndex, string title, string description)
+        {
+            if (text == null) return;
+            bool selected = selectedSettingsOption == optionIndex;
+            string marker = selected ? "<color=#FFF000><b>> </b></color>" : "  ";
+            string titleColor = selected ? "#FFF000" : "#00F1FF";
+            text.text = marker + "<color=" + titleColor + "><b>" + title + "</b></color>\n" +
+                        "<size=12><color=#DDEEFF>" + description + "</color></size>";
+            text.color = selected ? NeonYellow : TextNormal;
+        }
+
+        private int WrapIndex(int value, int count)
+        {
+            if (count <= 0) return 0;
+            value %= count;
+            if (value < 0) value += count;
+            return value;
+        }
+
+        private void ApplyDisplaySettings()
+        {
+            resolutionIndex = Mathf.Clamp(resolutionIndex, 0, ResolutionOptions.Length - 1);
+            displayModeIndex = Mathf.Clamp(displayModeIndex, 0, DisplayModeNames.Length - 1);
+            Vector2Int resolution = ResolutionOptions[resolutionIndex];
+            FullScreenMode mode = FullScreenMode.ExclusiveFullScreen;
+
+            switch (displayModeIndex)
+            {
+                case 0:
+                    mode = FullScreenMode.ExclusiveFullScreen;
+                    break;
+                case 1:
+                    mode = FullScreenMode.Windowed;
+                    break;
+                case 2:
+                    mode = FullScreenMode.FullScreenWindow;
+                    break;
+            }
+
+            if (Screen.width != resolution.x || Screen.height != resolution.y || Screen.fullScreenMode != mode)
+                Screen.SetResolution(resolution.x, resolution.y, mode);
         }
 
         private string SectionTitle(int optionIndex, string title)
         {
             if (selectedSettingsOption == optionIndex)
-                return "<size=21><color=#FFF000><b>> " + title + "</b></color></size>";
+                return "<size=19><color=#FFF000><b>> " + title + "</b></color></size>";
 
-            return "<size=20><color=#00F1FF><b>  " + title + "</b></color></size>";
+            return "<size=18><color=#00F1FF><b>  " + title + "</b></color></size>";
         }
 
         private string MakeCleanBar(float value, float min, float max)
@@ -1022,7 +1191,7 @@ namespace ProjectBeat.Runtime
             rt.anchorMax = new Vector2(0.5f, 0.5f);
             rt.pivot = new Vector2(0.5f, 0.5f);
             rt.anchoredPosition = pos;
-            rt.sizeDelta = new Vector2(280f, 18f);
+            rt.sizeDelta = new Vector2(420f, 18f);
 
             GameObject baseGO = new GameObject(name + "_Base", typeof(RectTransform));
             baseGO.transform.SetParent(root.transform, false);
