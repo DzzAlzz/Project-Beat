@@ -1,0 +1,26 @@
+AVANCE 54 - MainMenu Uses Pause Settings
+
+Objetivo:
+- El engranaje del menu principal debe abrir exactamente la misma configuracion funcional usada por el menu de pausa.
+
+Causa raiz encontrada:
+- El SettingsGroup real de PauseMenu si se estaba activando.
+- El problema era que StartupCanvas usa un sortingOrder muy alto y quedaba encima del Canvas de pausa.
+- Por eso el usuario seguia viendo el fondo/lineas del menu inicial y no las opciones reales de configuracion.
+
+Correccion aplicada:
+- Se modifico StartupFlowController.cs.
+- Al abrir configuracion desde el menu principal ahora se oculta rootGroup completo del StartupCanvas.
+- Luego se llama a PauseMenu.OpenSettingsFromMainMenu(...), reutilizando el SettingsGroup real de pausa.
+- Al presionar VOLVER se restaura el menu principal.
+
+Archivos modificados:
+- Assets/Scripts/Runtime/StartupFlowController.cs
+
+No se modifico:
+- LevelManager
+- Gameplay
+- Canciones
+- Selector de niveles
+- Resultados
+- Sistema de puntuacion
