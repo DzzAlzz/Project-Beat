@@ -1,0 +1,36 @@
+AVANCE 36 - DISPLAY AND LAYOUT OVERHAUL
+
+Objetivo:
+- Reorganizacion definitiva del menu Configuracion.
+- Agregar opciones de Resolucion y Modo Pantalla.
+
+Cambios principales:
+- Panel de configuracion mas alto y equilibrado.
+- Secciones de Graficos, Sonido y Volver separadas con mejor jerarquia.
+- Valores alineados a la derecha.
+- Textos alineados a la izquierda.
+- Sliders reposicionados para evitar superposiciones.
+- Opciones de resolucion agregadas:
+  * 1280x720
+  * 1366x768
+  * 1600x900
+  * 1920x1080
+  * 2560x1440
+- Opciones de modo pantalla:
+  * Pantalla Completa
+  * Ventana
+  * Ventana Sin Bordes
+
+Se mantiene intacto:
+- Gameplay
+- Scoring
+- BPM
+- Timing
+- Canciones
+- Hold Notes
+- Offset
+- Resultados
+- LevelManager
+
+Estado:
+- Version orientada a UI Polish / UX Refinement.
