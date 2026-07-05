@@ -32,6 +32,10 @@ namespace ProjectBeat.Runtime
         private float pulse;
         private GameController gameController;
         private PauseMenu pauseMenu;
+        private AudioSource menuMusicSource;
+        private AudioClip menuMusicClip;
+
+        private const string MenuMusicResourcePath = "Timecop1983";
 
         private static readonly Color BgDark = new Color(0.003f, 0.006f, 0.014f, 0.96f);
         private static readonly Color Panel = new Color(0.015f, 0.035f, 0.065f, 0.92f);
@@ -68,6 +72,7 @@ namespace ProjectBeat.Runtime
 
             Time.timeScale = 1f;
             BuildUI();
+            SetupMenuMusic();
             StartCoroutine(FlowRoutine());
         }
 
@@ -118,6 +123,7 @@ namespace ProjectBeat.Runtime
         {
             menuGroup.interactable = false;
             menuGroup.blocksRaycasts = false;
+            StopMenuMusic();
             yield return Fade(rootGroup, 1f, 0f, 0.35f);
 
             if (LevelManager.Instance != null)
@@ -136,6 +142,7 @@ namespace ProjectBeat.Runtime
         {
             menuGroup.interactable = false;
             menuGroup.blocksRaycasts = false;
+            StopMenuMusic();
             yield return Fade(rootGroup, 1f, 0f, 0.35f);
 
             if (pauseMenu != null)
@@ -159,6 +166,30 @@ namespace ProjectBeat.Runtime
                 yield return new WaitForSecondsRealtime(0.025f);
             }
             target.anchoredPosition = basePos;
+        }
+
+        private void SetupMenuMusic()
+        {
+            if (menuMusicSource != null) return;
+
+            menuMusicClip = Resources.Load<AudioClip>(MenuMusicResourcePath);
+            if (menuMusicClip == null) return;
+
+            menuMusicSource = gameObject.AddComponent<AudioSource>();
+            menuMusicSource.clip = menuMusicClip;
+            menuMusicSource.loop = true;
+            menuMusicSource.playOnAwake = false;
+            menuMusicSource.spatialBlend = 0f;
+            menuMusicSource.volume = 0.46f;
+            menuMusicSource.priority = 32;
+            menuMusicSource.ignoreListenerPause = true;
+            menuMusicSource.Play();
+        }
+
+        private void StopMenuMusic()
+        {
+            if (menuMusicSource == null) return;
+            menuMusicSource.Stop();
         }
 
         private void BuildUI()
