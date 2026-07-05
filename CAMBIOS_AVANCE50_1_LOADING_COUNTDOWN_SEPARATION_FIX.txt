@@ -1,0 +1,29 @@
+AVANCE 50.1 - LOADING / COUNTDOWN SEPARATION FIX
+
+Objetivo:
+Separar completamente la pantalla CARGANDO... de la cuenta regresiva 3 / 2 / 1 / GO.
+
+Cambios:
+- La cuenta regresiva solo se ejecuta al usar CONTINUAR desde pausa.
+- Se evita que ResultsScreen o retorno a menu principal activen el countdown.
+- Se agrego cierre seguro ForceCloseWithoutResumeCountdown() para ocultar pausa sin iniciar 3-2-1-GO.
+- ESC desde resultados ya no puede disparar la cuenta regresiva por accidente.
+- CARGANDO... y countdown usan amarillo estilo Project Beat.
+- GO tambien queda en amarillo para mantener consistencia visual.
+
+No se modifico:
+- Gameplay
+- Scoring
+- Timing
+- BPM
+- Canciones
+- Hold Notes
+- Offset
+- Resultados base
+- LevelManager
+
+Validacion esperada:
+- CONTINUAR desde pausa muestra 3 / 2 / 1 / GO.
+- Volver al menu desde resultados muestra solo CARGANDO...
+- Reiniciar/cambiar nivel no muestra countdown.
+- No hay textos superpuestos.
