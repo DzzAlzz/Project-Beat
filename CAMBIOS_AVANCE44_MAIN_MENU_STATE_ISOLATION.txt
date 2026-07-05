@@ -1,0 +1,24 @@
+AVANCE 44 - MAIN MENU STATE ISOLATION FIX
+
+Objetivo:
+- Corregir el estado del menu principal cuando se vuelve desde pausa o resultados.
+- Evitar que el gameplay, HUD, tutorial o resultados queden visibles detras del menu.
+- Evitar estados pegados al volver a entrar al Tutorial.
+- Agregar opcion SALIR en el menu inicial.
+
+Cambios aplicados:
+- El menu inicial ahora usa un fondo completamente opaco para no mostrar el nivel detras.
+- El canvas del menu inicial se elevo en orden de dibujo para quedar por encima del gameplay.
+- El boton MENU PRINCIPAL mantiene la pantalla CARGANDO y recarga la escena limpia con flag de menu inicial.
+- El Tutorial ahora se inicia desde una recarga limpia de escena, evitando reutilizar GameController viejo.
+- En resultados, ESC vuelve al menu inicial de forma limpia.
+- Se agrego opcion SALIR al menu principal inicial.
+
+No se modifico:
+- BPM
+- timing
+- scoring
+- Hold Notes
+- offset
+- LevelManager
+- canciones

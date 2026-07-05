@@ -122,7 +122,7 @@ namespace ProjectBeat.Runtime
                 SpriteRenderer trailRenderer = trail.AddComponent<SpriteRenderer>();
                 trailRenderer.sprite = holdTrailSprite;
                 trailRenderer.sortingOrder = sr != null ? sr.sortingOrder - 2 : 5;
-                trailRenderer.color = new Color(color.r, color.g, color.b, 0.22f);
+                trailRenderer.color = new Color(color.r, color.g, color.b, 0.22f * VisualAccessibilitySettings.GlowMultiplier);
                 holdTrailSegments[i] = trailRenderer;
 
                 GameObject core = new GameObject("HoldTrail_Core_" + i);
@@ -130,7 +130,7 @@ namespace ProjectBeat.Runtime
                 SpriteRenderer coreRenderer = core.AddComponent<SpriteRenderer>();
                 coreRenderer.sprite = holdTrailSprite;
                 coreRenderer.sortingOrder = sr != null ? sr.sortingOrder - 1 : 6;
-                coreRenderer.color = new Color(1f, 1f, 1f, 0.35f);
+                coreRenderer.color = new Color(1f, 1f, 1f, 0.35f * VisualAccessibilitySettings.GlowMultiplier);
                 holdCoreSegments[i] = coreRenderer;
             }
 
@@ -139,7 +139,7 @@ namespace ProjectBeat.Runtime
             holdEndRenderer = end.AddComponent<SpriteRenderer>();
             holdEndRenderer.sprite = sr != null && sr.sprite != null ? sr.sprite : holdTrailSprite;
             holdEndRenderer.sortingOrder = sr != null ? sr.sortingOrder : 10;
-            holdEndRenderer.color = new Color(color.r, color.g, color.b, 0.85f);
+            holdEndRenderer.color = new Color(color.r, color.g, color.b, 0.85f * VisualAccessibilitySettings.GlowMultiplier);
 
             UpdateHoldBody(fullHoldLength, 0.22f, 0.72f);
         }
@@ -332,7 +332,7 @@ namespace ProjectBeat.Runtime
 
             length = Mathf.Max(0.01f, length);
             width = Mathf.Clamp(width, 0.045f, 0.22f);
-            alpha = Mathf.Clamp01(alpha * HoldReadabilityFade);
+            alpha = Mathf.Clamp01(alpha * HoldReadabilityFade * VisualAccessibilitySettings.GlowMultiplier);
 
             Quaternion laneRotation = Quaternion.FromToRotation(Vector3.up, holdDirection);
             float segmentLength = Mathf.Max(0.05f, length / HoldTrailSegmentCount * 0.78f);

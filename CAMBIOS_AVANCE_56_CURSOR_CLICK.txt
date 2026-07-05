@@ -1,0 +1,24 @@
+AVANCE 56 - PULIDO DEL CURSOR Y FEEDBACK DE CLIC
+
+Base utilizada:
+- Avance 55.
+- Compatible con Unity 6000.3.11f1.
+
+Archivo modificado:
+- Assets/Scripts/Runtime/ProjectBeatCursorController.cs
+
+Mejoras implementadas:
+- Cursor personalizado rediseñado con estética neón de Project Beat.
+- Variante visual de hover al pasar sobre elementos interactivos de UI.
+- Efecto de pulsación al hacer clic con el mouse.
+- Onda circular con expansión y fade rápido usando un Canvas overlay que no bloquea raycasts.
+- Pool interno de efectos de clic para evitar instanciación descontrolada.
+- Mantiene navegación por teclado W/S y ENTER sin cambios.
+- Mantiene la lógica de botones, selector, configuración, pausa, resultados y gameplay sin cambios.
+
+Validación esperada:
+- El cursor aparece en menú principal y pantallas de interfaz.
+- Al hacer clic se genera una pulsación visual breve.
+- El hover sobre botones se siente más pulido.
+- No se alteran escenas ni carga de niveles.
+- No se modifica LevelManager ni gameplay.
