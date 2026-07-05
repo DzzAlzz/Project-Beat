@@ -1,0 +1,36 @@
+AVANCE 68 - BOTON DE CREDITOS Y PANEL DE CREDITOS EN MENU PRINCIPAL
+
+Base usada:
+- Avance 67 corregido real.
+
+Archivos modificados:
+- Assets/Scripts/Runtime/StartupFlowController.cs
+
+Elementos agregados:
+- Boton CREDITOS debajo del boton CONFIG en el menu principal.
+- Icono tipo usuario/perfil con estilo neon.
+- Panel CREDITOS con estetica morada/rosada/cian coherente con el menu principal.
+- Boton X para cerrar el panel.
+- Cierre con ESC o ENTER cuando el panel de creditos esta abierto.
+
+Contenido del panel:
+- Desarrolladores: Denzel Alvarez, Alonso Leiva.
+- Asignatura: Programacion de Videojuegos.
+- Institucion: Santo Tomas Iquique.
+- Tecnologias: Unity, C#, TextMeshPro, Unity UI.
+- Inspiraciones: osu!, Fortnite Festival, Geometry Dash, Guitar Hero.
+- Frase final: "Feel the rhythm."
+
+No se modifico:
+- Gameplay.
+- LevelManager.
+- Canciones.
+- Sistema de puntuacion.
+- Hit detection.
+- Timing de notas.
+- Selector de niveles.
+- Pausa.
+- Configuracion.
+- Resultados.
+- Flujo de escenas.
+- Boton Ayuda ni panel Como Jugar.

@@ -1,0 +1,41 @@
+AVANCE 90 – SETTINGS CLICK, SONIDO DE LOGROS Y COMPATIBILIDAD
+
+Base usada:
+- Avance 89 – Settings Layout Fix.
+
+Archivos modificados:
+- Assets/Scripts/Runtime/PauseMenu.cs
+- Assets/Scripts/Runtime/AchievementNotification.cs
+- Assets/Scripts/Runtime/ProjectBeatPerformanceSettings.cs
+
+Archivos agregados:
+- Assets/Resources/Audio/UI/AchievementUnlock.wav
+- Assets/Resources/Audio/UI/AchievementUnlock.wav.meta
+- Assets/Resources/Audio.meta
+- Assets/Resources/Audio/UI.meta
+
+Cambios realizados:
+1. Configuración: click desde el lado derecho
+- Se ampliaron las zonas transparentes de interacción de cada fila del menú CONFIGURACIÓN.
+- Ahora las opciones responden al click desde el área del valor derecho, no solo desde el nombre de la izquierda.
+- PANTALLA COMPLETA / VENTANA, INTENSIDAD, CALIDAD VISUAL, ON/OFF y RESTAURAR VALORES responden mejor al click.
+- Se mantuvo el soporte de W/S, A/D, ENTER, ESC, mouse, scroll y arrastre.
+- Los sliders conservan su zona de arrastre y prioridad sobre la fila general.
+
+2. Sonido de logro desbloqueado
+- Se agregó un efecto de audio corto para LOGRO DESBLOQUEADO.
+- La notificación lateral reproduce el sonido solo cuando se muestra un logro nuevo.
+- El sonido se carga desde Resources: Audio/UI/AchievementUnlock.
+- Se dejó fallback runtime por si el clip no se encuentra en build.
+- Respeta el volumen general mediante AudioListener.volume.
+
+3. Compatibilidad y fluidez
+- Se reforzó ProjectBeatPerformanceSettings para aplicar target frame rate alto en Windows y un objetivo seguro para Android.
+- Se mantiene vSync desactivado para aprovechar monitores de alta tasa de refresco.
+- Se mantiene anti-aliasing, anisotropic filtering y límites de deltaTime para reducir stutter visual.
+- Se configuró runInBackground para evitar pausas bruscas de UI en build.
+
+Notas:
+- No se modificó gameplay, timing, puntuación, dificultad, hit detection, canciones, beatmaps ni LevelManager.
+- Las opciones de configuración visual siguen siendo solo visuales.
+- El avance deja la UI más cómoda para click/mouse y mejor preparada para una futura adaptación Android.
