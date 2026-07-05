@@ -472,6 +472,16 @@ namespace ProjectBeat.Runtime
             if (resultCard != null) resultCard.localScale = new Vector3(0.92f, 0.92f, 1f);
         }
 
+
+        public void HideResults()
+        {
+            if (resultGroup == null) return;
+
+            resultGroup.alpha = 0f;
+            resultGroup.interactable = false;
+            resultGroup.blocksRaycasts = false;
+        }
+
         private Color GetRankColor(string rank)
         {
             return rank switch

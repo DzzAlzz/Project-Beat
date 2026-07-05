@@ -53,22 +53,29 @@ namespace ProjectBeat.Runtime
             bool perfect = judgement == JudgementType.Perfect;
             bool good = judgement == JudgementType.Good;
 
-            int count = perfect ? perfectParticles : good ? goodParticles : badParticles;
-            float speed = perfect ? 4.6f : good ? 3.4f : 2.3f;
-            float size = perfect ? 0.13f : good ? 0.10f : 0.075f;
-            float life = perfect ? 0.48f : good ? 0.34f : 0.22f;
+            float particleMul = VisualAccessibilitySettings.ParticleMultiplier;
+            float flashMul = VisualAccessibilitySettings.FlashMultiplier;
+            float glowMul = VisualAccessibilitySettings.GlowMultiplier;
 
-            SpawnParticleBurst(worldPosition, laneColor, count, speed, size, life);
+            int baseCount = perfect ? perfectParticles : good ? goodParticles : badParticles;
+            int count = Mathf.RoundToInt(baseCount * particleMul);
+            float speed = (perfect ? 4.6f : good ? 3.4f : 2.3f) * Mathf.Lerp(0.65f, 1.05f, glowMul);
+            float size = (perfect ? 0.13f : good ? 0.10f : 0.075f) * Mathf.Lerp(0.75f, 1.15f, glowMul);
+            float life = (perfect ? 0.48f : good ? 0.34f : 0.22f) * Mathf.Lerp(0.75f, 1.05f, glowMul);
+
+            if (count > 0)
+                SpawnParticleBurst(worldPosition, laneColor, count, speed, size, life);
 
             Color flashColor = perfect
-                ? new Color(laneColor.r, laneColor.g, laneColor.b, perfectFlashAlpha)
+                ? new Color(laneColor.r, laneColor.g, laneColor.b, perfectFlashAlpha * flashMul)
                 : good
-                    ? new Color(laneColor.r, laneColor.g, laneColor.b, goodFlashAlpha)
-                    : new Color(1f, 0.25f, 0.20f, badFlashAlpha);
+                    ? new Color(laneColor.r, laneColor.g, laneColor.b, goodFlashAlpha * flashMul)
+                    : new Color(1f, 0.25f, 0.20f, badFlashAlpha * flashMul);
 
-            TriggerScreenFlash(flashColor);
+            if (flashColor.a > 0.005f)
+                TriggerScreenFlash(flashColor);
 
-            if ((perfect || good) && useAudioDuck)
+            if ((perfect || good) && useAudioDuck && !VisualAccessibilitySettings.SensitivityMode)
                 TriggerAudioDuck();
         }
 
