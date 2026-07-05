@@ -3,6 +3,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 
 namespace ProjectBeat.Runtime
 {
@@ -41,13 +42,20 @@ namespace ProjectBeat.Runtime
         private bool isInCredits;
         private int selectedOption;
         private int selectedSettingsOption;
-        private const int OptionCount = 6;
-        private const int SettingsOptionCount = 4;
+        private bool settingsOpenedFromMainMenu;
+        private System.Action onMainMenuSettingsClosed;
+        private const int OptionCount = 7;
+        private const int SettingsOptionCount = 8;
 
         private const string BrightnessPrefsKey = "ProjectBeat_Brightness";
         private const string MasterVolumePrefsKey = "ProjectBeat_MasterVolume";
+        private const string ResolutionPrefsKey = "ProjectBeat_ResolutionIndex";
+        private const string DisplayModePrefsKey = "ProjectBeat_DisplayModeIndex";
+        private const string MainSceneName = "ProjectBeat_Demo";
         private float brightness = 1f;
         private float masterVolume = 1f;
+        private int resolutionIndex = 3;
+        private int displayModeIndex = 0;
 
         private static readonly Color DeepDim = new Color(0.006f, 0.007f, 0.014f, 0.88f);
         private static readonly Color Glass = new Color(0.025f, 0.035f, 0.065f, 0.92f);
@@ -58,8 +66,19 @@ namespace ProjectBeat.Runtime
         private static readonly Color TextNormal = new Color(0.92f, 0.90f, 1f, 1f);
         private static readonly Color TextDim = new Color(0.70f, 0.68f, 0.78f, 1f);
 
-        private static readonly string[] OptionNames = { "CONTINUAR", "ELEGIR NIVEL", "REINICIAR", "CONFIGURACION", "CREDITOS", "SALIR" };
-        private static readonly string[] OptionIcons = { "PLAY", "LEVEL", "RETRY", "SETUP", "INFO", "QUIT" };
+        public bool IsPausedForOverlay => isPaused;
+
+        private static readonly string[] OptionNames = { "CONTINUAR", "ELEGIR NIVEL", "REINICIAR", "CONFIGURACION", "CREDITOS", "MENU PRINCIPAL", "SALIR" };
+        private static readonly string[] OptionIcons = { "PLAY", "LEVEL", "RETRY", "SETUP", "INFO", "HOME", "QUIT" };
+        private static readonly Vector2Int[] ResolutionOptions =
+        {
+            new Vector2Int(1280, 720),
+            new Vector2Int(1366, 768),
+            new Vector2Int(1600, 900),
+            new Vector2Int(1920, 1080),
+            new Vector2Int(2560, 1440)
+        };
+        private static readonly string[] DisplayModeNames = { "PANTALLA COMPLETA", "VENTANA", "VENTANA SIN BORDES" };
 
         private TMP_Text settingsMenuLabel;
         private TMP_Text[] menuLabels;
@@ -71,6 +90,19 @@ namespace ProjectBeat.Runtime
         private TMP_Text settingsTitleText;
         private TMP_Text settingsBodyText;
         private TMP_Text settingsHintText;
+        private TMP_Text controlsHeaderText;
+        private TMP_Text controlsDescriptionText;
+        private TMP_Text graphicsHeaderText;
+        private TMP_Text brightnessLabelText;
+        private TMP_Text resolutionLabelText;
+        private TMP_Text resolutionValueText;
+        private TMP_Text displayModeLabelText;
+        private TMP_Text displayModeValueText;
+        private TMP_Text effectsLabelText;
+        private TMP_Text sensitivityLabelText;
+        private TMP_Text soundHeaderText;
+        private TMP_Text volumeLabelText;
+        private TMP_Text settingsBackText;
         private CanvasGroup creditsGroup;
         private TMP_Text creditsTitleText;
         private TMP_Text creditsBodyText;
@@ -80,6 +112,18 @@ namespace ProjectBeat.Runtime
         private Image brightnessSliderGlow;
         private RectTransform brightnessSliderHandle;
         private TMP_Text brightnessValueText;
+        private Image effectsSliderFill;
+        private Image effectsSliderGlow;
+        private RectTransform effectsSliderHandle;
+        private TMP_Text effectsValueText;
+        private TMP_Text sensitivityValueText;
+        private CanvasGroup mainMenuLoadingGroup;
+        private TMP_Text mainMenuLoadingText;
+        private bool isReturningToInitialMenu;
+        private bool isResumeCountdown;
+        private string resumeCountdownLabel = string.Empty;
+        private Coroutine resumeCountdownCoroutine;
+        private static bool mainMenuSceneLoadPending;
         private Image volumeSliderFill;
         private Image volumeSliderGlow;
         private RectTransform volumeSliderHandle;
@@ -105,13 +149,16 @@ namespace ProjectBeat.Runtime
             menuLabels[2] = restartLabel;
             menuLabels[3] = settingsMenuLabel;
             menuLabels[4] = null;
-            menuLabels[5] = quitLabel;
+            menuLabels[5] = null;
+            menuLabels[6] = quitLabel;
             BuildSprites();
             BuildCommercialPauseMenu();
             BuildCommercialLevelSelect();
             BuildSettingsPanel();
             BuildCreditsPanel();
             BuildBrightnessOverlay();
+            BuildMainMenuLoadingOverlay();
+            ShowMainMenuLoading(false);
             LoadSettingsPrefs();
             ApplyVisualAudioSettings();
             StyleStaticTexts();
@@ -131,6 +178,9 @@ namespace ProjectBeat.Runtime
         {
             AnimateGroups();
             pulseT += Time.unscaledDeltaTime * 5.4f;
+
+            if (isReturningToInitialMenu || isResumeCountdown)
+                return;
 
             if (Input.GetKeyDown(KeyCode.Escape))
             {
@@ -165,29 +215,119 @@ namespace ProjectBeat.Runtime
 
         public void OpenPause()
         {
+            if (isReturningToInitialMenu || isResumeCountdown) return;
+
+            Cursor.visible = true;
+            Cursor.lockState = CursorLockMode.None;
+
+            // Avance 50: al abrir pausa se limpia cualquier subpanel residual.
+            // Esto evita el panel morado/intermedio que quedaba activo sin mostrar
+            // correctamente el menu de pausa.
             isPaused = true;
+            isInLevelSelect = false;
+            isInSettings = false;
+            isInCredits = false;
             Time.timeScale = 0f;
             if (gameController != null) gameController.PauseAudio(true);
 
             selectedOption = 0;
             fadeTarget = 1f;
-            ShowLevelSelectGroup(false);
+            levelTarget = 0f;
+            ShowMainMenuLoading(false);
+            ShowLevelSelectGroup(false, true);
+            ShowSettingsGroup(false, true);
+            ShowCreditsGroup(false, true);
+            ShowPauseGroup(true);
             RefreshLabels();
         }
 
         public void ClosePause()
         {
+            // Avance 50: Continuar ya no reanuda instantaneamente.
+            // Se usa una cuenta regresiva con el gameplay congelado para no
+            // perder notas al volver desde pausa.
+            if (isResumeCountdown || isReturningToInitialMenu) return;
+            resumeCountdownCoroutine = StartCoroutine(ResumeCountdownRoutine());
+        }
+
+        // Avance 50.1: cierre seguro para transiciones/cargas.
+        // IMPORTANTE: no inicia la cuenta regresiva. Se usa cuando ResultsScreen,
+        // reinicio o menu principal necesitan ocultar la pausa sin ejecutar 3-2-1-GO.
+        public void ForceCloseWithoutResumeCountdown()
+        {
+            if (resumeCountdownCoroutine != null)
+            {
+                StopCoroutine(resumeCountdownCoroutine);
+                resumeCountdownCoroutine = null;
+            }
+
+            isResumeCountdown = false;
+            resumeCountdownLabel = string.Empty;
             isPaused = false;
             isInLevelSelect = false;
             isInSettings = false;
             isInCredits = false;
-            Time.timeScale = 1f;
-            if (gameController != null) gameController.PauseAudio(false);
 
             fadeTarget = 0f;
-            ShowLevelSelectGroup(false);
-            ShowSettingsGroup(false);
-            ShowCreditsGroup(false);
+            levelTarget = 0f;
+            ShowPauseGroup(false);
+            ShowLevelSelectGroup(false, true);
+            ShowSettingsGroup(false, true);
+            ShowCreditsGroup(false, true);
+        }
+
+        private System.Collections.IEnumerator ResumeCountdownRoutine()
+        {
+            isResumeCountdown = true;
+            isInLevelSelect = false;
+            isInSettings = false;
+            isInCredits = false;
+
+            ShowPauseGroup(false);
+            ShowLevelSelectGroup(false, true);
+            ShowSettingsGroup(false, true);
+            ShowCreditsGroup(false, true);
+            ShowMainMenuLoading(false);
+
+            Time.timeScale = 0f;
+            if (gameController != null) gameController.PauseAudio(true);
+            Cursor.visible = false;
+            Cursor.lockState = CursorLockMode.None;
+
+            string[] labels = { "3", "2", "1", "GO" };
+            for (int i = 0; i < labels.Length; i++)
+            {
+                resumeCountdownLabel = labels[i];
+                yield return new WaitForSecondsRealtime(i == labels.Length - 1 ? 0.45f : 0.70f);
+            }
+
+            resumeCountdownLabel = string.Empty;
+            isResumeCountdown = false;
+            isPaused = false;
+            fadeTarget = 0f;
+            levelTarget = 0f;
+
+            Time.timeScale = 1f;
+            if (gameController != null) gameController.PauseAudio(false);
+            resumeCountdownCoroutine = null;
+        }
+
+        private void OnGUI()
+        {
+            // Avance 50.1: el countdown solo pertenece a CONTINUAR.
+            // Si hay carga/retorno a menu, nunca debe dibujarse encima de CARGANDO...
+            if (!isResumeCountdown || isReturningToInitialMenu || string.IsNullOrEmpty(resumeCountdownLabel)) return;
+            if (mainMenuLoadingGroup != null && mainMenuLoadingGroup.alpha > 0.01f) return;
+
+            GUIStyle style = new GUIStyle(GUI.skin.label)
+            {
+                alignment = TextAnchor.MiddleCenter,
+                fontSize = Mathf.RoundToInt(Mathf.Clamp(Screen.height * 0.13f, 72f, 150f)),
+                fontStyle = FontStyle.Bold
+            };
+            style.normal.textColor = new Color(1f, 0.94f, 0.04f, 1f);
+
+            GUI.Label(new Rect(0f, 0f, Screen.width, Screen.height), resumeCountdownLabel, style);
         }
 
         private void HandleMenuInput()
@@ -217,7 +357,8 @@ namespace ProjectBeat.Runtime
                 case 2: RestartLevel(); break;
                 case 3: EnterSettings(); break;
                 case 4: EnterCredits(); break;
-                case 5: QuitGame(); break;
+                case 5: ReturnToMainMenu(); break;
+                case 6: QuitGame(); break;
             }
         }
 
@@ -237,6 +378,29 @@ namespace ProjectBeat.Runtime
             RefreshLabels();
         }
 
+        public void OpenSettingsFromMainMenu(System.Action onClosed = null)
+        {
+            // Avance 52: se reutiliza exactamente el panel de configuracion de PauseMenu.
+            // No se crea una segunda UI paralela para el menu principal.
+            settingsOpenedFromMainMenu = true;
+            onMainMenuSettingsClosed = onClosed;
+            isPaused = true;
+            isInSettings = true;
+            isInCredits = false;
+            isInLevelSelect = false;
+            selectedSettingsOption = 0;
+
+            Cursor.visible = true;
+            Cursor.lockState = CursorLockMode.None;
+            Time.timeScale = 1f;
+
+            ShowPauseGroup(false);
+            ShowLevelSelectGroup(false, true);
+            ShowCreditsGroup(false, true);
+            ShowSettingsGroup(true, true);
+            RefreshSettingsPanel();
+        }
+
         private void EnterSettings()
         {
             isInSettings = true;
@@ -252,6 +416,23 @@ namespace ProjectBeat.Runtime
         {
             isInSettings = false;
             ShowSettingsGroup(false);
+
+            if (settingsOpenedFromMainMenu)
+            {
+                settingsOpenedFromMainMenu = false;
+                isPaused = false;
+                fadeTarget = 0f;
+                levelTarget = 0f;
+                ShowPauseGroup(false);
+                ShowLevelSelectGroup(false, true);
+                ShowCreditsGroup(false, true);
+
+                System.Action callback = onMainMenuSettingsClosed;
+                onMainMenuSettingsClosed = null;
+                callback?.Invoke();
+                return;
+            }
+
             RefreshLabels();
         }
 
@@ -306,7 +487,13 @@ namespace ProjectBeat.Runtime
             }
             else if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter) || Input.GetKeyDown(KeyCode.Space))
             {
-                if (selectedSettingsOption == 3)
+                if (selectedSettingsOption == 5)
+                {
+                    VisualAccessibilitySettings.ToggleSensitivityMode();
+                    ApplyVisualAudioSettings();
+                    RefreshSettingsPanel();
+                }
+                else if (selectedSettingsOption == 7)
                     ExitSettings();
             }
             else if (Input.GetKeyDown(KeyCode.Escape))
@@ -324,10 +511,26 @@ namespace ProjectBeat.Runtime
                     PlayerPrefs.SetFloat(BrightnessPrefsKey, brightness);
                     break;
                 case 2:
+                    resolutionIndex = WrapIndex(resolutionIndex + (delta > 0f ? 1 : -1), ResolutionOptions.Length);
+                    PlayerPrefs.SetInt(ResolutionPrefsKey, resolutionIndex);
+                    ApplyDisplaySettings();
+                    break;
+                case 3:
+                    displayModeIndex = WrapIndex(displayModeIndex + (delta > 0f ? 1 : -1), DisplayModeNames.Length);
+                    PlayerPrefs.SetInt(DisplayModePrefsKey, displayModeIndex);
+                    ApplyDisplaySettings();
+                    break;
+                case 4:
+                    VisualAccessibilitySettings.AdjustIntensity(delta > 0f ? 1 : -1);
+                    break;
+                case 5:
+                    VisualAccessibilitySettings.ToggleSensitivityMode();
+                    break;
+                case 6:
                     masterVolume = Mathf.Clamp01(masterVolume + delta);
                     PlayerPrefs.SetFloat(MasterVolumePrefsKey, masterVolume);
                     break;
-                case 3:
+                case 7:
                     // ENTER vuelve; izquierda/derecha no hacen nada aqui.
                     break;
             }
@@ -377,16 +580,121 @@ namespace ProjectBeat.Runtime
 
         private void ConfirmLevelSelect()
         {
-            PlayerPrefs.SetInt(StartupFlowController.SkipStartupPrefsKey, 1);
-            PlayerPrefs.Save();
+            LevelManager lm = LevelManager.Instance;
+            if (lm == null || lm.Levels == null || lm.Levels.Length == 0)
+            {
+                RefreshLevelSelectLabels();
+                return;
+            }
+
+            // Avance 48: al iniciar un nivel desde el selector se usa un flag
+            // temporal de memoria, no PlayerPrefs, para evitar estados cruzados
+            // entre computadores o sesiones anteriores.
+            StartupFlowController.RequestSkipStartupOnce();
             Time.timeScale = 1f;
-            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex, LoadSceneMode.Single);
         }
 
         private void RestartLevel()
         {
             Time.timeScale = 1f;
             SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        }
+
+        private void ReturnToMainMenu()
+        {
+            // Avance 41 Safe Fix: este flujo es independiente del resto de botones.
+            // No toca Reiniciar, Tutorial, Elegir Nivel, Configuracion ni Creditos.
+            if (isReturningToInitialMenu) return;
+            StartCoroutine(ReturnToInitialMenuSafeRoutine());
+        }
+
+        private System.Collections.IEnumerator ReturnToInitialMenuSafeRoutine()
+        {
+            isReturningToInitialMenu = true;
+
+            // Avance 44: flujo lineal. CARGANDO -> flag menu inicial -> recarga limpia.
+            // No se reutiliza el GameController actual para evitar estados pegados.
+            isPaused = false;
+            isInLevelSelect = false;
+            isInSettings = false;
+            isInCredits = false;
+            Time.timeScale = 1f;
+
+            Cursor.visible = true;
+            Cursor.lockState = CursorLockMode.None;
+
+            ShowPauseGroup(false);
+            ShowLevelSelectGroup(false);
+            ShowSettingsGroup(false);
+            ShowCreditsGroup(false);
+            ShowMainMenuLoading(true);
+
+            CleanupGameplayBeforeMainMenu();
+
+            // Avance 45: antes de recargar se evita dejar seleccionado TUTORIAL como nivel activo,
+            // porque el overlay de instrucciones se reconstruia detras del menu inicial.
+            // El menu inicial sigue permitiendo entrar a Tutorial, pero el estado base queda limpio.
+            if (LevelManager.Instance != null && LevelManager.Instance.Levels != null && LevelManager.Instance.Levels.Length > 1)
+                LevelManager.Instance.SetLevel(1);
+
+            StartupFlowController.RequestMainMenuOnNextLoad();
+
+            yield return new WaitForSecondsRealtime(0.95f);
+
+            SceneManager.sceneLoaded -= HandleMainMenuSceneLoadedSafe;
+            SceneManager.sceneLoaded += HandleMainMenuSceneLoadedSafe;
+            mainMenuSceneLoadPending = true;
+            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex, LoadSceneMode.Single);
+        }
+
+        private static void HandleMainMenuSceneLoadedSafe(Scene scene, LoadSceneMode mode)
+        {
+            SceneManager.sceneLoaded -= HandleMainMenuSceneLoadedSafe;
+            mainMenuSceneLoadPending = false;
+            Time.timeScale = 1f;
+            StartupFlowController.ForceShowMainMenuOnCurrentScene();
+        }
+
+        private void CleanupGameplayBeforeMainMenu()
+        {
+            if (gameController != null)
+                gameController.PauseAudio(false);
+
+            AudioSource[] audioSources = FindObjectsOfType<AudioSource>();
+            for (int i = 0; i < audioSources.Length; i++)
+            {
+                if (audioSources[i] != null)
+                    audioSources[i].Stop();
+            }
+
+            NoteObject[] notes = FindObjectsOfType<NoteObject>();
+            for (int i = 0; i < notes.Length; i++)
+            {
+                if (notes[i] != null)
+                    Destroy(notes[i].gameObject);
+            }
+
+            HitEffect[] hitEffects = FindObjectsOfType<HitEffect>();
+            for (int i = 0; i < hitEffects.Length; i++)
+            {
+                if (hitEffects[i] != null)
+                    Destroy(hitEffects[i].gameObject);
+            }
+
+            ParticleSystem[] particles = FindObjectsOfType<ParticleSystem>();
+            for (int i = 0; i < particles.Length; i++)
+            {
+                if (particles[i] == null) continue;
+                particles[i].Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+            }
+
+            TutorialOverlayController[] tutorialOverlays = FindObjectsOfType<TutorialOverlayController>();
+            for (int i = 0; i < tutorialOverlays.Length; i++)
+            {
+                if (tutorialOverlays[i] != null)
+                    Destroy(tutorialOverlays[i].gameObject);
+            }
         }
 
         private void QuitGame()
@@ -422,7 +730,20 @@ namespace ProjectBeat.Runtime
         private void RefreshLevelSelectLabels()
         {
             LevelManager lm = LevelManager.Instance;
-            if (lm == null || lm.CurrentLevel == null) return;
+            if (lm == null || lm.Levels == null || lm.Levels.Length == 0 || lm.CurrentLevel == null)
+            {
+                if (levelNameText != null)
+                {
+                    levelNameText.alignment = TextAlignmentOptions.Center;
+                    levelNameText.fontSize = 34f;
+                    levelNameText.text = "<color=#FFF000>NO HAY NIVELES CARGADOS</color>";
+                }
+                if (levelArtistText != null)
+                    levelArtistText.text = "<color=#BFB6FF>Revisa LevelManager y Build limpio.</color>";
+                if (levelHintText != null)
+                    levelHintText.text = "<color=#FF6A00>[ESC]</color> Volver";
+                return;
+            }
 
             LevelData level = lm.CurrentLevel;
             int idx = lm.CurrentLevelIndex;
@@ -454,7 +775,7 @@ namespace ProjectBeat.Runtime
                 levelHintText.alignment = TextAlignmentOptions.Center;
                 levelHintText.fontSize = 18f;
                 levelHintText.characterSpacing = 1.5f;
-                levelHintText.text = "<color=#00F1FF>[A/D]</color> Cambiar pista    <color=#FFF000>[ENTER]</color> Iniciar    <color=#FF6A00>[ESC]</color> Volver";
+                levelHintText.text = "<color=#00F1FF>[A/D]</color> Cambiar pista    <color=#FFF000>[ENTER]</color> Iniciar    <color=#FF6A00>[ESC]</color> Volver    <color=#BFB6FF>[MOUSE]</color> Click";
             }
         }
 
@@ -555,6 +876,7 @@ namespace ProjectBeat.Runtime
 
         private void BuildCommercialPauseMenu()
         {
+            EnsureEventSystem();
             if (pauseGroup == null) return;
             RectTransform root = pauseGroup.GetComponent<RectTransform>();
             if (root == null) return;
@@ -566,25 +888,26 @@ namespace ProjectBeat.Runtime
             CreateFloatingGlow(pauseGroup.transform, "PB_UI_Glow_Cyan", new Vector2(-520f, 220f), new Vector2(520f, 110f), new Color(0f, 0.9f, 1f, 0.10f), 2);
             CreateFloatingGlow(pauseGroup.transform, "PB_UI_Glow_Orange", new Vector2(520f, -220f), new Vector2(520f, 110f), new Color(1f, 0.32f, 0f, 0.11f), 3);
 
-            RectTransform card = CreateCard(pauseGroup.transform, "PB_UI_PauseCard", new Vector2(640f, 640f), Vector2.zero, 4);
-            CreateLine(pauseGroup.transform, "PB_UI_PauseTopNeon", new Vector2(0f, 305f), new Vector2(500f, 4f), NeonOrange, 5);
-            CreateLine(pauseGroup.transform, "PB_UI_PauseCyanLine", new Vector2(0f, 293f), new Vector2(320f, 2f), NeonCyan, 6);
-            CreateTmp(pauseGroup.transform, "PB_UI_PauseSubtitle", "PROJECT BEAT", new Vector2(0f, 220f), new Vector2(500f, 34f), 18f, NeonCyan, 7, FontStyles.Bold, 5f);
-            CreateTmp(pauseGroup.transform, "PB_UI_PauseTitle", "PAUSA", new Vector2(0f, 174f), new Vector2(500f, 64f), 48f, NeonYellow, 8, FontStyles.Bold, 7f);
+            RectTransform card = CreateCard(pauseGroup.transform, "PB_UI_PauseCard", new Vector2(660f, 700f), Vector2.zero, 4);
+            CreateLine(pauseGroup.transform, "PB_UI_PauseTopNeon", new Vector2(0f, 325f), new Vector2(500f, 4f), NeonOrange, 5);
+            CreateLine(pauseGroup.transform, "PB_UI_PauseCyanLine", new Vector2(0f, 313f), new Vector2(320f, 2f), NeonCyan, 6);
+            CreateTmp(pauseGroup.transform, "PB_UI_PauseSubtitle", "PROJECT BEAT", new Vector2(0f, 246f), new Vector2(500f, 34f), 18f, NeonCyan, 7, FontStyles.Bold, 5f);
+            CreateTmp(pauseGroup.transform, "PB_UI_PauseTitle", "PAUSA", new Vector2(0f, 200f), new Vector2(500f, 64f), 48f, NeonYellow, 8, FontStyles.Bold, 7f);
 
             menuButtonImages = new Image[OptionCount];
             menuGlowImages = new Image[OptionCount];
             menuButtonGroups = new CanvasGroup[OptionCount];
             menuButtonRects = new RectTransform[OptionCount];
 
-            float startY = 92f;
+            float startY = 126f;
             for (int i = 0; i < OptionCount; i++)
             {
-                RectTransform button = CreateButtonShell(pauseGroup.transform, "PB_UI_MenuButton_" + i, new Vector2(0f, startY - i * 66f), 9 + i);
+                RectTransform button = CreateButtonShell(pauseGroup.transform, "PB_UI_MenuButton_" + i, new Vector2(0f, startY - i * 58f), 9 + i);
                 menuButtonRects[i] = button;
                 menuButtonImages[i] = button.GetComponent<Image>();
                 menuGlowImages[i] = CreateFloatingGlow(button, "PB_UI_SelectedGlow_" + i, Vector2.zero, new Vector2(470f, 66f), new Color(1f, 0.75f, 0.04f, 0f), 0);
                 menuButtonGroups[i] = button.gameObject.AddComponent<CanvasGroup>();
+                AddMouseEventsToPauseButton(button.gameObject, i);
 
                 if (menuLabels[i] == null)
                 {
@@ -601,7 +924,7 @@ namespace ProjectBeat.Runtime
                 menuLabels[i].transform.SetAsLastSibling();
             }
 
-            CreateTmp(pauseGroup.transform, "PB_UI_PauseHint", "<color=#00F1FF>[W/S]</color> Navegar     <color=#FFF000>[ENTER]</color> Confirmar     <color=#FF6A00>[ESC]</color> Cerrar", new Vector2(0f, -286f), new Vector2(540f, 28f), 17f, TextNormal, 20, FontStyles.Normal, 1.5f);
+            CreateTmp(pauseGroup.transform, "PB_UI_PauseHint", "<color=#00F1FF>[W/S]</color> Navegar     <color=#FFF000>[ENTER]</color> Confirmar     <color=#FF6A00>[ESC]</color> Cerrar", new Vector2(0f, -318f), new Vector2(560f, 28f), 17f, TextNormal, 20, FontStyles.Normal, 1.5f);
             RefreshLabels();
         }
 
@@ -620,24 +943,75 @@ namespace ProjectBeat.Runtime
             grt.offsetMin = Vector2.zero;
             grt.offsetMax = Vector2.zero;
 
-            CreateFullScreenImage(groupGO.transform, "PB_Settings_Dim", new Color(0f, 0f, 0f, 0.35f), 0);
-            CreateCard(groupGO.transform, "PB_Settings_Card", new Vector2(760f, 610f), Vector2.zero, 1);
-            CreateLine(groupGO.transform, "PB_Settings_TopLine", new Vector2(0f, 292f), new Vector2(610f, 4f), NeonCyan, 2);
-            CreateLine(groupGO.transform, "PB_Settings_BottomLine", new Vector2(0f, -292f), new Vector2(420f, 3f), NeonOrange, 3);
+            CreateFullScreenImage(groupGO.transform, "PB_Settings_Dim", new Color(0f, 0f, 0f, 0.38f), 0);
+            CreateCard(groupGO.transform, "PB_Settings_Card", new Vector2(1500f, 900f), Vector2.zero, 1);
+            CreateLine(groupGO.transform, "PB_Settings_TopLine", new Vector2(0f, 425f), new Vector2(1260f, 4f), NeonCyan, 2);
+            CreateLine(groupGO.transform, "PB_Settings_BottomLine", new Vector2(0f, -420f), new Vector2(760f, 3f), NeonOrange, 3);
 
-            settingsTitleText = CreateTmp(groupGO.transform, "PB_Settings_Title", "CONFIGURACION", new Vector2(0f, 238f), new Vector2(660f, 54f), 36f, NeonYellow, 4, FontStyles.Bold, 5f);
-            settingsBodyText = CreateTmp(groupGO.transform, "PB_Settings_Body", "", new Vector2(0f, -8f), new Vector2(660f, 370f), 20f, TextNormal, 5, FontStyles.Normal, 1.2f);
-            settingsBodyText.alignment = TextAlignmentOptions.TopLeft;
-            settingsBodyText.enableWordWrapping = true;
-            settingsHintText = CreateTmp(groupGO.transform, "PB_Settings_Hint", "", new Vector2(0f, -252f), new Vector2(690f, 44f), 17f, TextDim, 6, FontStyles.Normal, 1.0f);
+            settingsTitleText = CreateTmp(groupGO.transform, "PB_Settings_Title", "CONFIGURACION", new Vector2(0f, 374f), new Vector2(900f, 62f), 44f, NeonYellow, 4, FontStyles.Bold, 5f);
+            settingsBodyText = CreateTmp(groupGO.transform, "PB_Settings_Body", "", new Vector2(0f, 0f), new Vector2(1f, 1f), 1f, TextNormal, 5, FontStyles.Normal, 0f);
+            settingsBodyText.enabled = false;
 
-            CreateSliderVisual(groupGO.transform, "PB_Settings_BrightnessSlider", new Vector2(70f, 28f), out brightnessSliderFill, out brightnessSliderGlow, out brightnessSliderHandle);
-            brightnessValueText = CreateTmp(groupGO.transform, "PB_Settings_BrightnessValue", "100%", new Vector2(290f, 28f), new Vector2(90f, 28f), 18f, NeonYellow, 7, FontStyles.Bold, 1.0f);
-            brightnessValueText.alignment = TextAlignmentOptions.Left;
+            controlsHeaderText = CreateTmp(groupGO.transform, "PB_Settings_ControlsHeader", "", new Vector2(-330f, 315f), new Vector2(620f, 34f), 23f, NeonCyan, 6, FontStyles.Bold, 2f);
+            controlsDescriptionText = CreateTmp(groupGO.transform, "PB_Settings_ControlsDescription", "", new Vector2(-322f, 286f), new Vector2(720f, 28f), 15f, TextDim, 7, FontStyles.Normal, 0f);
+            graphicsHeaderText = CreateTmp(groupGO.transform, "PB_Settings_GraphicsHeader", "", new Vector2(-330f, 235f), new Vector2(620f, 36f), 24f, NeonCyan, 8, FontStyles.Bold, 2f);
+            brightnessLabelText = CreateTmp(groupGO.transform, "PB_Settings_BrightnessLabel", "", new Vector2(-330f, 176f), new Vector2(620f, 52f), 20f, TextNormal, 9, FontStyles.Normal, 0f);
+            resolutionLabelText = CreateTmp(groupGO.transform, "PB_Settings_ResolutionLabel", "", new Vector2(-330f, 112f), new Vector2(620f, 52f), 20f, TextNormal, 10, FontStyles.Normal, 0f);
+            displayModeLabelText = CreateTmp(groupGO.transform, "PB_Settings_DisplayModeLabel", "", new Vector2(-330f, 48f), new Vector2(620f, 52f), 20f, TextNormal, 11, FontStyles.Normal, 0f);
+            effectsLabelText = CreateTmp(groupGO.transform, "PB_Settings_EffectsLabel", "", new Vector2(-330f, -16f), new Vector2(660f, 52f), 20f, TextNormal, 12, FontStyles.Normal, 0f);
+            sensitivityLabelText = CreateTmp(groupGO.transform, "PB_Settings_SensitivityLabel", "", new Vector2(-330f, -80f), new Vector2(660f, 52f), 20f, TextNormal, 13, FontStyles.Normal, 0f);
+            soundHeaderText = CreateTmp(groupGO.transform, "PB_Settings_SoundHeader", "", new Vector2(-330f, -170f), new Vector2(620f, 36f), 24f, NeonCyan, 14, FontStyles.Bold, 2f);
+            volumeLabelText = CreateTmp(groupGO.transform, "PB_Settings_VolumeLabel", "", new Vector2(-330f, -230f), new Vector2(620f, 52f), 20f, TextNormal, 15, FontStyles.Normal, 0f);
+            settingsBackText = CreateTmp(groupGO.transform, "PB_Settings_Back", "", new Vector2(-330f, -320f), new Vector2(620f, 50f), 25f, NeonOrange, 16, FontStyles.Bold, 1.5f);
 
-            CreateSliderVisual(groupGO.transform, "PB_Settings_VolumeSlider", new Vector2(70f, -88f), out volumeSliderFill, out volumeSliderGlow, out volumeSliderHandle);
-            volumeValueText = CreateTmp(groupGO.transform, "PB_Settings_VolumeValue", "100%", new Vector2(290f, -88f), new Vector2(90f, 28f), 18f, NeonYellow, 7, FontStyles.Bold, 1.0f);
-            volumeValueText.alignment = TextAlignmentOptions.Left;
+            TMP_Text[] leftLabels = { controlsHeaderText, controlsDescriptionText, graphicsHeaderText, brightnessLabelText, resolutionLabelText, displayModeLabelText, effectsLabelText, sensitivityLabelText, soundHeaderText, volumeLabelText, settingsBackText };
+            foreach (TMP_Text label in leftLabels)
+            {
+                if (label == null) continue;
+                label.alignment = TextAlignmentOptions.Left;
+                label.enableWordWrapping = true;
+            }
+
+            CreateLine(groupGO.transform, "PB_Settings_Separator_Top", new Vector2(0f, 258f), new Vector2(1180f, 2f), new Color(0f, 0.92f, 1f, 0.16f), 17);
+            CreateLine(groupGO.transform, "PB_Settings_Separator_Mid", new Vector2(0f, -130f), new Vector2(1180f, 2f), new Color(0f, 0.92f, 1f, 0.16f), 18);
+            CreateLine(groupGO.transform, "PB_Settings_Separator_Bottom", new Vector2(0f, -282f), new Vector2(1180f, 2f), new Color(0f, 0.92f, 1f, 0.16f), 19);
+
+            CreateSliderVisual(groupGO.transform, "PB_Settings_BrightnessSlider", new Vector2(260f, 176f), out brightnessSliderFill, out brightnessSliderGlow, out brightnessSliderHandle);
+            brightnessValueText = CreateTmp(groupGO.transform, "PB_Settings_BrightnessValue", "100%", new Vector2(610f, 176f), new Vector2(210f, 34f), 22f, NeonYellow, 20, FontStyles.Bold, 1.0f);
+            brightnessValueText.alignment = TextAlignmentOptions.Right;
+
+            resolutionValueText = CreateTmp(groupGO.transform, "PB_Settings_ResolutionValue", "1920x1080", new Vector2(570f, 112f), new Vector2(300f, 34f), 22f, NeonYellow, 21, FontStyles.Bold, 1.0f);
+            resolutionValueText.alignment = TextAlignmentOptions.Right;
+
+            displayModeValueText = CreateTmp(groupGO.transform, "PB_Settings_DisplayModeValue", "PANTALLA COMPLETA", new Vector2(540f, 48f), new Vector2(420f, 34f), 22f, NeonYellow, 22, FontStyles.Bold, 0.5f);
+            displayModeValueText.alignment = TextAlignmentOptions.Right;
+
+            CreateSliderVisual(groupGO.transform, "PB_Settings_EffectsSlider", new Vector2(260f, -16f), out effectsSliderFill, out effectsSliderGlow, out effectsSliderHandle);
+            effectsValueText = CreateTmp(groupGO.transform, "PB_Settings_EffectsValue", "MEDIO", new Vector2(610f, -16f), new Vector2(210f, 34f), 22f, NeonYellow, 23, FontStyles.Bold, 1.0f);
+            effectsValueText.alignment = TextAlignmentOptions.Right;
+
+            sensitivityValueText = CreateTmp(groupGO.transform, "PB_Settings_SensitivityValue", "OFF", new Vector2(610f, -80f), new Vector2(210f, 34f), 22f, NeonYellow, 24, FontStyles.Bold, 1.0f);
+            sensitivityValueText.alignment = TextAlignmentOptions.Right;
+
+            CreateSliderVisual(groupGO.transform, "PB_Settings_VolumeSlider", new Vector2(260f, -230f), out volumeSliderFill, out volumeSliderGlow, out volumeSliderHandle);
+            volumeValueText = CreateTmp(groupGO.transform, "PB_Settings_VolumeValue", "100%", new Vector2(610f, -230f), new Vector2(210f, 34f), 22f, NeonYellow, 25, FontStyles.Bold, 1.0f);
+            volumeValueText.alignment = TextAlignmentOptions.Right;
+
+            settingsHintText = CreateTmp(groupGO.transform, "PB_Settings_Hint", "", new Vector2(0f, -374f), new Vector2(1040f, 42f), 17f, TextDim, 26, FontStyles.Normal, 1.0f);
+
+            // Avance 47: zonas de mouse transparentes sobre cada opcion.
+            // Mantienen intacta la navegacion por teclado y solo agregan hover/click/drag.
+            AddSettingsMouseZone(groupGO.transform, "PB_Settings_Mouse_Controls", new Vector2(-330f, 300f), new Vector2(760f, 62f), 0);
+            AddSettingsMouseZone(groupGO.transform, "PB_Settings_Mouse_BrightnessRow", new Vector2(-330f, 176f), new Vector2(760f, 58f), 1);
+            AddSettingsSliderMouseZone(groupGO.transform, "PB_Settings_Mouse_BrightnessSlider", new Vector2(260f, 176f), new Vector2(560f, 48f), 1);
+            AddSettingsMouseZone(groupGO.transform, "PB_Settings_Mouse_Resolution", new Vector2(-330f, 112f), new Vector2(760f, 58f), 2, true);
+            AddSettingsMouseZone(groupGO.transform, "PB_Settings_Mouse_DisplayMode", new Vector2(-330f, 48f), new Vector2(760f, 58f), 3, true);
+            AddSettingsMouseZone(groupGO.transform, "PB_Settings_Mouse_EffectsRow", new Vector2(-330f, -16f), new Vector2(760f, 58f), 4);
+            AddSettingsSliderMouseZone(groupGO.transform, "PB_Settings_Mouse_EffectsSlider", new Vector2(260f, -16f), new Vector2(560f, 48f), 4);
+            AddSettingsMouseZone(groupGO.transform, "PB_Settings_Mouse_Sensitivity", new Vector2(-330f, -80f), new Vector2(760f, 58f), 5, true);
+            AddSettingsMouseZone(groupGO.transform, "PB_Settings_Mouse_VolumeRow", new Vector2(-330f, -230f), new Vector2(760f, 58f), 6);
+            AddSettingsSliderMouseZone(groupGO.transform, "PB_Settings_Mouse_VolumeSlider", new Vector2(260f, -230f), new Vector2(560f, 48f), 6);
+            AddSettingsMouseZone(groupGO.transform, "PB_Settings_Mouse_Back", new Vector2(-330f, -320f), new Vector2(760f, 58f), 7, true);
 
             RefreshSettingsPanel();
         }
@@ -706,6 +1080,59 @@ namespace ProjectBeat.Runtime
             if (show) creditsGroup.transform.SetAsLastSibling();
         }
 
+        private void BuildMainMenuLoadingOverlay()
+        {
+            if (mainMenuLoadingGroup != null) return;
+
+            GameObject canvasGO = new GameObject("PB_MainMenuLoadingCanvas");
+            Canvas canvas = canvasGO.AddComponent<Canvas>();
+            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+            canvas.sortingOrder = 6000;
+            CanvasScaler scaler = canvasGO.AddComponent<CanvasScaler>();
+            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+            scaler.referenceResolution = new Vector2(1920f, 1080f);
+            scaler.matchWidthOrHeight = 0.5f;
+            canvasGO.AddComponent<GraphicRaycaster>();
+
+            GameObject root = new GameObject("PB_MainMenuLoading", typeof(RectTransform));
+            root.transform.SetParent(canvasGO.transform, false);
+            RectTransform rootRT = root.GetComponent<RectTransform>();
+            rootRT.anchorMin = Vector2.zero;
+            rootRT.anchorMax = Vector2.one;
+            rootRT.offsetMin = Vector2.zero;
+            rootRT.offsetMax = Vector2.zero;
+
+            Image bg = root.AddComponent<Image>();
+            bg.color = new Color(0.002f, 0.004f, 0.012f, 0.96f);
+            mainMenuLoadingGroup = root.AddComponent<CanvasGroup>();
+
+            GameObject textGO = new GameObject("PB_MainMenuLoadingText", typeof(RectTransform));
+            textGO.transform.SetParent(root.transform, false);
+            RectTransform textRT = textGO.GetComponent<RectTransform>();
+            textRT.anchorMin = new Vector2(0.5f, 0.5f);
+            textRT.anchorMax = new Vector2(0.5f, 0.5f);
+            textRT.sizeDelta = new Vector2(700f, 120f);
+            textRT.anchoredPosition = Vector2.zero;
+
+            mainMenuLoadingText = textGO.AddComponent<TextMeshProUGUI>();
+            mainMenuLoadingText.text = "CARGANDO...";
+            mainMenuLoadingText.alignment = TextAlignmentOptions.Center;
+            mainMenuLoadingText.fontSize = 42f;
+            mainMenuLoadingText.fontStyle = FontStyles.Bold;
+            mainMenuLoadingText.characterSpacing = 8f;
+            mainMenuLoadingText.color = NeonYellow;
+            mainMenuLoadingText.raycastTarget = false;
+        }
+
+        private void ShowMainMenuLoading(bool show)
+        {
+            if (mainMenuLoadingGroup == null) return;
+            mainMenuLoadingGroup.alpha = show ? 1f : 0f;
+            mainMenuLoadingGroup.interactable = show;
+            mainMenuLoadingGroup.blocksRaycasts = show;
+            if (show) mainMenuLoadingGroup.transform.SetAsLastSibling();
+        }
+
         private void BuildBrightnessOverlay()
         {
             if (brightnessOverlay != null) return;
@@ -740,8 +1167,11 @@ namespace ProjectBeat.Runtime
         {
             brightness = PlayerPrefs.GetFloat(BrightnessPrefsKey, 1f);
             masterVolume = PlayerPrefs.GetFloat(MasterVolumePrefsKey, 1f);
+            resolutionIndex = Mathf.Clamp(PlayerPrefs.GetInt(ResolutionPrefsKey, 3), 0, ResolutionOptions.Length - 1);
+            displayModeIndex = Mathf.Clamp(PlayerPrefs.GetInt(DisplayModePrefsKey, 0), 0, DisplayModeNames.Length - 1);
             brightness = Mathf.Clamp(brightness, 0.55f, 1.35f);
             masterVolume = Mathf.Clamp01(masterVolume);
+            ApplyDisplaySettings();
         }
 
         private void ApplyVisualAudioSettings()
@@ -761,41 +1191,117 @@ namespace ProjectBeat.Runtime
 
         private void RefreshSettingsPanel()
         {
-            if (settingsBodyText == null || settingsHintText == null) return;
+            if (settingsHintText == null) return;
 
-            string controls = SectionTitle(0, "VER CONTROLES");
-            string graphics = SectionTitle(1, "GRAFICOS");
-            string sound = SectionTitle(2, "SONIDO");
-            string back = selectedSettingsOption == 3
-                ? "<size=22><color=#FFF000><b>> VOLVER</b></color></size>"
-                : "<size=21><color=#FF6A00><b>  VOLVER</b></color></size>";
+            SetHeaderText(controlsHeaderText, 0, "VER CONTROLES");
+            if (controlsDescriptionText != null)
+                controlsDescriptionText.text = "D/F/J/K Carriles   ESC Pausa   ENTER Confirmar   F1-F4 Offset";
 
-            settingsBodyText.text =
-                controls + "\n" +
-                "<size=16><color=#FFFFFF>D / F / J / K</color>    Carriles        <color=#FFFFFF>ESC</color>    Pausa\n" +
-                "<color=#FFFFFF>ENTER</color>        Confirmar       <color=#FFFFFF>W / S</color>   Navegar\n" +
-                "<color=#FFFFFF>F2 / F3 / F4</color>   Ajustar / resetear offset</size>\n\n" +
-                "<color=#224455>----------------------------------------------</color>\n\n" +
-                graphics + "\n" +
-                "<size=17><color=#DDEEFF>Brillo</color></size>\n\n\n" +
-                "<color=#224455>----------------------------------------------</color>\n\n" +
-                sound + "\n" +
-                "<size=17><color=#DDEEFF>Volumen general</color></size>\n\n\n" +
-                "<color=#224455>----------------------------------------------</color>\n\n" +
-                back;
+            SetHeaderText(graphicsHeaderText, -1, "GRAFICOS");
+            SetOptionText(brightnessLabelText, 1, "Brillo General", "Ajusta la iluminacion general del juego.");
+            SetOptionText(resolutionLabelText, 2, "Resolucion", "Cambia la resolucion de pantalla.");
+            SetOptionText(displayModeLabelText, 3, "Modo Pantalla", "Alterna pantalla completa, ventana o sin bordes.");
+            SetOptionText(effectsLabelText, 4, "Intensidad Efectos Visuales", "Controla glow, flashes, particulas y transiciones.");
+            SetOptionText(sensitivityLabelText, 5, "Modo Sensibilidad Visual", "Reduce destellos rapidos para mayor comodidad visual.");
+            SetHeaderText(soundHeaderText, -1, "SONIDO");
+            SetOptionText(volumeLabelText, 6, "Volumen General", "Ajusta el volumen principal del juego.");
+
+            if (settingsBackText != null)
+            {
+                settingsBackText.text = selectedSettingsOption == 7
+                    ? "<color=#FFF000><b>> VOLVER</b></color>"
+                    : "<color=#FF6A00><b>  VOLVER</b></color>";
+            }
 
             UpdateSliderVisual(brightnessSliderFill, brightnessSliderGlow, brightnessSliderHandle, brightnessValueText, brightness, 0.55f, 1.35f, selectedSettingsOption == 1);
-            UpdateSliderVisual(volumeSliderFill, volumeSliderGlow, volumeSliderHandle, volumeValueText, masterVolume, 0f, 1f, selectedSettingsOption == 2);
+            UpdateSliderVisual(effectsSliderFill, effectsSliderGlow, effectsSliderHandle, effectsValueText, VisualAccessibilitySettings.IntensityIndex, 0f, 4f, selectedSettingsOption == 4);
+            UpdateSliderVisual(volumeSliderFill, volumeSliderGlow, volumeSliderHandle, volumeValueText, masterVolume, 0f, 1f, selectedSettingsOption == 6);
 
-            settingsHintText.text = "<color=#00F1FF>[W/S]</color> Seleccionar    <color=#FFF000>[A/D]</color> Ajustar barra    <color=#FF6A00>[ESC]</color> Volver";
+            if (resolutionValueText != null)
+            {
+                Vector2Int res = ResolutionOptions[Mathf.Clamp(resolutionIndex, 0, ResolutionOptions.Length - 1)];
+                resolutionValueText.text = (selectedSettingsOption == 2 ? "<color=#00F1FF><</color> " : "") + res.x + "x" + res.y + (selectedSettingsOption == 2 ? " <color=#00F1FF>></color>" : "");
+                resolutionValueText.color = selectedSettingsOption == 2 ? NeonYellow : TextNormal;
+            }
+
+            if (displayModeValueText != null)
+            {
+                displayModeValueText.text = (selectedSettingsOption == 3 ? "<color=#00F1FF><</color> " : "") + DisplayModeNames[Mathf.Clamp(displayModeIndex, 0, DisplayModeNames.Length - 1)] + (selectedSettingsOption == 3 ? " <color=#00F1FF>></color>" : "");
+                displayModeValueText.color = selectedSettingsOption == 3 ? NeonYellow : TextNormal;
+            }
+
+            if (effectsValueText != null)
+            {
+                effectsValueText.text = VisualAccessibilitySettings.IntensityName;
+                effectsValueText.color = selectedSettingsOption == 4 ? NeonYellow : TextNormal;
+            }
+
+            if (sensitivityValueText != null)
+            {
+                sensitivityValueText.text = VisualAccessibilitySettings.SensitivityMode ? "ON" : "OFF";
+                sensitivityValueText.color = selectedSettingsOption == 5 ? NeonYellow : TextNormal;
+            }
+
+            settingsHintText.text = "<color=#00F1FF>[W/S]</color> Seleccionar    <color=#FFF000>[A/D]</color> Ajustar / Cambiar    <color=#FF6A00>[ESC]</color> Volver    <color=#BFB6FF>[MOUSE]</color> Click / Arrastrar";
+        }
+
+        private void SetHeaderText(TMP_Text text, int optionIndex, string title)
+        {
+            if (text == null) return;
+            bool selected = optionIndex >= 0 && selectedSettingsOption == optionIndex;
+            text.text = selected ? "<color=#FFF000><b>> " + title + "</b></color>" : "<color=#00F1FF><b>  " + title + "</b></color>";
+            text.color = selected ? NeonYellow : NeonCyan;
+        }
+
+        private void SetOptionText(TMP_Text text, int optionIndex, string title, string description)
+        {
+            if (text == null) return;
+            bool selected = selectedSettingsOption == optionIndex;
+            string marker = selected ? "<color=#FFF000><b>> </b></color>" : "  ";
+            string titleColor = selected ? "#FFF000" : "#00F1FF";
+            text.text = marker + "<color=" + titleColor + "><b>" + title + "</b></color>\n" +
+                        "<size=15><color=#DDEEFF>" + description + "</color></size>";
+            text.color = selected ? NeonYellow : TextNormal;
+        }
+
+        private int WrapIndex(int value, int count)
+        {
+            if (count <= 0) return 0;
+            value %= count;
+            if (value < 0) value += count;
+            return value;
+        }
+
+        private void ApplyDisplaySettings()
+        {
+            resolutionIndex = Mathf.Clamp(resolutionIndex, 0, ResolutionOptions.Length - 1);
+            displayModeIndex = Mathf.Clamp(displayModeIndex, 0, DisplayModeNames.Length - 1);
+            Vector2Int resolution = ResolutionOptions[resolutionIndex];
+            FullScreenMode mode = FullScreenMode.ExclusiveFullScreen;
+
+            switch (displayModeIndex)
+            {
+                case 0:
+                    mode = FullScreenMode.ExclusiveFullScreen;
+                    break;
+                case 1:
+                    mode = FullScreenMode.Windowed;
+                    break;
+                case 2:
+                    mode = FullScreenMode.FullScreenWindow;
+                    break;
+            }
+
+            if (Screen.width != resolution.x || Screen.height != resolution.y || Screen.fullScreenMode != mode)
+                Screen.SetResolution(resolution.x, resolution.y, mode);
         }
 
         private string SectionTitle(int optionIndex, string title)
         {
             if (selectedSettingsOption == optionIndex)
-                return "<size=21><color=#FFF000><b>> " + title + "</b></color></size>";
+                return "<size=19><color=#FFF000><b>> " + title + "</b></color></size>";
 
-            return "<size=20><color=#00F1FF><b>  " + title + "</b></color></size>";
+            return "<size=18><color=#00F1FF><b>  " + title + "</b></color></size>";
         }
 
         private string MakeCleanBar(float value, float min, float max)
@@ -858,6 +1364,13 @@ namespace ProjectBeat.Runtime
                 rt.sizeDelta = new Vector2(720f, 36f);
                 levelHintText.transform.SetSiblingIndex(10);
             }
+
+            // Avance 47: flechas, iniciar y volver clickeables en el selector.
+            CreateLevelMouseButton(levelSelectGroup.transform, "PB_UI_LevelMouse_Left", new Vector2(-290f, 42f), new Vector2(120f, 140f), () => ChangeLevelWithMouse(-1));
+            CreateLevelMouseButton(levelSelectGroup.transform, "PB_UI_LevelMouse_Right", new Vector2(290f, 42f), new Vector2(120f, 140f), () => ChangeLevelWithMouse(1));
+            CreateLevelMouseButton(levelSelectGroup.transform, "PB_UI_LevelMouse_Start", new Vector2(0f, -70f), new Vector2(660f, 72f), ConfirmLevelSelect);
+            TMP_Text backText = CreateTmp(levelSelectGroup.transform, "PB_UI_LevelBackButton", "<color=#FF6A00><b>VOLVER</b></color>", new Vector2(0f, -196f), new Vector2(240f, 34f), 19f, NeonOrange, 11, FontStyles.Bold, 1.0f);
+            CreateLevelMouseButton(levelSelectGroup.transform, "PB_UI_LevelMouse_Back", new Vector2(0f, -196f), new Vector2(260f, 44f), ExitLevelSelect);
 
             RefreshLevelSelectLabels();
         }
@@ -937,13 +1450,190 @@ namespace ProjectBeat.Runtime
             return rt;
         }
 
+        private void EnsureEventSystem()
+        {
+            if (EventSystem.current != null) return;
+            GameObject eventSystem = new GameObject("EventSystem");
+            eventSystem.AddComponent<EventSystem>();
+            eventSystem.AddComponent<StandaloneInputModule>();
+        }
+
+        private RectTransform CreateTransparentHitZone(Transform parent, string name, Vector2 pos, Vector2 size, int sibling = 80)
+        {
+            GameObject go = new GameObject(name, typeof(RectTransform));
+            go.transform.SetParent(parent, false);
+            go.transform.SetSiblingIndex(Mathf.Min(sibling, parent.childCount - 1));
+            Image img = go.AddComponent<Image>();
+            img.color = new Color(1f, 1f, 1f, 0f);
+            img.raycastTarget = true;
+            RectTransform rt = go.GetComponent<RectTransform>();
+            rt.anchorMin = new Vector2(0.5f, 0.5f);
+            rt.anchorMax = new Vector2(0.5f, 0.5f);
+            rt.pivot = new Vector2(0.5f, 0.5f);
+            rt.anchoredPosition = pos;
+            rt.sizeDelta = size;
+            return rt;
+        }
+
+        private void AddTrigger(EventTrigger trigger, EventTriggerType type, UnityEngine.Events.UnityAction<BaseEventData> action)
+        {
+            EventTrigger.Entry entry = new EventTrigger.Entry { eventID = type };
+            entry.callback.AddListener(action);
+            trigger.triggers.Add(entry);
+        }
+
+        private void AddSettingsMouseZone(Transform parent, string name, Vector2 pos, Vector2 size, int optionIndex, bool clickActs = false)
+        {
+            RectTransform hit = CreateTransparentHitZone(parent, name, pos, size, 90 + optionIndex);
+            EventTrigger trigger = hit.gameObject.AddComponent<EventTrigger>();
+            trigger.triggers = new List<EventTrigger.Entry>();
+
+            AddTrigger(trigger, EventTriggerType.PointerEnter, (_) =>
+            {
+                if (!isPaused || !isInSettings || isReturningToInitialMenu) return;
+                selectedSettingsOption = optionIndex;
+                RefreshSettingsPanel();
+            });
+
+            AddTrigger(trigger, EventTriggerType.PointerClick, (_) =>
+            {
+                if (!isPaused || !isInSettings || isReturningToInitialMenu) return;
+                selectedSettingsOption = optionIndex;
+                if (clickActs)
+                {
+                    if (optionIndex == 2 || optionIndex == 3)
+                        AdjustSelectedSetting(0.05f);
+                    else if (optionIndex == 5)
+                    {
+                        VisualAccessibilitySettings.ToggleSensitivityMode();
+                        ApplyVisualAudioSettings();
+                        RefreshSettingsPanel();
+                    }
+                    else if (optionIndex == 7)
+                        ExitSettings();
+                }
+                else
+                    RefreshSettingsPanel();
+            });
+        }
+
+        private void AddSettingsSliderMouseZone(Transform parent, string name, Vector2 pos, Vector2 size, int optionIndex)
+        {
+            RectTransform hit = CreateTransparentHitZone(parent, name, pos, size, 110 + optionIndex);
+            EventTrigger trigger = hit.gameObject.AddComponent<EventTrigger>();
+            trigger.triggers = new List<EventTrigger.Entry>();
+
+            UnityEngine.Events.UnityAction<BaseEventData> apply = (data) =>
+            {
+                if (!isPaused || !isInSettings || isReturningToInitialMenu) return;
+                selectedSettingsOption = optionIndex;
+                PointerEventData pointer = data as PointerEventData;
+                if (pointer != null)
+                    ApplySliderFromMouse(optionIndex, hit, pointer);
+            };
+
+            AddTrigger(trigger, EventTriggerType.PointerEnter, (_) =>
+            {
+                if (!isPaused || !isInSettings || isReturningToInitialMenu) return;
+                selectedSettingsOption = optionIndex;
+                RefreshSettingsPanel();
+            });
+            AddTrigger(trigger, EventTriggerType.PointerDown, apply);
+            AddTrigger(trigger, EventTriggerType.Drag, apply);
+            AddTrigger(trigger, EventTriggerType.PointerClick, apply);
+        }
+
+        private void ApplySliderFromMouse(int optionIndex, RectTransform zone, PointerEventData eventData)
+        {
+            Vector2 localPoint;
+            Camera cam = eventData.pressEventCamera;
+            if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(zone, eventData.position, cam, out localPoint)) return;
+
+            float t = Mathf.Clamp01((localPoint.x / Mathf.Max(1f, zone.rect.width)) + 0.5f);
+
+            switch (optionIndex)
+            {
+                case 1:
+                    brightness = Mathf.Lerp(0.55f, 1.35f, t);
+                    PlayerPrefs.SetFloat(BrightnessPrefsKey, brightness);
+                    break;
+                case 4:
+                    VisualAccessibilitySettings.SetIntensityIndex(Mathf.RoundToInt(t * 4f));
+                    break;
+                case 6:
+                    masterVolume = t;
+                    PlayerPrefs.SetFloat(MasterVolumePrefsKey, masterVolume);
+                    break;
+            }
+
+            PlayerPrefs.Save();
+            ApplyVisualAudioSettings();
+            RefreshSettingsPanel();
+        }
+
+        private void CreateLevelMouseButton(Transform parent, string name, Vector2 pos, Vector2 size, System.Action clickAction)
+        {
+            RectTransform hit = CreateTransparentHitZone(parent, name, pos, size, 90);
+            EventTrigger trigger = hit.gameObject.AddComponent<EventTrigger>();
+            trigger.triggers = new List<EventTrigger.Entry>();
+
+            AddTrigger(trigger, EventTriggerType.PointerEnter, (_) =>
+            {
+                if (!isPaused || !isInLevelSelect || isReturningToInitialMenu) return;
+                PopText(levelNameText, 1.035f);
+            });
+
+            AddTrigger(trigger, EventTriggerType.PointerClick, (_) =>
+            {
+                if (!isPaused || !isInLevelSelect || isReturningToInitialMenu) return;
+                if (clickAction != null) clickAction.Invoke();
+            });
+        }
+
+        private void ChangeLevelWithMouse(int direction)
+        {
+            LevelManager lm = LevelManager.Instance;
+            if (lm == null) return;
+            if (direction < 0) lm.PreviousLevel();
+            else lm.NextLevel();
+            RefreshLevelSelectLabels();
+            PopText(levelNameText, 1.08f);
+        }
+
+        private void AddMouseEventsToPauseButton(GameObject target, int optionIndex)
+        {
+            if (target == null) return;
+            EventTrigger trigger = target.GetComponent<EventTrigger>();
+            if (trigger == null) trigger = target.AddComponent<EventTrigger>();
+            if (trigger.triggers == null) trigger.triggers = new List<EventTrigger.Entry>();
+
+            EventTrigger.Entry enter = new EventTrigger.Entry { eventID = EventTriggerType.PointerEnter };
+            enter.callback.AddListener((_) =>
+            {
+                if (!isPaused || isInLevelSelect || isInSettings || isInCredits || isReturningToInitialMenu) return;
+                selectedOption = optionIndex;
+                RefreshLabels();
+            });
+            trigger.triggers.Add(enter);
+
+            EventTrigger.Entry click = new EventTrigger.Entry { eventID = EventTriggerType.PointerClick };
+            click.callback.AddListener((_) =>
+            {
+                if (!isPaused || isInLevelSelect || isInSettings || isInCredits || isReturningToInitialMenu) return;
+                selectedOption = optionIndex;
+                RefreshLabels();
+                ConfirmOption();
+            });
+            trigger.triggers.Add(click);
+        }
+
         private RectTransform CreateButtonShell(Transform parent, string name, Vector2 pos, int sibling)
         {
             GameObject go = new GameObject(name);
             go.transform.SetParent(parent, false);
             go.transform.SetSiblingIndex(Mathf.Min(sibling, parent.childCount - 1));
             Image img = go.AddComponent<Image>();
-            img.raycastTarget = false;
+            img.raycastTarget = true;
             img.sprite = roundedButtonSprite;
             img.type = Image.Type.Sliced;
             img.color = new Color(0.10f, 0.045f, 0.15f, 0.50f);
@@ -956,7 +1646,7 @@ namespace ProjectBeat.Runtime
             rt.anchorMax = new Vector2(0.5f, 0.5f);
             rt.pivot = new Vector2(0.5f, 0.5f);
             rt.anchoredPosition = pos;
-            rt.sizeDelta = new Vector2(470f, 60f);
+            rt.sizeDelta = new Vector2(470f, 52f);
             return rt;
         }
 
@@ -1022,7 +1712,7 @@ namespace ProjectBeat.Runtime
             rt.anchorMax = new Vector2(0.5f, 0.5f);
             rt.pivot = new Vector2(0.5f, 0.5f);
             rt.anchoredPosition = pos;
-            rt.sizeDelta = new Vector2(280f, 18f);
+            rt.sizeDelta = new Vector2(500f, 20f);
 
             GameObject baseGO = new GameObject(name + "_Base", typeof(RectTransform));
             baseGO.transform.SetParent(root.transform, false);
