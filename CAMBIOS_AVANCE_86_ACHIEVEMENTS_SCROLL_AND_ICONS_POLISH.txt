@@ -1,0 +1,50 @@
+AVANCE 86 – MEJORA VISUAL DEL SISTEMA DE LOGROS, SCROLL Y DISEÑO DE ICONOS
+
+Base utilizada:
+- Avance 85 – Achievements System.
+
+Archivos modificados:
+- Assets/Scripts/Runtime/StartupFlowController.cs
+- Assets/Scripts/Runtime/AchievementNotification.cs
+
+Mejoras implementadas:
+- Se rediseñó el botón LOGROS del menú principal para que mantenga estética cian/celeste/neón.
+- El icono de LOGROS ahora usa un trofeo más limpio, más pequeño y mejor proporcionado.
+- Se eliminó la iluminación amarilla del botón LOGROS para que combine con PERFIL y ESTADÍSTICAS.
+- El panel LOGROS ahora usa una lista con ScrollRect.
+- Se agregó barra/slider vertical para poder bajar y ver más logros.
+- La lista de logros ya no queda apretada ni saturada en una sola zona fija.
+- Cada logro ahora se muestra como fila/tarjeta con mejor espaciado.
+- Cada logro tiene un icono distinto según su tipo:
+  * PRIMERA PARTIDA: icono de perfil/inicio.
+  * PRIMER BEAT: icono de nota musical.
+  * RITMO INICIAL: icono de cadena/combo.
+  * BUENA PRECISION: icono de mira/precisión.
+  * RANGO A: icono de rango A.
+  * RANGO S: icono de rango S.
+  * FULL COMBO: icono de racha/estrella.
+  * MAESTRO DEL RITMO: icono de corona/trofeo avanzado.
+- Se mejoró la notificación lateral de logro desbloqueado para usar trofeo cian/neón mejor ajustado.
+- El panel queda más preparado visualmente para futura adaptación Android/touch.
+
+No se modificó:
+- Gameplay.
+- LevelManager.
+- Canciones.
+- Puntuación.
+- Precisión.
+- Rango.
+- Combo.
+- Hit detection.
+- Timing.
+- Guardado funcional de logros por perfil.
+- Desbloqueo real de logros.
+- Estadísticas.
+- Perfiles.
+- Resultados.
+- Pausa.
+- Configuración.
+
+Notas:
+- Los iconos de logros se generan de forma procedural en runtime, por lo que no dependen de imágenes externas ni de archivos faltantes.
+- El sistema sigue usando los logros y guardado del Avance 85.
