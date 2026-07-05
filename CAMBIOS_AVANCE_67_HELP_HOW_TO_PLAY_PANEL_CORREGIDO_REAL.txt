@@ -1,0 +1,30 @@
+AVANCE 67 - BOTON AYUDA Y PANEL COMO JUGAR (CORREGIDO REAL)
+
+Base usada:
+- Avance 66 corregido.
+
+Archivos modificados:
+- Assets/Scripts/Runtime/StartupFlowController.cs
+
+Cambios implementados:
+- Se agrego un boton AYUDA arriba del boton CONFIG del menu principal.
+- El boton usa icono tipo plus/cruz con estilo neon y texto AYUDA.
+- Se agrego un panel central COMO JUGAR con fondo oscuro translúcido y bordes neon.
+- El panel contiene 5 paginas:
+  1. Controles basicos.
+  2. Hold notes.
+  3. Precision.
+  4. Combo y multiplicador.
+  5. Pausa y opciones.
+- Se agregaron botones SIGUIENTE, ANTERIOR y X.
+- ESC cierra el panel cuando esta abierto.
+- El menu principal queda atenuado detras del panel.
+
+Criterio de seguridad aplicado:
+- Se rehizo desde el Avance 66 corregido, no desde el Avance 67 anterior.
+- Implementacion simple dentro de StartupFlowController.
+- No se agregaron scripts nuevos.
+- No se modifico gameplay, LevelManager, selector, pausa, configuracion, resultados ni sistema de puntuacion.
+
+Notas:
+- Si Unity vuelve a entrar en Safe Mode, revisar la consola roja exacta para identificar el error especifico.
