@@ -1,0 +1,45 @@
+AVANCE 84 – UNIFICAR PANTALLA DE CARGANDO Y OCULTAR FONDO DURANTE TRANSICIONES
+
+Base: Avance 83.
+
+Archivos modificados:
+- Assets/Scripts/Runtime/StartupFlowController.cs
+- Assets/Scripts/Runtime/PauseMenu.cs
+- Assets/Scripts/Runtime/GameController.cs
+
+Archivos agregados:
+- Assets/Scripts/Runtime/UnifiedLoadingScreen.cs
+
+Cambios implementados:
+- Se agregó una pantalla única de carga para todo el proyecto.
+- La pantalla de carga usa fondo negro completo y opaco.
+- El texto CARGANDO... ahora usa estética morada / magenta / cian neón.
+- Se eliminó el estilo amarillo/transparente anterior en cargas desde resultados.
+- Al entrar desde Menú principal → Arcade → Selector de niveles se muestra CARGANDO... antes del selector.
+- Al iniciar un nivel desde el selector se muestra el mismo CARGANDO... antes del gameplay.
+- Al usar SIGUIENTE NIVEL desde resultados se usa el mismo CARGANDO... unificado.
+- Al volver al menú principal desde resultados o pausa se conserva la misma estética de carga.
+- Se evita que durante la carga se vean gameplay, HUD, carriles, selector, paneles transparentes o fondos de escena detrás.
+- Se mantiene el flujo funcional existente: Arcade, Selector, Iniciar nivel, Siguiente nivel, Reiniciar y Volver.
+
+Notas técnicas:
+- Se creó UnifiedLoadingScreen como Canvas persistente con sorting alto y fondo negro completo.
+- La pantalla se muestra con UnifiedLoadingScreen.Show("CARGANDO...", true).
+- La pantalla se oculta con UnifiedLoadingScreen.Hide(...), una vez que el menú o gameplay ya están listos.
+- GameController dejó de dibujar el CARGANDO antiguo por OnGUI para evitar estilos distintos.
+
+No se modificó:
+- Gameplay
+- LevelManager
+- Canciones
+- Puntuación
+- Precisión
+- Rango
+- Combo
+- Hit detection
+- Timing
+- Beatmaps
+- Perfiles
+- Estadísticas
+- Bloqueo/desbloqueo de niveles
+- Música del selector

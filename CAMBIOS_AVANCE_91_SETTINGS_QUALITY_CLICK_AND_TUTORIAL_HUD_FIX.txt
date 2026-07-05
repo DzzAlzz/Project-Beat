@@ -1,0 +1,15 @@
+REENTREGA AVANCE 91 – CORRECCIÓN DEL TUTORIAL HUD Y CLICK EN CALIDAD VISUAL
+
+Base: ProjectBeat_Avance91_SettingsClickAchievementSoundAndCountdownFix
+
+Archivos modificados:
+- Assets/Scripts/Runtime/TutorialOverlayController.cs
+- Assets/Scripts/Runtime/PauseMenu.cs
+
+Cambios realizados:
+- Se eliminó del panel lateral del tutorial la línea: “PREC muestra tu precisión.”
+- Se mantuvo el título HUD y se dejó “ESC pausa el juego.” directamente bajo esa sección.
+- Se agregó un respaldo de click por fila en Configuración para que Calidad Visual responda desde el texto izquierdo, la descripción, el centro de la fila y el valor derecho.
+- Calidad Visual ahora cambia entre BAJA / MEDIA / ALTA / EXTREMA al clickear la fila o el valor.
+- Se mantuvo el funcionamiento de A/D, ENTER, scroll, sliders y guardado de configuración.
+- No se modificó gameplay, timing, puntuación, logros, sonido de logros ni countdown visual.
