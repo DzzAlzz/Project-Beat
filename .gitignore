@@ -38,3 +38,17 @@ Assets/Levels/
 
 # Archivos de escena compilados temporales
 Assets/Scenes/*.unity.backup
+
+# Unity - archivos pesados/no necesarios
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Uu]ser[Ss]ettings/
+.vs/
+*.apk
+*.exe
+*.zip
+*.rar
