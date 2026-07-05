@@ -1,0 +1,39 @@
+AVANCE 91 – CORRECCIÓN DE CLICK EN CONFIGURACIÓN, SONIDO DE LOGROS Y COUNTDOWN VISUAL
+
+Base usada:
+- Avance 90 – SettingsClickAchievementSoundAndCompatibilityPolish.
+
+Archivos modificados:
+- Assets/Scripts/Runtime/PauseMenu.cs
+- Assets/Scripts/Runtime/AchievementNotification.cs
+- Assets/Scripts/Runtime/EasterEggSecretCodeController.cs
+- Assets/Scripts/Runtime/GameplayUI.cs
+
+Correcciones realizadas:
+
+1) Click en CONFIGURACIÓN
+- Se ampliaron las zonas invisibles de interacción de cada fila.
+- Ahora cada fila tiene un área clickeable más grande y estable.
+- Se puede seleccionar/clickear desde el nombre izquierdo, descripción, zona central y valor derecho.
+- Las opciones como Calidad Visual, Efectos de Combo, Aura de Combo, Modo Pantalla, Intensidad de Efectos y Restaurar Valores responden mejor al click.
+- Los hit zones usan una transparencia mínima para que Unity los detecte de forma confiable sin verse visualmente.
+- Se mantuvo navegación W/S, ajuste A/D, ENTER, ESC, scroll y arrastre de sliders.
+
+2) Sonido de logros
+- AchievementNotification ahora permite mostrar notificación con o sin sonido.
+- El sonido se mantiene para logros realmente desbloqueados en el momento.
+- El logro de bienvenida por perfil se guarda de forma silenciosa para evitar que suene o aparezca solo al cambiar/cargar perfil.
+- No se alteró la lógica real de logros ni el guardado por perfil.
+
+3) Countdown visual
+- Se retocó el inicio visual de nivel PREPÁRATE / 3 • 2 • 1 / LISTO PARA JUGAR.
+- Se agregaron líneas y glow sutil cian/magenta.
+- El texto usa blanco, cian y magenta para integrarse mejor con el menú principal.
+- Se mejoró la jerarquía visual sin cambiar el timing, gameplay, canciones ni hit detection.
+
+Validación realizada fuera de Unity:
+- Se verificó integridad del ZIP.
+- Se revisó balance de llaves en los scripts modificados.
+
+Nota:
+- No se modificó LevelManager, canciones, puntuación, precisión, rango, combo, notas, hold notes, selector, pausa, resultados, perfiles ni estadísticas.

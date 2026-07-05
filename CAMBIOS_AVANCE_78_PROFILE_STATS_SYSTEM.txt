@@ -1,0 +1,44 @@
+AVANCE 78 - ESTADISTICAS POR PERFIL DE USUARIO
+
+Base usada:
+- Avance 77 ProfileSystemBase.
+
+Archivos modificados:
+- Assets/Scripts/Runtime/StartupFlowController.cs
+- Assets/Scripts/Runtime/GameController.cs
+
+Archivos agregados:
+- Assets/Scripts/Runtime/ProfileStatsStorage.cs
+- CAMBIOS_AVANCE_78_PROFILE_STATS_SYSTEM.txt
+
+Cambios implementados:
+- Nuevo boton ESTADISTICAS en el lado derecho del menu principal, debajo de PERFIL.
+- Icono de barras / grafico para representar estadisticas.
+- Panel ESTADISTICAS con estetica morada, rosada, cian y neon.
+- El panel muestra el perfil actualmente cargado/seleccionado.
+- Si no hay perfil cargado, muestra aviso.
+- Si el perfil no tiene datos, muestra aviso SIN ESTADISTICAS.
+- Al terminar un nivel, se guardan datos dentro del perfil actual.
+- Las estadisticas quedan separadas por perfil y no se mezclan entre usuarios.
+- Se guardan por nivel: veces jugado, mejor puntuacion, mejor precision, mejor rango, max combo, ultimo resultado y acumulados de PERFECTO / BIEN / MAL / FALLO.
+- Se usa guardado local con PlayerPrefs + JSON, siguiendo la base del sistema de perfiles del Avance 77.
+- Al eliminar un perfil, tambien se elimina su bloque de estadisticas asociado.
+
+Importante:
+- No se implementaron aun desbloqueos, progreso completo, tabla avanzada ni historial detallado.
+- Queda preparada la estructura para agregar progreso de niveles y estadisticas mas completas en futuros avances.
+
+No modificado:
+- LevelManager.
+- Gameplay base.
+- Canciones.
+- Timing.
+- Hit detection.
+- Puntuacion.
+- Calculo de rango.
+- Calculo de precision.
+- Combo.
+- Selector de niveles.
+- Pausa.
+- Configuracion.
+- Resultados.

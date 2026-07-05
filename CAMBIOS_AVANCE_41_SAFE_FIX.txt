@@ -1,0 +1,26 @@
+AVANCE 41 - MAIN MENU SAFE FIX
+
+Objetivo:
+- Corregir el boton MENU PRINCIPAL con un flujo simple y aislado.
+- No tocar Reiniciar, Tutorial, Elegir Nivel, Configuracion, Creditos ni Salir.
+
+Cambios:
+- MENU PRINCIPAL ahora usa ReturnToInitialMenuSafeRoutine().
+- Se muestra una pantalla CARGANDO... durante una transicion breve.
+- Se resetea Time.timeScale a 1.
+- Se detienen AudioSources, notas, hit effects y particulas activas antes del retorno.
+- Se solicita al StartupFlowController abrir el menu inicial en la siguiente carga.
+- Se recarga la escena activa por nombre para evitar problemas con buildIndex.
+- Se reforzo el flag interno de StartupFlowController para abrir el menu principal.
+- Se descartaron los efectos RGB/neon del intento anterior.
+
+No se modifica:
+- Gameplay base
+- Scoring
+- Timing
+- BPM
+- Canciones
+- Hold Notes
+- Offset
+- Resultados
+- LevelManager
