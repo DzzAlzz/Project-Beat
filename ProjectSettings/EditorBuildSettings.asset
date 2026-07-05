@@ -4,6 +4,9 @@
 EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
-  m_Scenes: []
+  m_Scenes:
+  - enabled: 1
+    path: Assets/Scenes/ProjectBeat_Demo.unity
+    guid: e7d6f4aa42f6ea2499a094eb8d8defd6
   m_configObjects: {}
   m_UseUCBPForAssetBundles: 0
