@@ -1,0 +1,62 @@
+AVANCE 88 – AMPLIACIÓN Y PULIDO DEL MENÚ DE CONFIGURACIÓN
+
+BASE
+- Usado como base: Avance 87 – Achievements Expansion And Secret Easter Eggs.
+- Se descartó el Avance 88 de idiomas/localización y el Avance 89 de portugués.
+
+ARCHIVOS MODIFICADOS
+- Assets/Scripts/Runtime/PauseMenu.cs
+- Assets/Scripts/Runtime/VisualAccessibilitySettings.cs
+- Assets/Scripts/Runtime/GameplayUI.cs
+
+MEJORAS IMPLEMENTADAS
+
+1) Menú de CONFIGURACIÓN más grande y limpio
+- Panel principal ampliado.
+- Mejor distribución interna.
+- Más aire visual entre opciones.
+- Se corrigió la sensación de borde/lateral cortado.
+- Se agregó viewport interno para que el contenido no se vea amontonado.
+
+2) Scroll vertical en CONFIGURACIÓN
+- Se agregó scroll/slider vertical cian/neón.
+- Se puede bajar para ver más configuraciones.
+- Se agregó soporte de rueda del mouse.
+- Se agregó soporte de arrastre del scrollbar.
+- La selección con W/S ajusta automáticamente el scroll para mantener visible la opción activa.
+
+3) Nuevas opciones de configuración visual
+- Calidad Visual: BAJA / MEDIA / ALTA / EXTREMA.
+- Efectos de Combo: ON / OFF.
+- Aura de Combo: ON / OFF.
+- Restaurar Valores.
+
+4) Opciones actuales mantenidas
+- Brillo General.
+- Resolución.
+- Modo Pantalla.
+- Intensidad Efectos Visuales.
+- Modo Sensibilidad Visual.
+- Volumen General.
+- Volver.
+
+5) Guardado local
+- Las nuevas opciones usan PlayerPrefs.
+- Se guarda Calidad Visual.
+- Se guarda Efectos de Combo.
+- Se guarda Aura de Combo.
+- Restaurar Valores devuelve valores recomendados y guarda cambios.
+
+6) Efectos visuales conectados de forma segura
+- Calidad Visual ajusta multiplicadores visuales de glow, partículas, flashes y pulsos.
+- Aura de Combo OFF apaga solo la aura visual.
+- Efectos de Combo OFF reduce/acalla efectos visuales extra del combo, sin tocar combo real.
+
+VALIDACIÓN REALIZADA EN CONTENEDOR
+- ZIP creado correctamente.
+- ZIP no está vacío.
+- ZIP no presenta errores de integridad como archivo comprimido.
+
+NOTA
+- No se modificó gameplay, puntuación, hit detection, timing, canciones, LevelManager, perfiles, estadísticas, logros, selector, pausa ni resultados.
+- La prueba final de Unity/Safe Mode debe realizarse en Unity 6000.3.11f1.

@@ -1,0 +1,80 @@
+AVANCE 98 – VERSION ANDROID FULL OPTIMIZADA FINAL
+
+Base:
+- ProjectBeat_Avance97_AndroidTouchLaneMappingAndPauseCleanup.zip
+
+Objetivo:
+- Dejar una version Android mas limpia y lista para prueba en celular real, manteniendo el proyecto como Unity y sin migrarlo a Android Studio desde cero.
+
+Cambios aplicados:
+
+1. HUD tactil Android final
+- Se mantuvieron los botones tactiles D / F / J / K.
+- Se eliminaron elementos de pausa movil superiores que se montaban sobre la interfaz.
+- Los botones tactiles quedaron mas separados y mas comodos para celular horizontal.
+- Se agrego feedback visual al presionar los botones tactiles.
+- Se agrego una zona tactil ampliada en la franja inferior para mejorar respuesta en bordes del boton.
+- Se mantiene multitouch directo para poder presionar varias teclas a la vez.
+
+2. Limpieza del HUD en Android
+- Se oculto la guia de pausa de PC en Android.
+- Se ocultaron los indicadores duplicados D/F/J/K del HUD de PC.
+- Se dejo el puntaje y la precision en un panel mas compacto para no tapar la pista.
+- El centro de gameplay queda mas despejado.
+
+3. Tutorial optimizado para Android
+- El panel del tutorial ahora es mas compacto en Android.
+- Ya no baja hasta la zona de botones tactiles.
+- El texto del tutorial se adapto a controles tactiles.
+- En PC se mantiene el tutorial original.
+
+4. Optimizacion runtime Android
+- Se agrego ProjectBeatAndroidRuntimeOptimizer.cs.
+- En Android fuerza orientacion LandscapeLeft.
+- Oculta el cursor.
+- Mantiene la pantalla activa durante la partida.
+- Usa FPS objetivo estable de 60 para celular.
+- No cambia ventanas de hit, timing, puntaje ni logica de notas.
+
+Archivos modificados/agregados:
+- Assets/Scripts/Runtime/MobileTouchControls.cs
+- Assets/Scripts/Runtime/GameplayUI.cs
+- Assets/Scripts/Runtime/TutorialOverlayController.cs
+- Assets/Scripts/Runtime/ProjectBeatAndroidRuntimeOptimizer.cs
+- Assets/Scripts/Runtime/ProjectBeatAndroidRuntimeOptimizer.cs.meta
+
+No modificado:
+- LevelManager
+- Gameplay base
+- Canciones
+- Beatmaps
+- Timing
+- Hit detection
+- Puntuacion
+- Precision
+- Combo
+- Logica de notas
+- Logica de hold notes
+- Menu principal PC
+- Pausa PC
+- Resultados
+- Configuracion
+- Sistema de perfiles
+- Estadisticas
+- Logros
+- Easter eggs
+
+Validacion recomendada:
+1. Abrir en Unity 6000.3.11f1.
+2. File > Build Profiles > Android.
+3. Switch Platform si no esta activo.
+4. Generar APK nuevo.
+5. Instalar en celular.
+6. Probar tutorial y un nivel normal.
+7. Confirmar que D/F/J/K golpean sus carriles correctos.
+8. Confirmar que no aparece boton PAUSA superior en Android.
+9. Confirmar que el cursor no aparece en Android.
+10. Confirmar que el tutorial no tapa los botones tactiles.
+
+Entrega:
+- ProjectBeat_Avance98_AndroidFullOptimizedTouchFinal.zip

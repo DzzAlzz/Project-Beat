@@ -1,0 +1,15 @@
+AVANCE 42 - MAIN MENU SCENE LOAD FIX
+
+Causa detectada:
+La opcion MENU PRINCIPAL mostraba CARGANDO..., pero despues no llegaba al menu inicial porque el flujo dependia de recargar la escena activa por nombre/buildIndex y el proyecto no tenia la escena registrada en EditorBuildSettings.
+
+Correccion aplicada:
+- Se registro Assets/Scenes/ProjectBeat_Demo.unity en ProjectSettings/EditorBuildSettings.asset.
+- PauseMenu ahora carga explicitamente ProjectBeat_Demo al usar MENU PRINCIPAL.
+- Se mantiene StartupFlowController.RequestMainMenuOnNextLoad() para reconstruir el menu inicial.
+- Se conserva la pantalla CARGANDO... y la transicion corta.
+- Se mantiene la musica del menu principal.
+- No se tocan los flujos de Reiniciar, Tutorial, Elegir Nivel, Configuracion ni Creditos.
+
+Resultado esperado:
+MENU PRINCIPAL -> CARGANDO... -> menu inicial PROJECT BEAT / TUTORIAL / ARCADE / PROXIMAMENTE.

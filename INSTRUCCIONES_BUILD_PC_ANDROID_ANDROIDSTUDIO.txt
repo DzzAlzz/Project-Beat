@@ -1,0 +1,51 @@
+INSTRUCCIONES DE BUILD – PROJECT BEAT AVANCE 99
+==============================================
+
+PC / WINDOWS
+------------
+1. Abrir Unity 6000.3.11f1.
+2. Abrir el proyecto Project Beat.
+3. Ir a File > Build Profiles.
+4. Seleccionar Windows.
+5. Presionar Build o Build And Run.
+6. Elegir una carpeta nueva limpia.
+7. Verificar que Project Beat.exe muestre el icono PB.
+
+ANDROID APK DESDE UNITY
+-----------------------
+1. Abrir Unity 6000.3.11f1.
+2. File > Build Profiles.
+3. Seleccionar Android.
+4. Presionar Switch Platform si todavia no esta activo.
+5. Dejar Export Project desactivado si solo se quiere APK.
+6. Dejar Build App Bundle desactivado si no se subira a Google Play.
+7. Presionar Build.
+8. Guardar como Project Beat.apk.
+9. Pasar el APK al celular.
+10. Instalar. Si Android muestra aviso de fuente desconocida, es normal al no venir de Google Play.
+
+EXPORTAR PARA ANDROID STUDIO
+----------------------------
+1. En Unity: File > Build Profiles > Android.
+2. Activar Export Project.
+3. Presionar Build.
+4. Elegir una carpeta nueva llamada ProjectBeat_AndroidStudioExport.
+5. Abrir Android Studio.
+6. Elegir Open, no New Project.
+7. Seleccionar la carpeta exportada.
+8. Esperar Gradle Sync.
+9. Compilar desde Build > Build Bundle(s) / APK(s) > Build APK(s).
+
+GITHUB BRANCH FINAL SUGERIDA
+----------------------------
+Rama:
+avance-99-version-definitiva-final
+
+Comandos:
+
+git checkout dev
+git pull origin dev
+git checkout -b avance-99-version-definitiva-final
+git add .
+git commit -m "Avance 99 - version definitiva final de Project Beat"
+git push origin avance-99-version-definitiva-final

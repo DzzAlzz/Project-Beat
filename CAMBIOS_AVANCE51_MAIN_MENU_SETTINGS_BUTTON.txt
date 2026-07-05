@@ -1,0 +1,18 @@
+AVANCE 51 - MAIN MENU SETTINGS BUTTON
+
+Base: Avance 50.1
+
+Cambios:
+- Se agrega acceso directo a CONFIGURACION desde el menu principal.
+- Boton cuadrado con icono de engranaje estilo neon ubicado al lado izquierdo del panel principal.
+- El boton abre una configuracion limpia desde el menu inicial, sin abrir pausa ni iniciar gameplay.
+- Permite ajustar brillo, resolucion, modo pantalla, intensidad visual, sensibilidad visual y volumen.
+- ESC o VOLVER regresa al menu principal.
+- Se mantiene la configuracion desde pausa.
+- No se modifica gameplay, scoring, timing, BPM, canciones, Hold Notes, offset, resultados ni LevelManager.
+
+Validaciones esperadas:
+- Tutorial, Arcade, Proximamente y Salir siguen funcionando.
+- El boton de configuracion no bloquea otros botones.
+- Mouse y teclado siguen disponibles.
+- No se generan paneles duplicados.
