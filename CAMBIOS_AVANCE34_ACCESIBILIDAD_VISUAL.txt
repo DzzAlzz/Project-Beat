@@ -1,0 +1,19 @@
+PROJECT BEAT - AVANCE 34
+Accesibilidad Visual y Personalizacion Grafica
+
+Cambios principales:
+- Se agrega sistema global VisualAccessibilitySettings.
+- Se incorpora INTENSIDAD DE EFECTOS VISUALES en Configuracion > Graficos.
+- Niveles disponibles: Muy Bajo, Bajo, Medio, Alto y Extremo.
+- Se agrega Modo Sensibilidad Visual ON/OFF.
+- El sistema regula flashes, particulas, glow, pulsos de fondo y efectos visuales.
+- No se modifica BPM, timing, canciones, beatmaps, scoring, combo, offset ni Hold Notes.
+- LevelManager se mantiene intacto.
+
+Enfoque:
+- Mejorar comodidad visual para jugadores sensibles a destellos.
+- Mantener la jugabilidad y lectura de notas.
+- Agregar una caracteristica profesional de accesibilidad.
+
+Branch sugerida:
+avance-34-accesibilidad-visual

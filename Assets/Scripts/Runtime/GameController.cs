@@ -113,6 +113,15 @@ namespace ProjectBeat.Runtime
 
             if (Input.GetKeyDown(KeyCode.R) && (finished || !IsGameplayRunning))
                 RestartScene();
+
+            // Avance 44: si el jugador termina un nivel y queda en resultados,
+            // ESC vuelve al menu inicial de forma limpia en lugar de dejar la UI bloqueada.
+            if (finished && Input.GetKeyDown(KeyCode.Escape))
+            {
+                Time.timeScale = 1f;
+                StartupFlowController.RequestMainMenuOnNextLoad();
+                SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex, LoadSceneMode.Single);
+            }
         }
 
         private void OnGUI()

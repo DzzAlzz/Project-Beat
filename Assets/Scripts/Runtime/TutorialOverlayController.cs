@@ -5,15 +5,27 @@ using UnityEngine.UI;
 namespace ProjectBeat.Runtime
 {
     /// <summary>
-    /// Overlay simple para el Nivel 0 Tutorial. No toca LevelManager ni el core.
-    /// Se crea solo cuando el LevelData actual es TUTORIAL.
+    /// Overlay simple para el Nivel 0 Tutorial.
+    /// Avance 45:
+    /// - Se muestra durante todo el tutorial.
+    /// - Se oculta mientras el juego esta en pausa.
+    /// - No aparece en el menu principal ni en otros niveles.
     /// </summary>
     public class TutorialOverlayController : MonoBehaviour
     {
         private CanvasGroup group;
+
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void CreateIfTutorial()
         {
+            // Si se esta forzando el menu principal, no se crea el panel de tutorial
+            // aunque el ultimo LevelData guardado siga siendo TUTORIAL.
+            if (PlayerPrefs.GetInt(StartupFlowController.ForceMainMenuPrefsKey, 0) == 1)
+                return;
+
+            if (StartupFlowController.IsMainMenuVisible)
+                return;
+
             LevelData current = LevelManager.Instance != null ? LevelManager.Instance.CurrentLevel : null;
             if (current == null || current.levelName != "TUTORIAL") return;
             if (FindObjectOfType<TutorialOverlayController>() != null) return;
@@ -24,6 +36,13 @@ namespace ProjectBeat.Runtime
 
         private void Start()
         {
+            LevelData current = LevelManager.Instance != null ? LevelManager.Instance.CurrentLevel : null;
+            if (current == null || current.levelName != "TUTORIAL")
+            {
+                Destroy(gameObject);
+                return;
+            }
+
             Canvas canvas = new GameObject("TutorialOverlayCanvas").AddComponent<Canvas>();
             canvas.transform.SetParent(transform, false);
             canvas.renderMode = RenderMode.ScreenSpaceOverlay;
@@ -67,9 +86,25 @@ namespace ProjectBeat.Runtime
 
         private void Update()
         {
-            // En el Nivel 0 Tutorial la guía debe mantenerse visible durante toda la canción.
+            LevelData current = LevelManager.Instance != null ? LevelManager.Instance.CurrentLevel : null;
+            if (current == null || current.levelName != "TUTORIAL")
+            {
+                Destroy(gameObject);
+                return;
+            }
+
+            PauseMenu pauseMenu = FindObjectOfType<PauseMenu>();
+            bool pauseVisible = pauseMenu != null && pauseMenu.IsPausedForOverlay;
+            bool mainMenuVisible = StartupFlowController.IsMainMenuVisible;
+
+            // Visible solo mientras se juega Tutorial.
+            // Oculto si se abre pausa o si se muestra el menu principal.
             if (group != null)
-                group.alpha = 1f;
+            {
+                group.alpha = (pauseVisible || mainMenuVisible) ? 0f : 1f;
+                group.blocksRaycasts = false;
+                group.interactable = false;
+            }
         }
     }
 }
