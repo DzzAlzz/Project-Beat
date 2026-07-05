@@ -1,0 +1,35 @@
+AVANCE 63 – CORRECCIÓN DE RETORNO DEL SELECTOR DE NIVELES AL MENÚ PRINCIPAL
+
+Base utilizada:
+- ProjectBeat_Avance62_LevelSelectorLayoutFix
+- Unity 6000.3.11f1
+
+Archivo modificado:
+- Assets/Scripts/Runtime/PauseMenu.cs
+
+Problema corregido:
+- Al abrir ARCADE desde el menú principal y luego presionar VOLVER en el selector de niveles,
+  el juego regresaba al menú de pausa.
+- Ese comportamiento era incorrecto porque el menú de pausa solo debe aparecer durante gameplay.
+
+Corrección aplicada:
+- Se agregó un estado interno para recordar si el selector de niveles fue abierto desde el menú principal.
+- Cuando el selector se abre desde el menú principal, VOLVER / ESC ahora retorna al menú principal.
+- Cuando el selector se abre desde el menú de pausa durante gameplay, VOLVER / ESC mantiene el comportamiento anterior y vuelve a pausa.
+
+Flujos esperados:
+1) Menú principal → ARCADE → Selector de niveles → VOLVER → Menú principal.
+2) Gameplay → Pausa → Elegir nivel → Selector de niveles → VOLVER → Pausa.
+3) Selector de niveles → ENTER / Click → Carga de nivel normal.
+
+No se modificó:
+- LevelManager
+- Gameplay
+- Canciones
+- Sistema de puntuación
+- Resultados
+- Configuración
+- Diseño visual del menú principal
+- Diseño visual del selector de niveles
+- Lógica de cambio de pistas
+- Navegación A/D, ENTER, ESC y mouse

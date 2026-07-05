@@ -1,0 +1,24 @@
+AVANCE 50 - PAUSE RESUME COUNTDOWN FIX
+
+Objetivo:
+- Corregir estados visuales residuales al abrir pausa.
+- Agregar cuenta regresiva segura al continuar desde pausa.
+
+Cambios aplicados:
+- PauseMenu.OpenPause() ahora limpia subpaneles residuales antes de mostrar pausa.
+- Se ocultan LevelSelect, Settings, Credits y Loading antes de abrir pausa.
+- CONTINUAR ya no reanuda instantaneamente.
+- Se agrega cuenta regresiva 3 / 2 / 1 / GO usando tiempo real.
+- Durante la cuenta regresiva el gameplay queda pausado.
+- La musica y las notas no avanzan durante la cuenta regresiva.
+- Al finalizar GO se reanuda el audio y Time.timeScale vuelve a 1.
+
+No se modifico:
+- BPM
+- timing
+- scoring
+- canciones
+- Hold Notes
+- offset
+- resultados
+- LevelManager
