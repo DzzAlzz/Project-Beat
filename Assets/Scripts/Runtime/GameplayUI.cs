@@ -77,6 +77,45 @@ namespace ProjectBeat.Runtime
         private RectTransform hudInfoPanel;
         private TMP_Text pauseHintHudText;
 
+        // Avance 64 rehecho: feedback visual más vivo, pero compacto y no invasivo.
+        private Outline judgementOutline;
+        private Outline comboOutline;
+        private Outline multiplierOutline;
+        private Shadow judgementShadow;
+        private Shadow comboShadow;
+        private Shadow multiplierShadow;
+        private Vector3 judgementBaseScale = Vector3.one;
+        private Vector3 comboBaseScale = Vector3.one;
+        private Vector3 multiplierBaseScale = Vector3.one;
+        private Vector2 judgementBasePos;
+        private bool feedbackPolishReady;
+        private float judgementPopTimer;
+        private float multiplierPopTimer;
+        private int lastComboValue;
+        private int lastMultiplierValue = 1;
+        private const float JudgementPopDur = 0.28f;
+        private const float MultiplierPopDur = 0.22f;
+
+        // Avance 66 polish: aura de fuego / energía para racha más pulida y visible.
+        // Solo visual: no modifica puntuación, timing ni detección de notas.
+        private RectTransform comboAuraRoot;
+        private CanvasGroup comboAuraGroup;
+        private Image comboAuraFloorGlow;
+        private Image comboAuraCoreGlow;
+        private Image comboAuraPulseGlow;
+        private Image comboAuraLeftWall;
+        private Image comboAuraRightWall;
+        private Image[] comboAuraFlames;
+        private Image[] comboAuraSparks;
+        private Sprite comboAuraSoftSprite;
+        private Sprite comboAuraFlameSprite;
+        private Sprite comboAuraSparkSprite;
+        private float comboAuraCurrent;
+        private float comboAuraTarget;
+        private int comboAuraCombo;
+        private int comboAuraMultiplier = 1;
+        private Color comboAuraMainColor = new Color(1f, 0.42f, 0.06f, 1f);
+
         // ── Init ──────────────────────────────────────────────────────────
         public void Initialize(BeatmapData beatmap)
         {
@@ -95,6 +134,13 @@ namespace ProjectBeat.Runtime
             displayedScore = targetScore = 0;
             RepositionGameplayHud();
             EnsureGameplayKeyIndicators();
+            EnsureFeedbackPolish();
+            EnsureComboAuraFire();
+            comboAuraCurrent = 0f;
+            comboAuraTarget = 0f;
+            UpdateComboAuraTarget(0, 1);
+            lastComboValue = 0;
+            lastMultiplierValue = 1;
             ShowJudgement("");
             UpdateStats(0, 0, 100f, 1);
             ShowLevelIntro(beatmap);
@@ -179,21 +225,37 @@ namespace ProjectBeat.Runtime
         // ── Stats ─────────────────────────────────────────────────────────
         public void UpdateStats(int score, int combo, float accuracy, int multiplier = 1)
         {
+            EnsureFeedbackPolish();
+
             // Score animates to target
             targetScore = score;
             if (score > displayedScore) scorePopTimer = ScorePopDur;
 
-            // Combo pop size
-            float sz = comboPopTimer > 0f
-                ? Mathf.Lerp(44f, 58f, comboPopTimer / ComboPop)
-                : 44f;
+            // Pop compacto al subir combo: visible, pero sin dominar la pantalla.
+            if (combo > lastComboValue && combo > 1)
+                comboPopTimer = ComboPop;
+            lastComboValue = combo;
+
+            if (multiplier != lastMultiplierValue)
+            {
+                multiplierPopTimer = MultiplierPopDur;
+                lastMultiplierValue = multiplier;
+            }
+
+            float comboSize = comboPopTimer > 0f
+                ? Mathf.Lerp(30f, 38f, comboPopTimer / ComboPop)
+                : 30f;
 
             if (comboText != null)
             {
                 if (combo > 1)
-                    comboText.text = $"<b><size={sz:0}><color=#ffdd00>{combo}</color>" +
-                                     $"<color=#ff9900>x</color></size></b> " +
-                                     $"<size=24><color=#ffeeaa>COMBO</color></size>";
+                {
+                    string comboColor = GetComboColorHex(combo, multiplier);
+                    comboText.text = $"<b><size={comboSize:0}><color={comboColor}>{combo}x</color></size></b> " +
+                                     $"<size=18><color=#DDEEFF>COMBO</color></size>";
+                    comboText.enableWordWrapping = false;
+                    comboText.richText = true;
+                }
                 else
                     comboText.text = "";
             }
@@ -202,42 +264,66 @@ namespace ProjectBeat.Runtime
                 accuracyText.text = $"<color=#ffaa44>PREC</color> " +
                                     $"<b><color=#ffffff>{accuracy:0.00}%</color></b>";
 
-            // Multiplier badge
+            // Multiplier badge compacto: más vivo, pero sin tamaño exagerado.
             if (multiplierText != null)
             {
                 if (multiplier > 1)
                 {
-                    string mc = multiplier switch
-                    {
-                        2 => "#88ff88", 3 => "#ffdd00", 4 => "#ff55ff", _ => "#ffffff"
-                    };
-                    multiplierText.text = $"<b><color={mc}>x{multiplier}</color></b>";
+                    string multiplierColor = GetMultiplierColorHex(multiplier);
+                    float multSize = multiplierPopTimer > 0f
+                        ? Mathf.Lerp(22f, 28f, multiplierPopTimer / MultiplierPopDur)
+                        : 22f;
+                    multiplierText.text = $"<b><size={multSize:0}><color={multiplierColor}>x{multiplier}</color></size></b>";
+                    multiplierText.enableWordWrapping = false;
+                    multiplierText.richText = true;
                 }
                 else multiplierText.text = "";
             }
+
+            UpdateComboAuraTarget(combo, multiplier);
         }
 
         // ── Judgement ─────────────────────────────────────────────────────
         public void ShowJudgement(string msg)
         {
             if (judgementText == null) return;
-            Color c = msg switch
-            {
-                "PERFECT" => ColPerfect, "GOOD" => ColGood,
-                "BAD"     => ColBad,     "MISS" => ColMiss,
-                _         => Color.white
-            };
+            EnsureFeedbackPolish();
+
+            Color c = GetJudgementColor(msg);
             string styled = msg switch
             {
-                "PERFECT" => "<b><size=54>* PERFECTO *</size></b>",
-                "GOOD"    => "<b><size=46>• BIEN</size></b>",
-                "BAD"     => "<b><size=38>/\\ MAL</size></b>",
-                "MISS"    => "<b><size=36>X FALLO</size></b>",
-                _         => ""
+                "PERFECT" => "<b><size=38>PERFECTO</size></b>",
+                "GOOD"    => "<b><size=34>BIEN</size></b>",
+                "BAD"     => "<b><size=30>MAL</size></b>",
+                "MISS"    => "<b><size=30>FALLO</size></b>",
+                _          => ""
             };
-            judgementText.text  = styled;
-            judgementText.color = new Color(c.r, c.g, c.b, 1f);
-            judgementTimer      = JudgeFade;
+
+            judgementText.text = styled;
+            judgementText.color = new Color(c.r, c.g, c.b, string.IsNullOrEmpty(styled) ? 0f : 1f);
+            judgementText.fontStyle = FontStyles.Bold;
+            judgementText.characterSpacing = msg == "PERFECT" ? 2.2f : 1.4f;
+            judgementText.enableWordWrapping = false;
+            judgementText.richText = true;
+
+            if (judgementOutline != null)
+            {
+                judgementOutline.effectColor = new Color(c.r, c.g, c.b, msg == "PERFECT" ? 0.58f : 0.42f);
+                judgementOutline.effectDistance = msg == "PERFECT" ? new Vector2(2.2f, -2.2f) : new Vector2(1.6f, -1.6f);
+            }
+            if (judgementShadow != null)
+            {
+                judgementShadow.effectColor = new Color(0f, 0f, 0f, 0.82f);
+                judgementShadow.effectDistance = new Vector2(2f, -2f);
+            }
+
+            RectTransform rt = judgementText.GetComponent<RectTransform>();
+            if (rt != null)
+                rt.anchoredPosition = judgementBasePos;
+            judgementText.transform.localScale = judgementBaseScale * 1.05f;
+
+            judgementTimer = string.IsNullOrEmpty(styled) ? 0f : JudgeFade;
+            judgementPopTimer = string.IsNullOrEmpty(styled) ? 0f : JudgementPopDur;
         }
 
         // ── Combo pop ─────────────────────────────────────────────────────
@@ -422,6 +508,356 @@ namespace ProjectBeat.Runtime
             }
         }
 
+
+        // ── Avance 64 rehecho: pulido compacto de feedback ─────────────────
+        private void EnsureFeedbackPolish()
+        {
+            if (feedbackPolishReady) return;
+
+            SetupFeedbackText(judgementText, ref judgementOutline, ref judgementShadow, new Vector2(1.6f, -1.6f));
+            SetupFeedbackText(comboText, ref comboOutline, ref comboShadow, new Vector2(1.2f, -1.2f));
+            SetupFeedbackText(multiplierText, ref multiplierOutline, ref multiplierShadow, new Vector2(1.1f, -1.1f));
+
+            if (judgementText != null)
+            {
+                judgementBaseScale = judgementText.transform.localScale;
+                RectTransform rt = judgementText.GetComponent<RectTransform>();
+                if (rt != null)
+                {
+                    judgementBasePos = rt.anchoredPosition;
+                    rt.sizeDelta = new Vector2(Mathf.Max(rt.sizeDelta.x, 420f), Mathf.Max(rt.sizeDelta.y, 74f));
+                }
+            }
+            if (comboText != null)
+                comboBaseScale = comboText.transform.localScale;
+            if (multiplierText != null)
+                multiplierBaseScale = multiplierText.transform.localScale;
+
+            feedbackPolishReady = true;
+        }
+
+        private void SetupFeedbackText(TMP_Text tmp, ref Outline outline, ref Shadow shadow, Vector2 outlineDistance)
+        {
+            if (tmp == null) return;
+
+            tmp.richText = true;
+            tmp.enableWordWrapping = false;
+            tmp.raycastTarget = false;
+
+            outline = tmp.GetComponent<Outline>();
+            if (outline == null) outline = tmp.gameObject.AddComponent<Outline>();
+            outline.effectColor = new Color(0f, 0f, 0f, 0.42f);
+            outline.effectDistance = outlineDistance;
+
+            shadow = tmp.GetComponent<Shadow>();
+            if (shadow == null) shadow = tmp.gameObject.AddComponent<Shadow>();
+            shadow.effectColor = new Color(0f, 0f, 0f, 0.78f);
+            shadow.effectDistance = new Vector2(1.8f, -1.8f);
+        }
+
+        // ── Avance 66 rehecho: aura visible de combo / racha ─────────────────
+        private void EnsureComboAuraFire()
+        {
+            if (comboAuraRoot != null) return;
+
+            comboAuraSoftSprite = CreateComboAuraSoftSprite("PB_ComboAuraFire_Soft", 128, 48);
+            comboAuraFlameSprite = CreateComboAuraFlameSprite("PB_ComboAuraFire_Flame", 32, 96);
+            comboAuraSparkSprite = CreateComboAuraSoftSprite("PB_ComboAuraFire_Spark", 32, 32);
+
+            GameObject rootGO = new GameObject("PB_ComboAuraFire_Root", typeof(RectTransform));
+            rootGO.transform.SetParent(transform, false);
+            comboAuraRoot = rootGO.GetComponent<RectTransform>();
+            comboAuraRoot.anchorMin = new Vector2(0.5f, 0f);
+            comboAuraRoot.anchorMax = new Vector2(0.5f, 0f);
+            comboAuraRoot.pivot = new Vector2(0.5f, 0f);
+            comboAuraRoot.anchoredPosition = new Vector2(0f, 72f);
+            comboAuraRoot.sizeDelta = new Vector2(960f, 285f);
+            comboAuraRoot.SetAsFirstSibling();
+
+            comboAuraGroup = rootGO.AddComponent<CanvasGroup>();
+            comboAuraGroup.alpha = 0f;
+            comboAuraGroup.interactable = false;
+            comboAuraGroup.blocksRaycasts = false;
+
+            // Halo principal en la base de la pista. Es más visible que el avance anterior,
+            // pero se mantiene en la zona inferior para no tapar notas ni feedback.
+            comboAuraFloorGlow = CreateComboAuraImage(comboAuraRoot, "PB_Aura_FloorGlow", comboAuraSoftSprite, new Vector2(0f, 24f), new Vector2(840f, 135f), true, 0);
+            comboAuraCoreGlow = CreateComboAuraImage(comboAuraRoot, "PB_Aura_CoreFire", comboAuraSoftSprite, new Vector2(0f, 43f), new Vector2(590f, 86f), true, 1);
+            comboAuraPulseGlow = CreateComboAuraImage(comboAuraRoot, "PB_Aura_PulseWave", comboAuraSoftSprite, new Vector2(0f, 58f), new Vector2(440f, 36f), true, 2);
+            comboAuraLeftWall = CreateComboAuraImage(comboAuraRoot, "PB_Aura_LeftSide", comboAuraSoftSprite, new Vector2(-375f, 70f), new Vector2(190f, 205f), true, 3);
+            comboAuraRightWall = CreateComboAuraImage(comboAuraRoot, "PB_Aura_RightSide", comboAuraSoftSprite, new Vector2(375f, 70f), new Vector2(190f, 205f), true, 4);
+
+            comboAuraFlames = new Image[28];
+            for (int i = 0; i < comboAuraFlames.Length; i++)
+            {
+                float t = comboAuraFlames.Length <= 1 ? 0f : i / (comboAuraFlames.Length - 1f);
+                float x = Mathf.Lerp(-385f, 385f, t);
+                float centerBias = 1f - Mathf.Abs(t - 0.5f) * 1.35f;
+                float y = 12f + (i % 4) * 3f;
+                float h = Mathf.Lerp(52f, 84f, Mathf.Clamp01(centerBias)) + (i % 3) * 8f;
+                comboAuraFlames[i] = CreateComboAuraImage(comboAuraRoot, "PB_Aura_Flame_" + i, comboAuraFlameSprite, new Vector2(x, y), new Vector2(28f, h), false, 5 + i);
+            }
+
+            comboAuraSparks = new Image[24];
+            for (int i = 0; i < comboAuraSparks.Length; i++)
+            {
+                float t = comboAuraSparks.Length <= 1 ? 0f : i / (comboAuraSparks.Length - 1f);
+                float x = Mathf.Lerp(-360f, 360f, t);
+                float y = 52f + (i % 5) * 17f;
+                comboAuraSparks[i] = CreateComboAuraImage(comboAuraRoot, "PB_Aura_Spark_" + i, comboAuraSparkSprite, new Vector2(x, y), new Vector2(12f, 12f), false, 30 + i);
+            }
+        }
+
+        private Image CreateComboAuraImage(Transform parent, string name, Sprite sprite, Vector2 position, Vector2 size, bool sliced, int sibling)
+        {
+            GameObject go = new GameObject(name, typeof(RectTransform));
+            go.transform.SetParent(parent, false);
+
+            Image img = go.AddComponent<Image>();
+            img.sprite = sprite;
+            img.type = sliced ? Image.Type.Sliced : Image.Type.Simple;
+            img.raycastTarget = false;
+            img.color = new Color(1f, 1f, 1f, 0f);
+
+            RectTransform rt = go.GetComponent<RectTransform>();
+            rt.anchorMin = new Vector2(0.5f, 0f);
+            rt.anchorMax = new Vector2(0.5f, 0f);
+            rt.pivot = new Vector2(0.5f, 0f);
+            rt.anchoredPosition = position;
+            rt.sizeDelta = size;
+            go.transform.SetSiblingIndex(Mathf.Clamp(sibling, 0, parent.childCount - 1));
+            return img;
+        }
+
+        private Sprite CreateComboAuraSoftSprite(string spriteName, int width, int height)
+        {
+            Texture2D tex = new Texture2D(width, height, TextureFormat.RGBA32, false);
+            tex.name = spriteName;
+            tex.filterMode = FilterMode.Bilinear;
+
+            Color32[] pixels = new Color32[width * height];
+            Vector2 center = new Vector2((width - 1) * 0.5f, (height - 1) * 0.5f);
+            float maxX = Mathf.Max(1f, width * 0.50f);
+            float maxY = Mathf.Max(1f, height * 0.50f);
+
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    float dx = (x - center.x) / maxX;
+                    float dy = (y - center.y) / maxY;
+                    float dist = Mathf.Sqrt(dx * dx + dy * dy);
+                    float alpha = Mathf.Clamp01(1f - dist);
+                    alpha = alpha * alpha * (3f - 2f * alpha);
+                    pixels[y * width + x] = new Color32(255, 255, 255, (byte)Mathf.RoundToInt(alpha * 255f));
+                }
+            }
+
+            tex.SetPixels32(pixels);
+            tex.Apply(false, true);
+            return Sprite.Create(tex, new Rect(0, 0, width, height), new Vector2(0.5f, 0.5f), 32f, 0, SpriteMeshType.FullRect, new Vector4(18f, 12f, 18f, 12f));
+        }
+
+        private Sprite CreateComboAuraFlameSprite(string spriteName, int width, int height)
+        {
+            Texture2D tex = new Texture2D(width, height, TextureFormat.RGBA32, false);
+            tex.name = spriteName;
+            tex.filterMode = FilterMode.Bilinear;
+
+            Color32[] pixels = new Color32[width * height];
+            float centerX = (width - 1) * 0.5f;
+            for (int y = 0; y < height; y++)
+            {
+                float v = y / Mathf.Max(1f, height - 1f);
+                float widthAtY = Mathf.Lerp(width * 0.47f, width * 0.10f, v);
+                float vertical = Mathf.Sin(v * Mathf.PI);
+                float tip = Mathf.Clamp01(1f - v * 0.15f);
+                for (int x = 0; x < width; x++)
+                {
+                    float side = Mathf.Clamp01(1f - Mathf.Abs(x - centerX) / Mathf.Max(1f, widthAtY));
+                    float alpha = Mathf.Pow(side, 1.55f) * Mathf.Pow(vertical, 0.72f) * tip;
+                    pixels[y * width + x] = new Color32(255, 255, 255, (byte)Mathf.RoundToInt(alpha * 255f));
+                }
+            }
+
+            tex.SetPixels32(pixels);
+            tex.Apply(false, true);
+            return Sprite.Create(tex, new Rect(0, 0, width, height), new Vector2(0.5f, 0f), 32f);
+        }
+
+        private void UpdateComboAuraTarget(int combo, int multiplier)
+        {
+            EnsureComboAuraFire();
+
+            comboAuraCombo = combo;
+            comboAuraMultiplier = Mathf.Max(1, multiplier);
+            comboAuraMainColor = GetComboAuraFireColor(comboAuraCombo, comboAuraMultiplier);
+
+            // Debe notarse claramente al tener racha, pero no aparecer al jugar sin combo.
+            if (combo < 4)
+            {
+                comboAuraTarget = 0f;
+                return;
+            }
+
+            float comboPart = Mathf.InverseLerp(4f, 80f, combo);
+            float multPart = Mathf.InverseLerp(1f, 5f, comboAuraMultiplier);
+            // Avance 66 polish: se eleva el mínimo visible y se deja una progresión más clara.
+            comboAuraTarget = Mathf.Clamp01(0.42f + comboPart * 0.44f + multPart * 0.28f);
+        }
+
+        private Color GetComboAuraFireColor(int combo, int multiplier)
+        {
+            if (multiplier >= 5 || combo >= 90) return new Color(1f, 0.22f, 0.92f, 1f);      // magenta intenso
+            if (multiplier >= 4 || combo >= 60) return new Color(1f, 0.76f, 0.16f, 1f);      // dorado
+            if (multiplier >= 3 || combo >= 35) return new Color(0.25f, 1f, 0.42f, 1f);      // verde-cian
+            if (multiplier >= 2 || combo >= 12) return new Color(0f, 0.92f, 1f, 1f);         // cian
+            return new Color(1f, 0.38f, 0.04f, 1f);                                         // fuego naranja
+        }
+
+        private void UpdateComboAuraFireVisual()
+        {
+            if (comboAuraGroup == null || comboAuraRoot == null) return;
+
+            float dt = Time.deltaTime;
+            float changeSpeed = comboAuraTarget > comboAuraCurrent ? 4.4f : 3.2f;
+            comboAuraCurrent = Mathf.MoveTowards(comboAuraCurrent, comboAuraTarget, dt * changeSpeed);
+
+            float intensity = Mathf.Clamp01(comboAuraCurrent);
+            if (intensity <= 0.001f)
+            {
+                comboAuraGroup.alpha = 0f;
+                return;
+            }
+
+            float comboNormalized = Mathf.InverseLerp(5f, 85f, comboAuraCombo);
+            float waveA = 0.5f + 0.5f * Mathf.Sin(Time.time * Mathf.Lerp(5.4f, 11.2f, comboNormalized));
+            float waveB = 0.5f + 0.5f * Mathf.Sin(Time.time * Mathf.Lerp(7.8f, 14.2f, intensity) + 1.7f);
+            float pulse = Mathf.Lerp(0.72f, 1.0f, waveA);
+
+            Color main = comboAuraMainColor;
+            Color warm = Color.Lerp(main, new Color(1f, 0.34f, 0.02f, 1f), 0.38f);
+            Color hot = Color.Lerp(main, Color.white, 0.42f);
+
+            comboAuraGroup.alpha = Mathf.Clamp01(0.72f + 0.28f * intensity);
+            comboAuraRoot.localScale = new Vector3(1f + 0.030f * intensity * waveA, 1f + 0.070f * intensity * waveB, 1f);
+
+            if (comboAuraFloorGlow != null)
+            {
+                comboAuraFloorGlow.color = new Color(main.r, main.g, main.b, (0.24f + 0.34f * pulse) * intensity);
+                comboAuraFloorGlow.rectTransform.sizeDelta = new Vector2(780f + 150f * intensity * waveA, 115f + 76f * intensity * pulse);
+            }
+            if (comboAuraCoreGlow != null)
+            {
+                comboAuraCoreGlow.color = new Color(hot.r, hot.g, hot.b, (0.30f + 0.42f * waveB) * intensity);
+                comboAuraCoreGlow.rectTransform.sizeDelta = new Vector2(500f + 185f * intensity, 60f + 52f * intensity * pulse);
+            }
+            if (comboAuraPulseGlow != null)
+            {
+                comboAuraPulseGlow.color = new Color(warm.r, warm.g, warm.b, (0.34f + 0.42f * waveA) * intensity);
+                comboAuraPulseGlow.rectTransform.sizeDelta = new Vector2(380f + 400f * intensity * waveA, 24f + 38f * intensity);
+            }
+            if (comboAuraLeftWall != null)
+            {
+                comboAuraLeftWall.color = new Color(main.r, main.g, main.b, (0.14f + 0.30f * waveB) * intensity);
+                comboAuraLeftWall.rectTransform.sizeDelta = new Vector2(140f + 105f * intensity, 145f + 115f * intensity * waveA);
+            }
+            if (comboAuraRightWall != null)
+            {
+                comboAuraRightWall.color = new Color(main.r, main.g, main.b, (0.14f + 0.30f * waveA) * intensity);
+                comboAuraRightWall.rectTransform.sizeDelta = new Vector2(140f + 105f * intensity, 145f + 115f * intensity * waveB);
+            }
+
+            if (comboAuraFlames != null)
+            {
+                for (int i = 0; i < comboAuraFlames.Length; i++)
+                {
+                    Image flame = comboAuraFlames[i];
+                    if (flame == null) continue;
+
+                    RectTransform rt = flame.rectTransform;
+                    float t = comboAuraFlames.Length <= 1 ? 0f : i / (comboAuraFlames.Length - 1f);
+                    float center = 1f - Mathf.Abs(t - 0.5f) * 1.55f;
+                    float local = 0.5f + 0.5f * Mathf.Sin(Time.time * (5.5f + (i % 6) * 0.72f) + i * 0.64f);
+                    float baseX = Mathf.Lerp(-382f, 382f, t);
+                    float sway = Mathf.Sin(Time.time * 3.2f + i * 0.9f) * Mathf.Lerp(2f, 12f, intensity);
+                    float height = Mathf.Lerp(38f, 145f, intensity) * Mathf.Lerp(0.72f, 1.28f, local) * Mathf.Lerp(0.75f, 1.18f, Mathf.Clamp01(center));
+                    float width = Mathf.Lerp(14f, 42f, intensity) * Mathf.Lerp(0.84f, 1.18f, local);
+                    rt.anchoredPosition = new Vector2(baseX + sway, 5f + local * 34f + intensity * 14f);
+                    rt.sizeDelta = new Vector2(width, height);
+
+                    Color flameColor = i % 3 == 0 ? warm : main;
+                    flameColor = Color.Lerp(flameColor, hot, 0.18f + 0.14f * local);
+                    flame.color = new Color(flameColor.r, flameColor.g, flameColor.b, (0.25f + 0.56f * local) * intensity);
+                }
+            }
+
+            if (comboAuraSparks != null)
+            {
+                for (int i = 0; i < comboAuraSparks.Length; i++)
+                {
+                    Image spark = comboAuraSparks[i];
+                    if (spark == null) continue;
+
+                    RectTransform rt = spark.rectTransform;
+                    float t = comboAuraSparks.Length <= 1 ? 0f : i / (comboAuraSparks.Length - 1f);
+                    float drift = Mathf.Repeat(Time.time * (0.23f + (i % 4) * 0.035f) + i * 0.137f, 1f);
+                    float x = Mathf.Lerp(-360f, 360f, t) + Mathf.Sin(Time.time * 1.7f + i) * 18f * intensity;
+                    float y = Mathf.Lerp(38f, 190f, drift);
+                    float size = Mathf.Lerp(5f, 16f, intensity) * Mathf.Lerp(0.65f, 1.18f, Mathf.Sin(drift * Mathf.PI));
+                    rt.anchoredPosition = new Vector2(x, y);
+                    rt.sizeDelta = new Vector2(size, size);
+                    Color sparkColor = Color.Lerp(main, Color.white, 0.36f);
+                    spark.color = new Color(sparkColor.r, sparkColor.g, sparkColor.b, Mathf.Sin(drift * Mathf.PI) * intensity * 0.72f);
+                }
+            }
+        }
+
+        private Color GetJudgementColor(string msg)
+        {
+            return msg switch
+            {
+                "PERFECT" => ColPerfect,
+                "GOOD"    => new Color(0.18f, 0.95f, 1f),
+                "BAD"     => ColBad,
+                "MISS"    => ColMiss,
+                _          => Color.white
+            };
+        }
+
+        private string GetComboColorHex(int combo, int multiplier)
+        {
+            if (combo >= 100 || multiplier >= 5) return "#FF66F5";
+            if (combo >= 50  || multiplier >= 4) return "#FFF36B";
+            if (combo >= 25  || multiplier >= 3) return "#8DFF7A";
+            if (combo >= 10  || multiplier >= 2) return "#00F1FF";
+            return "#FFE680";
+        }
+
+        private string GetMultiplierColorHex(int multiplier)
+        {
+            return multiplier switch
+            {
+                2 => "#00F1FF",
+                3 => "#8DFF7A",
+                4 => "#FFF36B",
+                5 => "#FF66F5",
+                _ => "#FFFFFF"
+            };
+        }
+
+        private Color GetMultiplierColor(int multiplier)
+        {
+            return multiplier switch
+            {
+                2 => new Color(0f, 0.95f, 1f, 1f),
+                3 => new Color(0.55f, 1f, 0.48f, 1f),
+                4 => new Color(1f, 0.95f, 0.35f, 1f),
+                5 => new Color(1f, 0.38f, 0.95f, 1f),
+                _ => Color.white
+            };
+        }
+
         // ── Results ───────────────────────────────────────────────────────
         public void ShowResults(ScoreManager sm, BeatmapData beatmap)
         {
@@ -470,6 +906,16 @@ namespace ProjectBeat.Runtime
 
             resultAnimTimer = ResultAnimDur;
             if (resultCard != null) resultCard.localScale = new Vector3(0.92f, 0.92f, 1f);
+        }
+
+
+        public void HideResults()
+        {
+            if (resultGroup == null) return;
+
+            resultGroup.alpha = 0f;
+            resultGroup.interactable = false;
+            resultGroup.blocksRaycasts = false;
         }
 
         private Color GetRankColor(string rank)
@@ -579,6 +1025,9 @@ namespace ProjectBeat.Runtime
             if (hudInfoPanel == null || pauseHintHudText == null) RepositionGameplayHud();
             EnsureGameplayKeyIndicators();
             UpdateGameplayKeyIndicators();
+            EnsureFeedbackPolish();
+            EnsureComboAuraFire();
+            UpdateComboAuraFireVisual();
 
             // Level intro fade + subtle scale
             if (introGroup != null && introTimer > 0f)
@@ -593,18 +1042,56 @@ namespace ProjectBeat.Runtime
                 if (introTimer <= 0f) introGroup.alpha = 0f;
             }
 
-            // Judgement fade
+            // Judgement fade: pop pequeño, subida leve y desaparición limpia.
             if (judgementText != null && judgementTimer > 0f)
             {
                 judgementTimer -= Time.deltaTime;
+                float life = 1f - Mathf.Clamp01(judgementTimer / JudgeFade);
+                float fade = Mathf.Clamp01(judgementTimer / (JudgeFade * 0.42f));
                 Color c = judgementText.color;
-                c.a = Mathf.Clamp01(judgementTimer / (JudgeFade * 0.35f));
+                c.a = fade;
                 judgementText.color = c;
-                if (judgementTimer <= 0f) judgementText.text = "";
+
+                if (judgementPopTimer > 0f)
+                    judgementPopTimer -= Time.deltaTime;
+
+                float pop = judgementPopTimer > 0f ? Mathf.Clamp01(judgementPopTimer / JudgementPopDur) : 0f;
+                float scale = 1f + 0.08f * pop;
+                judgementText.transform.localScale = judgementBaseScale * scale;
+
+                RectTransform jrt = judgementText.GetComponent<RectTransform>();
+                if (jrt != null)
+                    jrt.anchoredPosition = judgementBasePos + new Vector2(0f, life * 10f);
+
+                if (judgementTimer <= 0f)
+                {
+                    judgementText.text = "";
+                    judgementText.transform.localScale = judgementBaseScale;
+                    if (jrt != null) jrt.anchoredPosition = judgementBasePos;
+                }
             }
 
-            // Combo pop decay
+            // Combo/multiplicador: pulso controlado, sin invadir la pista.
             if (comboPopTimer > 0f) comboPopTimer -= Time.deltaTime;
+            if (comboText != null)
+            {
+                float comboPulse = comboPopTimer > 0f ? Mathf.Clamp01(comboPopTimer / ComboPop) : 0f;
+                comboText.transform.localScale = comboBaseScale * (1f + 0.06f * comboPulse);
+                if (comboOutline != null)
+                    comboOutline.effectColor = new Color(0f, 0.95f, 1f, Mathf.Lerp(0.22f, 0.52f, comboPulse));
+            }
+
+            if (multiplierPopTimer > 0f) multiplierPopTimer -= Time.deltaTime;
+            if (multiplierText != null)
+            {
+                float multPulse = multiplierPopTimer > 0f ? Mathf.Clamp01(multiplierPopTimer / MultiplierPopDur) : 0f;
+                multiplierText.transform.localScale = multiplierBaseScale * (1f + 0.10f * multPulse);
+                if (multiplierOutline != null)
+                {
+                    Color mc = GetMultiplierColor(lastMultiplierValue);
+                    multiplierOutline.effectColor = new Color(mc.r, mc.g, mc.b, Mathf.Lerp(0.25f, 0.64f, multPulse));
+                }
+            }
 
             // Milestone banner fade
             if (milestoneText != null && milestoneTimer > 0f)
