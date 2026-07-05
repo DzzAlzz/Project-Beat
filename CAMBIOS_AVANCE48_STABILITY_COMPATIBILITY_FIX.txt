@@ -1,0 +1,37 @@
+PROJECT BEAT - AVANCE 48
+Stability and Compatibility Fix
+
+Objetivo:
+Corregir errores intermitentes que aparecian en otros computadores por estados persistentes, orden de inicializacion y referencias entre menus/niveles.
+
+Cambios principales:
+- LevelManager deja de depender de PlayerPrefs para recordar el nivel seleccionado.
+- La seleccion de nivel ahora vive en memoria durante la sesion, evitando que PCs con cache distinta carguen Tutorial u otro nivel incorrecto.
+- Se agrego seleccion segura del primer nivel Arcade al entrar desde el menu principal.
+- StartupFlowController deja de usar PlayerPrefs para flags de inicio/retorno al menu.
+- Se usan flags temporales en memoria para saltar intro o forzar menu principal tras recargar escena.
+- GameController no arranca gameplay si el menu principal esta activo o construyendose.
+- El selector de niveles ahora muestra un mensaje claro si LevelManager no tiene niveles, en vez de quedar vacio.
+- Confirmar nivel desde selector usa recarga limpia con flag temporal, sin dejar estados persistentes.
+- TutorialOverlayController ya no consulta flags persistentes antiguos.
+
+Validaciones esperadas:
+- Abrir juego en PC limpia.
+- Entrar a Tutorial.
+- Volver al menu.
+- Entrar a Arcade.
+- Cambiar niveles varias veces.
+- Pausar, reiniciar y volver a seleccionar nivel.
+- Finalizar nivel y volver a jugar.
+
+No se modifico:
+- BPM
+- timing
+- scoring
+- canciones
+- Hold Notes
+- offset
+- resultados
+- LevelManager como concepto general del proyecto
+
+Este avance se enfoca en estabilidad para que el proyecto se comporte igual en distintos computadores.

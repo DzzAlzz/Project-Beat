@@ -1,0 +1,13 @@
+AVANCE 41 - MAIN MENU NAVIGATION AND INTRO VFX
+
+Cambios principales:
+- Correccion mas robusta del boton MENU PRINCIPAL desde pausa.
+- Se agrega una bandera interna ForceMainMenu para obligar al flujo de inicio a mostrar el menu principal despues de recargar escena.
+- Se limpia el estado del nivel antes de volver al menu principal.
+- Se mantiene Timecop1983.mp3 como musica exclusiva del menu inicial.
+- Se agregan efectos RGB/neon sutiles al menu de inicio: aura, lineas animadas y barras ambientales.
+
+Compatibilidad:
+- No se modifica LevelManager.
+- No se modifica scoring, timing, BPM, canciones, beatmaps, Hold Notes, offset ni resultados.
+- La musica de menu se detiene al entrar a Tutorial o Arcade.

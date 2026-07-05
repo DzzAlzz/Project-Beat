@@ -1,0 +1,42 @@
+REENTREGA AVANCE 65 - PULIDO VISUAL DE NOTAS Y HOLD NOTES CORREGIDO
+
+Base utilizada:
+- ProjectBeat_Avance64_GameplayFeedbackPolish_REHECHO
+
+Archivo modificado:
+- Assets/Scripts/Runtime/NoteObject.cs
+
+Mejoras visuales implementadas:
+- Las notas normales ahora agregan capas visuales runtime tipo LED:
+  * Glow suave detrás de la nota.
+  * Núcleo luminoso interno.
+  * Color base más brillante y con mejor contraste.
+- Se mantiene la forma original de las notas; no se cambia timing ni hit detection.
+- Las hold notes ahora tienen mayor legibilidad:
+  * Cuerpo/trayectoria con más contraste.
+  * Núcleo más visible.
+  * Marcador final más claro.
+  * Compensación visual si el brillo general está alto.
+- El efecto LED/neón se mantiene controlado para no saturar la pantalla.
+- Se conserva la diferenciación de colores por carril.
+
+No se modificó:
+- LevelManager
+- Gameplay base
+- Hit detection
+- Timing
+- Velocidad de notas
+- Sistema de puntuación
+- Lógica de aparición de notas
+- Lógica de hold notes
+- Canciones
+- Selector de niveles
+- Menú principal
+- Pausa
+- Configuración
+- Resultados
+
+Validación del archivo:
+- ZIP regenerado desde cero.
+- ZIP verificado físicamente en /mnt/data.
+- ZIP no vacío.
