@@ -1,0 +1,35 @@
+AVANCE 57 - MEJORA ARTISTICA DEL MENU PRINCIPAL
+
+Base utilizada:
+- Avance 56 corregido.
+- Unity 6000.3.11f1.
+
+Archivos modificados:
+- Assets/Scripts/Runtime/StartupFlowController.cs
+
+Mejoras implementadas:
+- Se agrego un fondo musical mas vivo y sutil con barras tipo ecualizador.
+- Se agregaron lineas de onda / beat animadas en el ambiente del menu.
+- Se agregaron particulas pequenas estilo neon para reforzar identidad musical.
+- Se agregaron anillos decorativos tipo pulso dentro del panel principal.
+- Se mejoro la presencia visual del titulo PROJECT BEAT con glow y pulso suave.
+- Se agregaron bordes/accent lines neon a los botones principales.
+- Se mantuvo la estructura actual del menu: TUTORIAL, ARCADE, PROXIMAMENTE y SALIR.
+- Se mantuvo el boton CONFIG en la misma posicion y con la misma funcion.
+- Se mantuvo intacta la logica de navegacion con W/S, ENTER y mouse.
+
+Sistemas no modificados:
+- LevelManager.
+- Gameplay.
+- Selector de niveles.
+- Sistema de pausa.
+- Configuracion.
+- Resultados.
+- Canciones.
+- Sistema de puntuacion.
+- Flujo de escenas.
+
+Notas:
+- Las mejoras son visuales y de presentacion.
+- No se agregaron assets externos.
+- Los elementos nuevos se generan por codigo para conservar compatibilidad con el proyecto actual.

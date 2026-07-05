@@ -1,0 +1,13 @@
+AVANCE 52 - MAIN MENU SETTINGS UI CONSISTENCY
+
+Cambios realizados:
+- Se elimino el flujo de configuracion paralelo del menu principal.
+- El boton de configuracion del menu principal ahora reutiliza el panel real de configuracion usado por PauseMenu.
+- La configuracion abierta desde el menu principal conserva sliders, valores, colores, navegacion y estilo visual de la configuracion de pausa.
+- Al presionar ESC / VOLVER dentro de configuracion, se regresa al menu principal.
+- Se reemplazo el icono textual/cuadrado por un sprite generado de engranaje neon.
+- Se mantiene el boton CONFIG en la ubicacion izquierda del menu principal.
+- No se modifica gameplay, scoring, timing, canciones, Hold Notes, offset, resultados ni LevelManager.
+
+Objetivo:
+Una sola configuracion reutilizada en todo el proyecto, sin duplicar paneles ni logica.
