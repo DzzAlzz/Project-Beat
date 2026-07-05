@@ -27,11 +27,15 @@ namespace ProjectBeat.Runtime
         {
             timer      = lifeTime;
             isPerfect  = perfect;
-            startScale = (perfect ? 0.25f : 0.18f) * scaleMultiplier;
+            float visualMul = Mathf.Lerp(0.65f, 1.08f, VisualAccessibilitySettings.GlowMultiplier);
+            startScale = (perfect ? 0.25f : 0.18f) * scaleMultiplier * visualMul;
             transform.localScale = Vector3.one * startScale;
 
             if (spriteRenderer != null)
+            {
+                color.a *= VisualAccessibilitySettings.EffectMultiplier;
                 spriteRenderer.color = color;
+            }
         }
 
         public void Initialize(Color color)
@@ -41,7 +45,7 @@ namespace ProjectBeat.Runtime
         {
             timer -= Time.deltaTime;
             float progress = 1f - Mathf.Clamp01(timer / lifeTime);
-            float scale    = Mathf.Lerp(startScale, maxScale, Mathf.Pow(progress, 0.6f));
+            float scale    = Mathf.Lerp(startScale, maxScale * Mathf.Lerp(0.75f, 1.08f, VisualAccessibilitySettings.GlowMultiplier), Mathf.Pow(progress, 0.6f));
             transform.localScale = Vector3.one * scale;
 
             if (spriteRenderer != null)

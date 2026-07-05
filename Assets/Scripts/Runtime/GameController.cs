@@ -64,6 +64,16 @@ namespace ProjectBeat.Runtime
 
         private void Start()
         {
+            // Avance 48: en equipos distintos el orden de inicializacion puede variar.
+            // Si el menu principal esta activo o se esta construyendo, el gameplay no debe
+            // arrancar por detras ni reproducir audio del nivel.
+            if (StartupFlowController.SuppressGameplayStartup || StartupFlowController.IsMainMenuVisible)
+            {
+                IsGameplayRunning = false;
+                enabled = false;
+                return;
+            }
+
             ApplyResponsivenessSettings();
             LoadTimingOffset();
 
@@ -102,6 +112,7 @@ namespace ProjectBeat.Runtime
                 gameplayUI.Initialize(Beatmap);
                 conductor.StartSong();
                 IsGameplayRunning = true;
+                TutorialOverlayController.EnsureForCurrentLevel();
             }
         }
 
@@ -113,6 +124,15 @@ namespace ProjectBeat.Runtime
 
             if (Input.GetKeyDown(KeyCode.R) && (finished || !IsGameplayRunning))
                 RestartScene();
+
+            // Avance 44: si el jugador termina un nivel y queda en resultados,
+            // ESC vuelve al menu inicial de forma limpia en lugar de dejar la UI bloqueada.
+            if (finished && Input.GetKeyDown(KeyCode.Escape))
+            {
+                Time.timeScale = 1f;
+                StartupFlowController.RequestMainMenuOnNextLoad();
+                SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex, LoadSceneMode.Single);
+            }
         }
 
         private void OnGUI()
