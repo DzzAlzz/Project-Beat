@@ -1,0 +1,44 @@
+AVANCE 74 – MEJORA DE INTERACCIÓN EN RESULTADOS, TUTORIAL Y CURSOR EN BUILD
+
+Base usada:
+- Avance 73.
+
+Archivos modificados:
+- Assets/Scripts/Runtime/GameplayUI.cs
+- Assets/Scripts/Runtime/TutorialOverlayController.cs
+- Assets/Scripts/Runtime/ProjectBeatCursorController.cs
+
+Mejoras implementadas:
+
+1) Pantalla de resultados
+- Los botones SIGUIENTE NIVEL, REINICIAR y VOLVER ahora tienen resaltado visual más claro.
+- Se agregó hover visual con mouse sobre los botones.
+- Se agregó selección activa con glow/escala para teclado.
+- Se agregó navegación con flechas, W/S y A/D.
+- ENTER, keypad ENTER o SPACE confirman el botón seleccionado.
+- Se mantiene ESC para volver.
+- Se crea un EventSystem runtime si no existe, para asegurar que los botones UI reciban mouse/click.
+- Los botones quedan más cómodos visualmente para una futura versión Android.
+
+2) Tutorial lateral del nivel Tutorial
+- El texto plano fue reemplazado por un panel lateral con estética morada/neón/cian.
+- Se agregaron bordes, líneas decorativas, sombras, título y keycaps D/F/J/K.
+- Se corrigió la explicación a español: PERFECTO / BIEN.
+- El tutorial lateral se oculta durante pausa, menú principal y resultados para no ensuciar la pantalla.
+
+3) Cursor / mouse en ejecutable
+- El cursor ahora también se considera visible durante la pantalla de resultados.
+- Se refuerza Cursor.visible y Cursor.lockState en contextos de UI.
+- Se agregó fallback seguro al cursor normal del sistema si el cursor personalizado no se puede aplicar.
+- Al salir de UI hacia gameplay se restablece el cursor normal antes de ocultarlo, evitando estados bugueados.
+
+No modificado:
+- Gameplay base.
+- LevelManager.
+- Canciones.
+- Sistema de puntuación.
+- Timing.
+- Hit detection.
+- Lógica de notas y hold notes.
+- Cálculo de resultados/rango.
+- Lógica de siguiente nivel, salvo selección/visual de botones.

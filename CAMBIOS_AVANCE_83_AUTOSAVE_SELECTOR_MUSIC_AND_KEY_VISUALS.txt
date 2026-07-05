@@ -1,0 +1,47 @@
+AVANCE 83 – AUTOGUARDADO POR PERFIL, MÚSICA EN SELECTOR Y REDISEÑO DE TECLAS
+
+BASE:
+- Usado Avance 82 como base.
+
+ARCHIVOS MODIFICADOS:
+- Assets/Scripts/Runtime/ProfileStatsStorage.cs
+- Assets/Scripts/Runtime/GameController.cs
+- Assets/Scripts/Runtime/PauseMenu.cs
+- Assets/Scripts/Runtime/GameplayUI.cs
+- Assets/Scripts/Runtime/TutorialOverlayController.cs
+
+ARCHIVOS AGREGADOS:
+- Assets/Scripts/Runtime/ProfileAutosaveController.cs
+- Assets/Audio/Menu/Timecop1983Afterglow.mp3
+- Assets/Resources/Timecop1983Afterglow.mp3
+
+AUTOGUARDADO POR PERFIL:
+- Se reforzó el guardado usando PlayerPrefs.Save().
+- Se agregó un controlador persistente ProfileAutosaveController.
+- El guardado se fuerza al iniciar el sistema, al pausar la aplicación y al cerrar el juego.
+- Al terminar un nivel, después de registrar estadísticas y desbloqueos, se fuerza el guardado.
+- No se reinicia progreso automáticamente al abrir el juego.
+- Cada perfil conserva sus datos propios mediante el sistema PlayerPrefs + JSON existente.
+
+MÚSICA EN SELECTOR DE NIVELES:
+- Se agregó Timecop1983Afterglow.mp3 como música ambiental del selector.
+- Se reproduce al abrir el selector de niveles desde menú principal o pausa.
+- Usa AudioSource propio con ignoreListenerPause para funcionar con Time.timeScale = 0.
+- Tiene fade in al abrir selector.
+- Tiene fade out o corte seguro al volver o iniciar un nivel.
+- No reemplaza canciones de niveles ni beatmaps.
+
+REDISEÑO DE TECLAS D/F/J/K:
+- Teclas de gameplay rediseñadas con keycaps más pulidas.
+- Se agregaron fondos con esquinas suaves, glow, borde neón y mejor contraste.
+- Las teclas reaccionan visualmente al presionarlas con escala, brillo y color más intenso.
+- Las teclas del panel tutorial también fueron actualizadas para combinar con la estética actual.
+- No se modificó la lógica de input, hit detection, timing ni puntuación.
+
+VALIDACIÓN REALIZADA EN EL PAQUETE:
+- Se verificó que el ZIP existe.
+- Se verificó que el ZIP no queda vacío.
+- Se verificó integridad del ZIP como archivo comprimido.
+
+NOTA:
+- La comprobación final de Safe Mode debe realizarse abriendo el proyecto en Unity 6000.3.11f1.

@@ -26,6 +26,18 @@ namespace ProjectBeat.Runtime
 
         public AudioSource AudioSource => audioSource;
 
+        /// <summary>
+        /// Tiempo musical calculado directamente desde AudioSettings.dspTime.
+        /// Evita depender del orden de Update entre Conductor/LaneInput y reduce
+        /// una posible sensación de input atrasado en monitores de alto refresco.
+        /// </summary>
+        public float GetLiveSongPosition()
+        {
+            if (!isPlayingScheduled) return SongPosition;
+            if (isPaused) return pausedSongPosition;
+            return (float)(AudioSettings.dspTime - songDspStartTime) - SongOffset;
+        }
+
         private void Reset()
         {
             audioSource = GetComponent<AudioSource>();
@@ -101,8 +113,7 @@ namespace ProjectBeat.Runtime
             if (!isPlayingScheduled) return;
             if (isPaused) return;
 
-            double dsp = AudioSettings.dspTime;
-            SongPosition = (float)(dsp - songDspStartTime) - SongOffset;
+            SongPosition = GetLiveSongPosition();
 
             if (SongPosition >= 0f)
             {

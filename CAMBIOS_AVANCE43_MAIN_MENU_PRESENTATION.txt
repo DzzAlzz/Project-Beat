@@ -1,0 +1,19 @@
+AVANCE 43 - MAIN MENU PRESENTATION OVERHAUL
+
+Objetivo:
+Mejorar la primera impresion del menu inicial de Project Beat sin tocar gameplay.
+
+Cambios realizados:
+- Menu inicial con panel mas grande y mas presente.
+- Titulo PROJECT BEAT mas grande y con pulso visual suave.
+- Botones de Tutorial / Arcade / Proximamente mas grandes y legibles.
+- Lineas neon superiores e inferiores como acentos visuales.
+- Fondo ambiental con barras neon animadas livianas.
+- Aura sutil de color para dar sensacion arcade/synthwave.
+- Animaciones de seleccion y hover mantenidas.
+- Soporte de mouse y teclado conservado.
+
+Compatibilidad:
+- No se modifica LevelManager.
+- No se modifica scoring, timing, Hold Notes, offset ni resultados.
+- Se mantiene la musica de menu agregada anteriormente.
