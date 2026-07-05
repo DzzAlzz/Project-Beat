@@ -1,0 +1,25 @@
+AVANCE 66 - PULIDO FINAL DE AURA DE COMBO Y LIMPIEZA DEL SELECTOR
+
+Base usada: Avance 66 rehecho.
+
+Archivos modificados:
+- Assets/Scripts/Runtime/GameplayUI.cs
+- Assets/Scripts/Runtime/PauseMenu.cs
+
+Mejoras implementadas:
+- Aura de combo más visible y más pulida cerca de la hit zone.
+- Mayor resplandor de base, núcleo de energía y onda de pulso.
+- Más llamas estilizadas y chispas suaves, con intensidad progresiva por combo/multiplicador.
+- Colores más vivos según racha, manteniendo el efecto detrás/alrededor de la pista para no tapar notas.
+- Apagado más suave al romper combo.
+- Se eliminó el texto pequeño CLICK del selector de niveles.
+- Se mantuvo el funcionamiento del mouse y de las flechas del selector.
+
+No se modificó:
+- Sistema de puntuación.
+- Cálculo de combo/multiplicadores.
+- Timing.
+- Hit detection.
+- Velocidad de notas.
+- Lógica de notas o hold notes.
+- LevelManager, canciones, resultados, pausa, configuración ni carga de niveles.

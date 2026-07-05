@@ -1,0 +1,30 @@
+AVANCE 64 - GAMEPLAY FEEDBACK POLISH REHECHO
+
+Base usada: Avance 63.
+
+Objetivo:
+- Rehacer el pulido visual del feedback sin usar el Avance 64 anterior.
+- Mantener la jugabilidad, timing, scoring e hit detection intactos.
+- Mejorar PERFECTO / BIEN / MAL / FALLO, combo y multiplicadores de forma compacta y no invasiva.
+
+Archivos modificados:
+- Assets/Scripts/Runtime/GameplayUI.cs
+- Assets/Scripts/Runtime/HitFeedbackController.cs
+
+Cambios realizados:
+- Se redujo bastante el tamaño de PERFECTO, BIEN, MAL y FALLO.
+- Se eliminaron paneles grandes o fondos gigantes que tapaban la pista.
+- Se agregó glow moderado mediante Outline y Shadow, sin overlays invasivos.
+- La animación de juicio ahora usa pop pequeño, leve subida y fade limpio.
+- El combo se muestra más compacto y con pulso controlado.
+- Los multiplicadores tienen color y pulso suave, sin crecer de forma exagerada.
+- Se diferenciaron los colores de hit types sin saturar la pantalla.
+- Se suavizaron partículas y flash de pantalla para no molestar la lectura de notas.
+
+No modificado:
+- No se cambió la lógica de puntuación.
+- No se cambió el cálculo de combo.
+- No se cambió el cálculo de multiplicadores.
+- No se cambió hit detection.
+- No se cambió timing ni velocidad de notas.
+- No se modificó LevelManager, canciones, selector, menú, pausa, configuración ni resultados.
