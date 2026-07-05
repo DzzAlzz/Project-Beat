@@ -1,0 +1,28 @@
+AVANCE 59 – REDISEÑO VISUAL DEL SELECTOR DE NIVELES
+
+Base: Avance 58.
+Unity: 6000.3.11f1.
+
+Archivos modificados:
+- Assets/Scripts/Runtime/PauseMenu.cs
+
+Mejoras implementadas:
+- Selector de niveles convertido visualmente en una pantalla completa independiente.
+- Fondo opaco naranja metálico para ocultar gameplay, carriles, HUD y objetos detrás.
+- Estética naranja metálico con apoyo cian, dorado y neón.
+- Panel central más grande, con glow, borde y mayor profundidad visual.
+- Nombre del track con más presencia y colores cálidos.
+- Controles de navegación más legibles e integrados.
+- Barras tipo ecualizador, líneas futuristas, partículas y anillos de energía.
+- Animación suave de glow, barras, partículas y pulsos decorativos.
+
+No se modificó:
+- LevelManager.
+- Gameplay.
+- Canciones.
+- Resultados.
+- Configuración.
+- Sistema de pausa.
+- Sistema de puntuación.
+- Flujo de escenas.
+- Lógica de navegación del selector.
