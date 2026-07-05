@@ -1,0 +1,38 @@
+AVANCE 71 - REDISEÑO VISUAL DEL MENU DE PAUSA Y LIMPIEZA DEL FONDO
+
+Base utilizada:
+- Avance 70.
+
+Archivo modificado:
+- Assets/Scripts/Runtime/PauseMenu.cs
+
+Cambios visuales aplicados:
+- Se rediseño visualmente el menu de pausa hacia una estetica morada/rosada/cian.
+- Se reemplazo el fondo anterior por una atenuacion limpia con lavado morado suave.
+- Se eliminaron los glows rectangulares laterales grandes que se veian como bloques sobrantes detras del panel.
+- Se mejoro el panel principal de pausa con fondo morado oscuro, borde cian y glow magenta suave.
+- Se retoco el titulo PAUSA para integrarse mejor con el estilo neón actual.
+- Se actualizaron los botones de pausa hacia una paleta morada/magenta/cian.
+- Se mejoro la seleccion activa con glow magenta/cian y un tratamiento especial para SALIR.
+- Se agrego una linea inferior neón y se retoco el texto de ayuda inferior.
+
+No se modifico:
+- Gameplay.
+- LevelManager.
+- Canciones.
+- Sistema de puntuacion.
+- Hit detection.
+- Timing.
+- Notas ni hold notes.
+- Selector de niveles.
+- Menu principal.
+- Ayuda.
+- Creditos.
+- Configuracion.
+- Resultados.
+- Funcionamiento de los botones de pausa.
+
+Validacion del paquete:
+- ZIP generado correctamente.
+- ZIP no esta vacio.
+- Prueba de integridad del ZIP realizada sin errores.

@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -30,7 +31,7 @@ namespace ProjectBeat.Runtime
 
         [Header("Responsiveness / Performance")]
         [SerializeField] private bool optimizeGameplayResponsiveness = true;
-        [SerializeField] private int targetFrameRate = 120;
+        [SerializeField] private int targetFrameRate = 144;
 
         [Header("Timing Calibration")]
         [Tooltip("Desfase manual en segundos. Positivo = las notas/judgement se adelantan; negativo = se atrasan.")]
@@ -60,10 +61,23 @@ namespace ProjectBeat.Runtime
         public bool        IsGameplayRunning { get; private set; }
 
         private bool finished;
+        private bool isHandlingResultsExit;
+        private bool showResultsExitLoading;
+        private static bool pendingResultsMainMenuLoad;
         private static readonly int[] MilestoneCombos = { 10, 25, 50, 100 };
 
         private void Start()
         {
+            // Avance 48: en equipos distintos el orden de inicializacion puede variar.
+            // Si el menu principal esta activo o se esta construyendo, el gameplay no debe
+            // arrancar por detras ni reproducir audio del nivel.
+            if (StartupFlowController.SuppressGameplayStartup || StartupFlowController.IsMainMenuVisible)
+            {
+                IsGameplayRunning = false;
+                enabled = false;
+                return;
+            }
+
             ApplyResponsivenessSettings();
             LoadTimingOffset();
 
@@ -102,6 +116,7 @@ namespace ProjectBeat.Runtime
                 gameplayUI.Initialize(Beatmap);
                 conductor.StartSong();
                 IsGameplayRunning = true;
+                TutorialOverlayController.EnsureForCurrentLevel();
             }
         }
 
@@ -111,12 +126,63 @@ namespace ProjectBeat.Runtime
             // dependencia de frames fisicos y mejorar respuesta percibida.
             HandleTimingCalibrationInput();
 
-            if (Input.GetKeyDown(KeyCode.R) && (finished || !IsGameplayRunning))
+            // Avance 49: cuando la pantalla de resultados esta activa, el input
+            // se maneja aqui de forma aislada. ESC ya no intenta abrir pausa ni
+            // deja paneles intermedios del gameplay; vuelve al menu inicial limpio.
+            if (finished)
+            {
+                if (isHandlingResultsExit) return;
+
+                if (Input.GetKeyDown(KeyCode.R))
+                {
+                    RestartScene();
+                    return;
+                }
+
+                if (Input.GetKeyDown(KeyCode.N))
+                {
+                    StartCoroutine(LoadNextLevelFromResultsRoutine());
+                    return;
+                }
+
+                if (Input.GetKeyDown(KeyCode.Escape))
+                {
+                    StartCoroutine(ReturnToMainMenuFromResultsSafeRoutine());
+                    return;
+                }
+            }
+
+            if (Input.GetKeyDown(KeyCode.R) && !IsGameplayRunning)
                 RestartScene();
+        }
+
+        public void LoadNextLevelFromResults()
+        {
+            if (!finished || isHandlingResultsExit) return;
+            StartCoroutine(LoadNextLevelFromResultsRoutine());
+        }
+
+        public void ReturnToMainMenuFromResults()
+        {
+            if (!finished || isHandlingResultsExit) return;
+            StartCoroutine(ReturnToMainMenuFromResultsSafeRoutine());
         }
 
         private void OnGUI()
         {
+            if (showResultsExitLoading)
+            {
+                GUIStyle loadingStyle = new GUIStyle(GUI.skin.label)
+                {
+                    alignment = TextAnchor.MiddleCenter,
+                    fontSize = 44,
+                    fontStyle = FontStyle.Bold
+                };
+                loadingStyle.normal.textColor = new Color(1f, 0.80f, 1f, 1f);
+                GUI.Label(new Rect(0f, 0f, Screen.width, Screen.height), "CARGANDO...", loadingStyle);
+                return;
+            }
+
             if (!showTimingCalibrationOverlay) return;
 
             GUIStyle style = new GUIStyle(GUI.skin.box)
@@ -139,10 +205,12 @@ namespace ProjectBeat.Runtime
         {
             if (!optimizeGameplayResponsiveness) return;
 
-            // Evita limite de 30/60 FPS por configuracion externa y reduce
-            // sensacion de input pesado en juegos de ritmo.
-            Application.targetFrameRate = Mathf.Max(60, targetFrameRate);
+            // Avance 76: prioriza respuesta estable para juego de ritmo.
+            // No cambia puntuacion ni ventanas de hit; solo reduce sensación de input pesado
+            // y evita saltos grandes de deltaTime durante gameplay.
+            Application.targetFrameRate = Mathf.Max(120, targetFrameRate);
             QualitySettings.vSyncCount = 0;
+            Time.maximumDeltaTime = 0.050f;
         }
 
         private void HandleTimingCalibrationInput()
@@ -317,13 +385,155 @@ namespace ProjectBeat.Runtime
             if (finished) return;
             finished = true;
             IsGameplayRunning = false;
+
+            // Avance 78: guarda estadisticas finales dentro del perfil local
+            // actualmente seleccionado/cargado. No altera puntuacion, rango,
+            // combo ni precision; solo persiste los datos ya calculados.
+            string levelName = Beatmap != null ? Beatmap.songName : "NIVEL";
+            if (LevelManager.Instance != null && LevelManager.Instance.CurrentLevel != null &&
+                !string.IsNullOrEmpty(LevelManager.Instance.CurrentLevel.levelName))
+            {
+                levelName = LevelManager.Instance.CurrentLevel.levelName;
+            }
+            ProfileStatsStorage.RecordLevelResult(levelName, scoreManager);
+            if (LevelManager.Instance != null && LevelManager.Instance.Levels != null)
+            {
+                int firstArcade = LevelManager.Instance.GetFirstArcadeLevelIndex();
+                ProfileStatsStorage.MarkLevelCompleted(LevelManager.Instance.CurrentLevelIndex, LevelManager.Instance.Levels.Length, firstArcade);
+            }
+
             gameplayUI.ShowResults(scoreManager, Beatmap);
         }
 
         public void RestartScene()
         {
             Time.timeScale = 1f;
-            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+            finished = false;
+            isHandlingResultsExit = false;
+            showResultsExitLoading = false;
+
+            // Avance 49: reiniciar desde resultados debe volver al mismo nivel
+            // y saltarse el menu inicial, sin dejar la pantalla de resultados encima.
+            StartupFlowController.RequestSkipStartupOnce();
+            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex, LoadSceneMode.Single);
+        }
+
+
+        private IEnumerator LoadNextLevelFromResultsRoutine()
+        {
+            if (isHandlingResultsExit) yield break;
+
+            LevelManager lm = LevelManager.Instance;
+            if (lm == null || lm.Levels == null || lm.Levels.Length == 0)
+                yield break;
+
+            int nextIndex = lm.CurrentLevelIndex + 1;
+            if (nextIndex >= lm.Levels.Length)
+                yield break;
+
+            isHandlingResultsExit = true;
+            showResultsExitLoading = true;
+            Time.timeScale = 1f;
+            IsGameplayRunning = false;
+
+            if (gameplayUI != null)
+                gameplayUI.HideResults();
+
+            lm.SetLevel(nextIndex);
+            StartupFlowController.RequestSkipStartupOnce();
+
+            yield return new WaitForSecondsRealtime(0.75f);
+
+            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex, LoadSceneMode.Single);
+        }
+
+        private IEnumerator ReturnToMainMenuFromResultsSafeRoutine()
+        {
+            if (isHandlingResultsExit) yield break;
+            isHandlingResultsExit = true;
+            showResultsExitLoading = true;
+
+            Time.timeScale = 1f;
+            IsGameplayRunning = false;
+
+            if (gameplayUI != null)
+            {
+                gameplayUI.HideResults();
+                gameplayUI.gameObject.SetActive(false);
+            }
+
+            CleanupSceneBeforeReturningToMainMenu();
+
+            // Evita que el estado activo siga siendo Tutorial al reconstruir menu.
+            if (LevelManager.Instance != null && LevelManager.Instance.Levels != null && LevelManager.Instance.Levels.Length > 1)
+                LevelManager.Instance.SetLevel(1);
+
+            StartupFlowController.RequestMainMenuOnNextLoad();
+
+            yield return new WaitForSecondsRealtime(0.75f);
+
+            SceneManager.sceneLoaded -= HandleResultsMainMenuSceneLoaded;
+            SceneManager.sceneLoaded += HandleResultsMainMenuSceneLoaded;
+            pendingResultsMainMenuLoad = true;
+            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex, LoadSceneMode.Single);
+        }
+
+        private static void HandleResultsMainMenuSceneLoaded(Scene scene, LoadSceneMode mode)
+        {
+            if (!pendingResultsMainMenuLoad) return;
+
+            pendingResultsMainMenuLoad = false;
+            SceneManager.sceneLoaded -= HandleResultsMainMenuSceneLoaded;
+            Time.timeScale = 1f;
+            StartupFlowController.ForceShowMainMenuOnCurrentScene();
+        }
+
+        private void CleanupSceneBeforeReturningToMainMenu()
+        {
+            if (conductor != null)
+                conductor.SetPaused(false);
+
+            AudioSource[] audioSources = FindObjectsOfType<AudioSource>();
+            for (int i = 0; i < audioSources.Length; i++)
+            {
+                if (audioSources[i] != null)
+                    audioSources[i].Stop();
+            }
+
+            NoteObject[] notes = FindObjectsOfType<NoteObject>();
+            for (int i = 0; i < notes.Length; i++)
+            {
+                if (notes[i] != null)
+                    Destroy(notes[i].gameObject);
+            }
+
+            HitEffect[] hitEffects = FindObjectsOfType<HitEffect>();
+            for (int i = 0; i < hitEffects.Length; i++)
+            {
+                if (hitEffects[i] != null)
+                    Destroy(hitEffects[i].gameObject);
+            }
+
+            ParticleSystem[] particles = FindObjectsOfType<ParticleSystem>();
+            for (int i = 0; i < particles.Length; i++)
+            {
+                if (particles[i] != null)
+                    particles[i].Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+            }
+
+            TutorialOverlayController[] tutorialOverlays = FindObjectsOfType<TutorialOverlayController>();
+            for (int i = 0; i < tutorialOverlays.Length; i++)
+            {
+                if (tutorialOverlays[i] != null)
+                    Destroy(tutorialOverlays[i].gameObject);
+            }
+
+            PauseMenu[] pauseMenus = FindObjectsOfType<PauseMenu>();
+            for (int i = 0; i < pauseMenus.Length; i++)
+            {
+                if (pauseMenus[i] != null && pauseMenus[i].gameObject.activeInHierarchy)
+                    pauseMenus[i].SendMessage("ForceCloseWithoutResumeCountdown", SendMessageOptions.DontRequireReceiver);
+            }
         }
 
         public void PauseAudio(bool pause) => conductor?.SetPaused(pause);
