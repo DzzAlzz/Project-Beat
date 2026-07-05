@@ -1,0 +1,40 @@
+AVANCE 66 - AURA DE FUEGO RESPLANDECIENTE PARA RACHA Y COMBO (REHECHO)
+
+Base usada:
+- Avance 65 corregido.
+
+Archivo modificado:
+- Assets/Scripts/Runtime/GameplayUI.cs
+
+Mejoras visuales implementadas:
+- Se descartó el Avance 66 anterior porque el efecto era demasiado débil.
+- Se creó un aura de racha más visible y resplandeciente alrededor de la zona inferior / hit zone.
+- Se agregaron halos de energía, glow base, pulso central y laterales luminosos.
+- Se agregaron llamas estilizadas y chispas suaves de color.
+- La intensidad del aura aumenta según combo y multiplicador.
+- Los colores cambian según la fuerza de la racha: naranja, cian, verde-cian, dorado y magenta.
+- Al romper combo, el aura se apaga suavemente sin corte brusco.
+- El efecto se mantiene cerca de la base de la pista para no tapar notas, hold notes, feedback, combo ni multiplicadores.
+
+No se modificó:
+- Gameplay base.
+- LevelManager.
+- Canciones.
+- Sistema de puntuación.
+- Cálculo de combo.
+- Cálculo de multiplicadores.
+- Hit detection.
+- Timing de notas.
+- Velocidad de notas.
+- Lógica de notas.
+- Lógica de hold notes.
+- Selector de niveles.
+- Menú principal.
+- Pausa.
+- Configuración.
+- Resultados.
+
+Validación realizada en archivo:
+- El ZIP fue generado correctamente.
+- El ZIP no está vacío.
+- Se verificó integridad del comprimido con unzip -t.

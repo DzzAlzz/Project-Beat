@@ -1,0 +1,63 @@
+AVANCE 99 – VERSION DEFINITIVA FINAL DEL JUEGO
+================================================
+
+Base:
+- ProjectBeat_Avance98_AndroidFullOptimizedTouchFinal.zip
+
+Objetivo:
+- Dejar un paquete final completo de Project Beat para presentacion, manteniendo todas las mejoras acumuladas y cerrando la version como entrega definitiva.
+
+Cambios aplicados en Avance 99:
+
+1. Cierre final de version
+- Se actualizo el README principal del proyecto para que ya no quede como avance antiguo.
+- Se agrego documentacion final de entrega.
+- Se agrego checklist final de validacion.
+- Se agregaron instrucciones simples para PC, Android, Android Studio y GitHub.
+
+2. Versionado tecnico
+- Version del juego actualizada a 1.0.0.
+- Android Bundle Version Code actualizado a 99 para representar el avance final.
+- Se mantiene Product Name como Project Beat.
+- Se mantiene Package Name Android como com.projectbeat.demo.
+
+3. Android final
+- Se conserva la optimizacion Android del Avance 98.
+- Se mantienen controles tactiles D / F / J / K.
+- Se mantiene multitouch.
+- Se mantiene cursor oculto en Android.
+- Se mantiene orientacion horizontal.
+- Se mantiene FPS objetivo estable.
+- No se recupera el boton PAUSA superior molesto.
+
+4. PC final
+- Se mantiene el gameplay de PC con teclado/mouse.
+- Se mantiene menu principal, configuracion, pausa, resultados, perfiles, estadisticas, logros y selector.
+- Se mantiene el icono personalizado del ejecutable Windows corregido en Avance 94.
+
+No modificado:
+- LevelManager.
+- Gameplay base.
+- Canciones.
+- Beatmaps.
+- Timing.
+- Hit detection.
+- Velocidad de notas.
+- Puntuacion.
+- Precision.
+- Combo.
+- Logica de notas.
+- Logica de hold notes.
+
+Validacion final recomendada:
+- Abrir en Unity 6000.3.11f1.
+- Verificar Console sin errores rojos.
+- Probar en PC.
+- Generar APK Android.
+- Probar en celular real.
+- Confirmar controles tactiles correctos.
+- Confirmar que la interfaz movil no tapa la pista.
+- Confirmar que no existe sistema de idiomas/localizacion.
+
+Entrega:
+- ProjectBeat_Avance99_FinalCompleteVersion.zip

@@ -1,0 +1,36 @@
+CHECKLIST FINAL – PROJECT BEAT AVANCE 99
+=======================================
+
+[ ] Abrir el proyecto en Unity 6000.3.11f1.
+[ ] Confirmar que Unity no cambie de version.
+[ ] Esperar que compile.
+[ ] Revisar Console y confirmar que no hay errores rojos.
+[ ] Entrar al menu principal.
+[ ] Probar boton Ayuda / Como jugar.
+[ ] Probar Creditos.
+[ ] Probar Perfil.
+[ ] Probar Estadisticas.
+[ ] Probar Logros.
+[ ] Probar Configuracion.
+[ ] Probar Selector de niveles.
+[ ] Probar Tutorial.
+[ ] Probar un nivel normal.
+[ ] Confirmar que D / F / J / K funcionan en PC.
+[ ] Confirmar que ESC pausa en PC.
+[ ] Confirmar pantalla de resultados.
+[ ] Confirmar que el icono del ejecutable Windows aparece correcto en un build nuevo.
+[ ] Cambiar a Android desde File > Build Profiles > Android.
+[ ] Generar APK.
+[ ] Instalar APK en celular real.
+[ ] Confirmar icono Android Project Beat.
+[ ] Confirmar que Android abre en horizontal.
+[ ] Confirmar que aparecen botones tactiles D / F / J / K.
+[ ] Confirmar que cada boton golpea su carril correcto.
+[ ] Confirmar multitouch.
+[ ] Confirmar que no aparece cursor en Android.
+[ ] Confirmar que no aparece boton PAUSA superior molesto.
+[ ] Confirmar que la UI no tapa la pista central.
+[ ] Confirmar que no se agrego sistema de idiomas/localizacion.
+
+Resultado esperado:
+Proyecto listo para presentacion final.

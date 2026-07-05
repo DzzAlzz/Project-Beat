@@ -1,0 +1,24 @@
+PROJECT BEAT – RESUMEN PARA PRESENTACION FINAL
+=============================================
+
+Project Beat es un juego de ritmo creado en Unity como proyecto de videojuegos.
+La version final incluye menu principal, tutorial, selector de niveles, niveles con canciones, sistema de notas,
+hold notes, puntuacion, precision, combo, resultados, pausa, configuracion, perfiles, estadisticas, logros,
+easter eggs y soporte para PC y Android.
+
+En PC se juega con teclado usando D / F / J / K.
+En Android se juega con botones tactiles D / F / J / K y soporte multitouch.
+
+La portabilidad se realizo manteniendo Unity como motor principal:
+- Windows usa controles de teclado/mouse.
+- Android activa interfaz tactil automaticamente.
+- El proyecto puede generar APK desde Unity.
+- Tambien puede exportarse como proyecto Android/Gradle para abrirlo en Android Studio.
+
+La version final conserva el gameplay base sin alterar LevelManager, canciones, timing, hit detection, puntuacion ni beatmaps.
+
+Version de Unity utilizada:
+Unity 6000.3.11f1
+
+Entrega final:
+ProjectBeat_Avance99_FinalCompleteVersion.zip
