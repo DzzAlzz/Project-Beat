@@ -1,0 +1,45 @@
+AVANCE 77 - SISTEMA BASE DE PERFILES
+
+Base usada:
+- Avance 76.
+
+Archivos modificados:
+- Assets/Scripts/Runtime/StartupFlowController.cs
+
+Cambios implementados:
+- Se agrego un nuevo boton PERFIL en el lado derecho del menu principal.
+- El boton PERFIL usa icono de usuario/perfil y estilo neón morado/cian.
+- Se reemplazo el icono de CREDITOS por un icono de informacion para no confundirlo con PERFIL.
+- Se agrego panel PERFIL con estetica coherente con el menu principal.
+- Se agrego lista de hasta 5 perfiles.
+- Se permite crear perfil escribiendo nombre.
+- Se valida que el nombre no este vacio ni sea solo espacios.
+- Se limita el nombre del perfil a 16 caracteres.
+- Se impide crear mas de 5 perfiles.
+- Se permite seleccionar perfil.
+- Se permite eliminar perfil con confirmacion.
+- Se agregaron acciones NUEVA PARTIDA y CARGAR PARTIDA.
+- NUEVA PARTIDA marca el perfil como preparado para guardar progreso futuro.
+- CARGAR PARTIDA valida que el perfil tenga partida creada.
+- Los perfiles se guardan localmente usando PlayerPrefs con JSON.
+- La estructura queda preparada para futuros datos por perfil, como progreso, puntuaciones y estadisticas.
+
+No modificado:
+- Gameplay.
+- LevelManager.
+- Canciones.
+- Sistema de puntuacion.
+- Hit detection.
+- Timing.
+- Notas y hold notes.
+- Selector de niveles.
+- Pausa.
+- Configuracion.
+- Resultados.
+- Ayuda.
+- Creditos.
+- Flujo actual de Arcade, Tutorial y Salir.
+
+Notas:
+- En este avance no se implementan estadisticas completas ni progreso real por nivel.
+- El sistema queda como base para avances posteriores.
