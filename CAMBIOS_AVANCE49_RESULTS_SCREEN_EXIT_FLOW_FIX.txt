@@ -1,0 +1,14 @@
+AVANCE 49 - RESULTS SCREEN EXIT FLOW FIX
+
+Objetivo:
+Corregir el flujo posterior a la pantalla de resultados.
+
+Cambios:
+- ESC en resultados ahora usa un flujo seguro hacia menu principal.
+- R en resultados reinicia el mismo nivel saltando el startup/menu.
+- Se evita abrir pausa desde resultados.
+- Se oculta ResultsPanel antes de cambiar de estado.
+- Se limpian notas, particulas, efectos y overlay tutorial antes de volver al menu.
+- Se restaura Time.timeScale = 1 y se desbloquea el flujo.
+
+No modifica gameplay, scoring, timing, BPM, canciones, Hold Notes, offset ni LevelManager.
