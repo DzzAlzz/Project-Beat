@@ -3,6 +3,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 
 namespace ProjectBeat.Runtime
 {
@@ -14,6 +15,7 @@ namespace ProjectBeat.Runtime
     public class StartupFlowController : MonoBehaviour
     {
         public const string SkipStartupPrefsKey = "ProjectBeat.SkipStartupIntro";
+        public const string ForceMainMenuPrefsKey = "ProjectBeat.ForceMainMenu";
 
         private Canvas canvas;
         private CanvasGroup rootGroup;
@@ -32,6 +34,18 @@ namespace ProjectBeat.Runtime
         private float pulse;
         private GameController gameController;
         private PauseMenu pauseMenu;
+        private AudioSource menuMusicSource;
+        private AudioClip menuMusicClip;
+        private TMP_Text menuTitleText;
+        private Image rgbAuraImage;
+        private Image topRgbLine;
+        private Image bottomRgbLine;
+        private Image[] ambientBars;
+
+        private const string MenuMusicResourcePath = "Timecop1983";
+        private static bool forceMainMenuInMemory;
+        private static bool showMenuImmediatelyOnNextInstance;
+        private bool showMenuImmediately;
 
         private static readonly Color BgDark = new Color(0.003f, 0.006f, 0.014f, 0.96f);
         private static readonly Color Panel = new Color(0.015f, 0.035f, 0.065f, 0.92f);
@@ -47,7 +61,16 @@ namespace ProjectBeat.Runtime
             if (SceneManager.GetActiveScene().name.ToLower().Contains("preview")) return;
             if (FindObjectOfType<StartupFlowController>() != null) return;
 
-            if (PlayerPrefs.GetInt(SkipStartupPrefsKey, 0) == 1)
+            bool forceMainMenu = forceMainMenuInMemory || PlayerPrefs.GetInt(ForceMainMenuPrefsKey, 0) == 1;
+            if (forceMainMenu)
+            {
+                forceMainMenuInMemory = false;
+                showMenuImmediatelyOnNextInstance = true;
+                PlayerPrefs.SetInt(ForceMainMenuPrefsKey, 0);
+                PlayerPrefs.SetInt(SkipStartupPrefsKey, 0);
+                PlayerPrefs.Save();
+            }
+            else if (PlayerPrefs.GetInt(SkipStartupPrefsKey, 0) == 1)
             {
                 PlayerPrefs.SetInt(SkipStartupPrefsKey, 0);
                 PlayerPrefs.Save();
@@ -58,8 +81,37 @@ namespace ProjectBeat.Runtime
             go.AddComponent<StartupFlowController>();
         }
 
+        public static void RequestMainMenuOnNextLoad()
+        {
+            forceMainMenuInMemory = true;
+            PlayerPrefs.SetInt(ForceMainMenuPrefsKey, 1);
+            PlayerPrefs.SetInt(SkipStartupPrefsKey, 0);
+            PlayerPrefs.Save();
+        }
+
+        public static void ForceShowMainMenuOnCurrentScene()
+        {
+            forceMainMenuInMemory = false;
+            PlayerPrefs.SetInt(ForceMainMenuPrefsKey, 0);
+            PlayerPrefs.SetInt(SkipStartupPrefsKey, 0);
+            PlayerPrefs.Save();
+
+            StartupFlowController existing = FindObjectOfType<StartupFlowController>();
+            if (existing != null)
+            {
+                existing.ForceShowMenuImmediate();
+                return;
+            }
+
+            showMenuImmediatelyOnNextInstance = true;
+            GameObject go = new GameObject("StartupFlowController");
+            go.AddComponent<StartupFlowController>();
+        }
+
         private void Awake()
         {
+            showMenuImmediately = showMenuImmediatelyOnNextInstance;
+            showMenuImmediatelyOnNextInstance = false;
             gameController = FindObjectOfType<GameController>();
             pauseMenu = FindObjectOfType<PauseMenu>();
 
@@ -68,13 +120,43 @@ namespace ProjectBeat.Runtime
 
             Time.timeScale = 1f;
             BuildUI();
-            StartCoroutine(FlowRoutine());
+            SetupMenuMusic();
+            if (showMenuImmediately)
+                ForceShowMenuImmediate();
+            else
+                StartCoroutine(FlowRoutine());
+        }
+
+        public void ForceShowMenuImmediate()
+        {
+            StopAllCoroutines();
+            Time.timeScale = 1f;
+            Cursor.visible = true;
+            Cursor.lockState = CursorLockMode.None;
+
+            gameController = FindObjectOfType<GameController>();
+            pauseMenu = FindObjectOfType<PauseMenu>();
+            if (gameController != null) gameController.enabled = false;
+
+            if (canvas == null || rootGroup == null || splashGroup == null || menuGroup == null)
+                BuildUI();
+
+            SetupMenuMusic();
+            rootGroup.alpha = 1f;
+            splashGroup.alpha = 0f;
+            splashGroup.interactable = false;
+            splashGroup.blocksRaycasts = false;
+            menuGroup.alpha = 1f;
+            menuGroup.interactable = true;
+            menuGroup.blocksRaycasts = true;
+            selectedIndex = 0;
         }
 
         private void Update()
         {
             pulse += Time.unscaledDeltaTime * 4.2f;
             AnimateButtons();
+            AnimateMenuVisuals();
 
             if (menuGroup == null || menuGroup.alpha < 0.95f) return;
 
@@ -118,6 +200,8 @@ namespace ProjectBeat.Runtime
         {
             menuGroup.interactable = false;
             menuGroup.blocksRaycasts = false;
+            StopMenuMusic();
+            Cursor.visible = false;
             yield return Fade(rootGroup, 1f, 0f, 0.35f);
 
             if (LevelManager.Instance != null)
@@ -136,6 +220,8 @@ namespace ProjectBeat.Runtime
         {
             menuGroup.interactable = false;
             menuGroup.blocksRaycasts = false;
+            StopMenuMusic();
+            Cursor.visible = true;
             yield return Fade(rootGroup, 1f, 0f, 0.35f);
 
             if (pauseMenu != null)
@@ -161,8 +247,35 @@ namespace ProjectBeat.Runtime
             target.anchoredPosition = basePos;
         }
 
+        private void SetupMenuMusic()
+        {
+            if (menuMusicSource != null) return;
+
+            menuMusicClip = Resources.Load<AudioClip>(MenuMusicResourcePath);
+            if (menuMusicClip == null) return;
+
+            menuMusicSource = gameObject.AddComponent<AudioSource>();
+            menuMusicSource.clip = menuMusicClip;
+            menuMusicSource.loop = true;
+            menuMusicSource.playOnAwake = false;
+            menuMusicSource.spatialBlend = 0f;
+            menuMusicSource.volume = 0.46f;
+            menuMusicSource.priority = 32;
+            menuMusicSource.ignoreListenerPause = true;
+            menuMusicSource.Play();
+        }
+
+        private void StopMenuMusic()
+        {
+            if (menuMusicSource == null) return;
+            menuMusicSource.Stop();
+        }
+
         private void BuildUI()
         {
+            EnsureEventSystem();
+            Cursor.visible = true;
+            Cursor.lockState = CursorLockMode.None;
             canvas = new GameObject("StartupCanvas").AddComponent<Canvas>();
             canvas.transform.SetParent(transform, false);
             canvas.renderMode = RenderMode.ScreenSpaceOverlay;
@@ -178,9 +291,25 @@ namespace ProjectBeat.Runtime
             Image bg = CreateImage("Background", canvas.transform, BgDark);
             Stretch(bg.rectTransform);
 
-            // Lineas neon sutiles para dar identidad de juego ritmico.
-            CreateLine("TopNeon", canvas.transform, new Vector2(0f, 245f), new Vector2(620f, 3f), NeonOrange);
-            CreateLine("BottomNeon", canvas.transform, new Vector2(0f, -245f), new Vector2(420f, 2f), NeonCyan);
+            // Avance 43: ambientacion del menu inicial. Elementos visuales livianos,
+            // creados por codigo para no depender de assets externos ni tocar gameplay.
+            rgbAuraImage = CreateImage("MenuAmbientAura", canvas.transform, new Color(0f, 0.82f, 1f, 0.055f));
+            rgbAuraImage.rectTransform.sizeDelta = new Vector2(980f, 540f);
+            rgbAuraImage.rectTransform.anchoredPosition = new Vector2(0f, 0f);
+
+            topRgbLine = CreateLine("MenuTopNeonLine", canvas.transform, new Vector2(0f, 316f), new Vector2(760f, 4f), NeonOrange);
+            bottomRgbLine = CreateLine("MenuBottomNeonLine", canvas.transform, new Vector2(0f, -316f), new Vector2(760f, 4f), NeonCyan);
+
+            ambientBars = new Image[12];
+            for (int i = 0; i < ambientBars.Length; i++)
+            {
+                float x = -560f + i * 102f;
+                float h = 120f + (i % 4) * 42f;
+                Image bar = CreateLine("MenuAmbientBar_" + i, canvas.transform, new Vector2(x, -230f + (i % 3) * 20f), new Vector2(3.5f, h), i % 2 == 0 ? NeonCyan : NeonOrange);
+                bar.color = new Color(bar.color.r, bar.color.g, bar.color.b, 0.18f);
+                bar.rectTransform.localEulerAngles = new Vector3(0f, 0f, i % 2 == 0 ? -18f : 18f);
+                ambientBars[i] = bar;
+            }
 
             splashGroup = CreateGroup("Splash", canvas.transform);
             TMP_Text logo = CreateText("Logo", splashGroup.transform, "PROJECT BEAT", 54, NeonYellow, FontStyles.Bold);
@@ -195,31 +324,71 @@ namespace ProjectBeat.Runtime
             subtitle.rectTransform.sizeDelta = new Vector2(900f, 42f);
 
             menuGroup = CreateGroup("MainMenu", canvas.transform);
-            Image panel = CreateImage("MainPanel", menuGroup.transform, Panel);
-            panel.rectTransform.sizeDelta = new Vector2(560f, 450f);
+            Image panel = CreateImage("MainPanel", menuGroup.transform, new Color(0.01f, 0.025f, 0.048f, 0.94f));
+            panel.rectTransform.sizeDelta = new Vector2(680f, 500f);
             panel.rectTransform.anchoredPosition = Vector2.zero;
             panel.type = Image.Type.Sliced;
             panel.sprite = MakeSprite(new Color(1f,1f,1f,1f));
 
-            TMP_Text title = CreateText("MenuTitle", menuGroup.transform, "PROJECT BEAT", 42, NeonYellow, FontStyles.Bold);
+            TMP_Text title = CreateText("MenuTitle", menuGroup.transform, "PROJECT BEAT", 54, NeonYellow, FontStyles.Bold);
+            menuTitleText = title;
             title.alignment = TextAlignmentOptions.Center;
-            title.rectTransform.anchoredPosition = new Vector2(0f, 156f);
-            title.rectTransform.sizeDelta = new Vector2(520f, 70f);
+            title.rectTransform.anchoredPosition = new Vector2(0f, 174f);
+            title.rectTransform.sizeDelta = new Vector2(640f, 78f);
 
-            TMP_Text label = CreateText("MenuSubtitle", menuGroup.transform, "SELECCIONA MODO DE JUEGO", 16, NeonCyan, FontStyles.Bold);
+            TMP_Text label = CreateText("MenuSubtitle", menuGroup.transform, "SELECCIONA MODO DE JUEGO", 18, NeonCyan, FontStyles.Bold);
             label.alignment = TextAlignmentOptions.Center;
             label.characterSpacing = 4f;
-            label.rectTransform.anchoredPosition = new Vector2(0f, 108f);
-            label.rectTransform.sizeDelta = new Vector2(520f, 38f);
+            label.rectTransform.anchoredPosition = new Vector2(0f, 122f);
+            label.rectTransform.sizeDelta = new Vector2(640f, 38f);
 
-            tutorialButton = CreateModeButton(menuGroup.transform, "TutorialButton", new Vector2(0f, 48f), true, out tutorialBg, out tutorialLabel, "TUTORIAL", "Aprende a jugar");
-            arcadeButton = CreateModeButton(menuGroup.transform, "ArcadeButton", new Vector2(0f, -32f), true, out arcadeBg, out arcadeLabel, "ARCADE", "Selector de niveles");
-            futureButton = CreateModeButton(menuGroup.transform, "FutureButton", new Vector2(0f, -112f), false, out futureBg, out futureLabel, "PROXIMAMENTE", "Nuevo modo futuro");
+            CreateLine("MainPanelTopAccent", menuGroup.transform, new Vector2(0f, 224f), new Vector2(520f, 3f), NeonCyan);
+            CreateLine("MainPanelBottomAccent", menuGroup.transform, new Vector2(0f, -224f), new Vector2(520f, 3f), NeonOrange);
+
+            tutorialButton = CreateModeButton(menuGroup.transform, "TutorialButton", new Vector2(0f, 58f), true, out tutorialBg, out tutorialLabel, "TUTORIAL", "Aprende a jugar");
+            arcadeButton = CreateModeButton(menuGroup.transform, "ArcadeButton", new Vector2(0f, -34f), true, out arcadeBg, out arcadeLabel, "ARCADE", "Selector de niveles");
+            futureButton = CreateModeButton(menuGroup.transform, "FutureButton", new Vector2(0f, -126f), false, out futureBg, out futureLabel, "PROXIMAMENTE", "Nuevo modo futuro");
 
             TMP_Text hint = CreateText("Hint", menuGroup.transform, "[W/S] Navegar     [ENTER] Confirmar", 14, TextDim, FontStyles.Bold);
             hint.alignment = TextAlignmentOptions.Center;
-            hint.rectTransform.anchoredPosition = new Vector2(0f, -185f);
-            hint.rectTransform.sizeDelta = new Vector2(520f, 32f);
+            hint.rectTransform.anchoredPosition = new Vector2(0f, -202f);
+            hint.rectTransform.sizeDelta = new Vector2(620f, 32f);
+        }
+
+        private void EnsureEventSystem()
+        {
+            if (EventSystem.current != null) return;
+            GameObject eventSystem = new GameObject("EventSystem");
+            eventSystem.AddComponent<EventSystem>();
+            eventSystem.AddComponent<StandaloneInputModule>();
+        }
+
+        private void AddMouseEventsToModeButton(GameObject target, int index, bool available)
+        {
+            if (target == null) return;
+            EventTrigger trigger = target.GetComponent<EventTrigger>();
+            if (trigger == null) trigger = target.AddComponent<EventTrigger>();
+            if (trigger.triggers == null) trigger.triggers = new System.Collections.Generic.List<EventTrigger.Entry>();
+
+            EventTrigger.Entry enter = new EventTrigger.Entry { eventID = EventTriggerType.PointerEnter };
+            enter.callback.AddListener((_) =>
+            {
+                selectedIndex = index;
+            });
+            trigger.triggers.Add(enter);
+
+            EventTrigger.Entry click = new EventTrigger.Entry { eventID = EventTriggerType.PointerClick };
+            click.callback.AddListener((_) =>
+            {
+                selectedIndex = index;
+                if (index == 0)
+                    StartCoroutine(OpenTutorialRoutine());
+                else if (index == 1)
+                    StartCoroutine(OpenArcadeRoutine());
+                else
+                    StartCoroutine(ShakeLockedRoutine());
+            });
+            trigger.triggers.Add(click);
         }
 
         private RectTransform CreateModeButton(Transform parent, string name, Vector2 pos, bool available, out Image bg, out TMP_Text label, string textOverride = null, string subOverride = null)
@@ -227,7 +396,7 @@ namespace ProjectBeat.Runtime
             GameObject go = new GameObject(name);
             go.transform.SetParent(parent, false);
             RectTransform rt = go.AddComponent<RectTransform>();
-            rt.sizeDelta = new Vector2(420f, 62f);
+            rt.sizeDelta = new Vector2(500f, 70f);
             rt.anchoredPosition = pos;
             bg = go.AddComponent<Image>();
             bg.sprite = MakeSprite(Color.white);
@@ -237,12 +406,49 @@ namespace ProjectBeat.Runtime
             string text = textOverride ?? (available ? "ARCADE" : "PROXIMAMENTE");
             string sub = subOverride ?? (available ? "Selector de niveles" : "Nuevo modo futuro");
 
-            label = CreateText("Text", go.transform, text + "\n" + sub, available ? 24 : 21, available ? NeonYellow : TextDim, FontStyles.Bold);
+            label = CreateText("Text", go.transform, text + "\n" + sub, available ? 27 : 23, available ? NeonYellow : TextDim, FontStyles.Bold);
             label.alignment = TextAlignmentOptions.Center;
             label.rectTransform.sizeDelta = rt.sizeDelta;
             label.rectTransform.anchoredPosition = Vector2.zero;
             label.lineSpacing = -18f;
+            AddMouseEventsToModeButton(go, available ? (name.Contains("Tutorial") ? 0 : 1) : 2, available);
             return rt;
+        }
+
+        private void AnimateMenuVisuals()
+        {
+            if (menuGroup == null || menuGroup.alpha <= 0.01f) return;
+
+            float wave = (Mathf.Sin(pulse * 0.72f) + 1f) * 0.5f;
+            if (menuTitleText != null)
+            {
+                float titleScale = 1f + Mathf.Sin(pulse * 0.55f) * 0.018f;
+                menuTitleText.rectTransform.localScale = Vector3.Lerp(menuTitleText.rectTransform.localScale, Vector3.one * titleScale, Time.unscaledDeltaTime * 6f);
+                menuTitleText.color = Color.Lerp(NeonYellow, Color.white, wave * 0.22f);
+            }
+
+            if (rgbAuraImage != null)
+                rgbAuraImage.color = Color.Lerp(new Color(0f, 0.75f, 1f, 0.035f), new Color(1f, 0.35f, 0f, 0.055f), wave);
+
+            if (topRgbLine != null)
+                topRgbLine.color = Color.Lerp(NeonOrange, NeonCyan, wave);
+            if (bottomRgbLine != null)
+                bottomRgbLine.color = Color.Lerp(NeonCyan, NeonOrange, wave);
+
+            if (ambientBars != null)
+            {
+                for (int i = 0; i < ambientBars.Length; i++)
+                {
+                    Image bar = ambientBars[i];
+                    if (bar == null) continue;
+                    float local = (Mathf.Sin(pulse * 0.9f + i * 0.65f) + 1f) * 0.5f;
+                    Color baseColor = i % 2 == 0 ? NeonCyan : NeonOrange;
+                    bar.color = new Color(baseColor.r, baseColor.g, baseColor.b, 0.08f + local * 0.18f);
+                    Vector2 size = bar.rectTransform.sizeDelta;
+                    size.y = 90f + local * 170f;
+                    bar.rectTransform.sizeDelta = size;
+                }
+            }
         }
 
         private void AnimateButtons()
@@ -311,11 +517,12 @@ namespace ProjectBeat.Runtime
             return tmp;
         }
 
-        private void CreateLine(string name, Transform parent, Vector2 pos, Vector2 size, Color color)
+        private Image CreateLine(string name, Transform parent, Vector2 pos, Vector2 size, Color color)
         {
             Image img = CreateImage(name, parent, color);
             img.rectTransform.sizeDelta = size;
             img.rectTransform.anchoredPosition = pos;
+            return img;
         }
 
         private Sprite MakeSprite(Color color)
