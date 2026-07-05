@@ -1,0 +1,38 @@
+AVANCE 75 - AJUSTE DEL TUTORIAL EN GAMEPLAY Y REDISEÑO DEL HUD DE PUNTUACIÓN
+
+Base usada:
+- Avance 74.
+
+Archivos modificados:
+- Assets/Scripts/Runtime/TutorialOverlayController.cs
+- Assets/Scripts/Runtime/GameplayUI.cs
+
+Mejoras implementadas:
+- Panel lateral del tutorial más alto y mejor adaptado al contenido.
+- Redistribución de título, keycaps y texto para evitar que se vea apretado.
+- Texto del tutorial reorganizado por secciones: CONTROLES, PRECISION, COMBO y HUD.
+- Se agregaron explicaciones de MAL y FALLO.
+- Se mantienen colores diferenciados para PERFECTO, BIEN, MAL y FALLO.
+- El panel del tutorial conserva estética morada/rosada/cian/neón.
+- HUD de puntuación en curso retocado hacia estética morada/neón/cian.
+- Panel de HUD más integrado visualmente con menú principal, pausa, resultados, créditos, ayuda y configuración.
+- Se retocaron colores del nombre de nivel, puntuación, precisión y líneas decorativas del HUD.
+
+No se modificó:
+- Gameplay.
+- LevelManager.
+- Canciones.
+- Sistema de puntuación.
+- Hit detection.
+- Timing de notas.
+- Velocidad de notas.
+- Lógica de notas.
+- Lógica de hold notes.
+- Menú principal.
+- Ayuda.
+- Créditos.
+- Configuración.
+- Pausa.
+- Selector de niveles.
+- Resultados.
+- Cálculo de precisión, rango o combo.

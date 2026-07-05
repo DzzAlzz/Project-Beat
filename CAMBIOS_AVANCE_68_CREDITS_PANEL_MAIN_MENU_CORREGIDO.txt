@@ -1,0 +1,37 @@
+AVANCE 68 - CREDITOS CORREGIDO SIN ERRORES DE COMPILACION
+
+Base usada:
+- Avance 67 corregido/funcional con boton AYUDA y panel COMO JUGAR.
+
+Archivos modificados:
+- Assets/Scripts/Runtime/StartupFlowController.cs
+
+Correccion realizada:
+- Se corrigio el bloque de texto del panel CREDITOS para evitar errores de compilacion.
+- La version anterior tenia saltos de linea y comillas dentro de un string C# sin escapar correctamente, lo que podia provocar Safe Mode.
+- Ahora el contenido usa secuencias \n y comillas escapadas correctamente.
+
+Elementos agregados:
+- Boton CREDITOS debajo de CONFIG.
+- Icono tipo usuario/perfil en estilo neon.
+- Panel CREDITOS con estetica morada/rosada/cian.
+- Boton X para cerrar.
+- Cierre con ESC o ENTER.
+
+Contenido del panel:
+- Desarrolladores: Denzel Alvarez, Alonso Leiva.
+- Asignatura: Programacion de Videojuegos.
+- Institucion: Santo Tomas Iquique.
+- Tecnologias: Unity, C#, TextMeshPro, Unity UI.
+- Inspiraciones: osu!, Fortnite Festival, Geometry Dash, Guitar Hero.
+- Frase final: "Feel the rhythm."
+
+No se modifico:
+- Gameplay.
+- LevelManager.
+- Canciones.
+- Sistema de puntuacion.
+- Selector de niveles.
+- Pausa.
+- Configuracion.
+- Resultados.
