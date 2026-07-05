@@ -3,6 +3,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 
 namespace ProjectBeat.Runtime
 {
@@ -41,13 +42,23 @@ namespace ProjectBeat.Runtime
         private bool isInCredits;
         private int selectedOption;
         private int selectedSettingsOption;
-        private const int OptionCount = 6;
-        private const int SettingsOptionCount = 4;
+        private bool settingsOpenedFromMainMenu;
+        // Avance 63: recuerda si el selector fue abierto desde el menu principal.
+        // Si es true, VOLVER/ESC debe regresar al menu principal y no al menu de pausa.
+        private bool levelSelectOpenedFromMainMenu;
+        private System.Action onMainMenuSettingsClosed;
+        private const int OptionCount = 7;
+        private const int SettingsOptionCount = 12;
 
         private const string BrightnessPrefsKey = "ProjectBeat_Brightness";
         private const string MasterVolumePrefsKey = "ProjectBeat_MasterVolume";
+        private const string ResolutionPrefsKey = "ProjectBeat_ResolutionIndex";
+        private const string DisplayModePrefsKey = "ProjectBeat_DisplayModeIndex";
+        private const string MainSceneName = "ProjectBeat_Demo";
         private float brightness = 1f;
         private float masterVolume = 1f;
+        private int resolutionIndex = 3;
+        private int displayModeIndex = 0;
 
         private static readonly Color DeepDim = new Color(0.006f, 0.007f, 0.014f, 0.88f);
         private static readonly Color Glass = new Color(0.025f, 0.035f, 0.065f, 0.92f);
@@ -58,8 +69,19 @@ namespace ProjectBeat.Runtime
         private static readonly Color TextNormal = new Color(0.92f, 0.90f, 1f, 1f);
         private static readonly Color TextDim = new Color(0.70f, 0.68f, 0.78f, 1f);
 
-        private static readonly string[] OptionNames = { "CONTINUAR", "ELEGIR NIVEL", "REINICIAR", "CONFIGURACION", "CREDITOS", "SALIR" };
-        private static readonly string[] OptionIcons = { "PLAY", "LEVEL", "RETRY", "SETUP", "INFO", "QUIT" };
+        public bool IsPausedForOverlay => isPaused;
+
+        private static readonly string[] OptionNames = { "CONTINUAR", "ELEGIR NIVEL", "REINICIAR", "CONFIGURACION", "CREDITOS", "MENU PRINCIPAL", "SALIR" };
+        private static readonly string[] OptionIcons = { "PLAY", "LEVEL", "RETRY", "SETUP", "INFO", "HOME", "QUIT" };
+        private static readonly Vector2Int[] ResolutionOptions =
+        {
+            new Vector2Int(1280, 720),
+            new Vector2Int(1366, 768),
+            new Vector2Int(1600, 900),
+            new Vector2Int(1920, 1080),
+            new Vector2Int(2560, 1440)
+        };
+        private static readonly string[] DisplayModeNames = { "PANTALLA COMPLETA", "VENTANA", "VENTANA SIN BORDES" };
 
         private TMP_Text settingsMenuLabel;
         private TMP_Text[] menuLabels;
@@ -71,6 +93,28 @@ namespace ProjectBeat.Runtime
         private TMP_Text settingsTitleText;
         private TMP_Text settingsBodyText;
         private TMP_Text settingsHintText;
+        private TMP_Text controlsHeaderText;
+        private TMP_Text controlsDescriptionText;
+        private TMP_Text graphicsHeaderText;
+        private TMP_Text brightnessLabelText;
+        private TMP_Text resolutionLabelText;
+        private TMP_Text resolutionValueText;
+        private TMP_Text displayModeLabelText;
+        private TMP_Text displayModeValueText;
+        private TMP_Text effectsLabelText;
+        private TMP_Text sensitivityLabelText;
+        private TMP_Text visualQualityLabelText;
+        private TMP_Text visualQualityValueText;
+        private TMP_Text comboEffectsLabelText;
+        private TMP_Text comboEffectsValueText;
+        private TMP_Text comboAuraLabelText;
+        private TMP_Text comboAuraValueText;
+        private TMP_Text soundHeaderText;
+        private TMP_Text volumeLabelText;
+        private TMP_Text generalHeaderText;
+        private TMP_Text resetValuesText;
+        private TMP_Text restoreNoticeText;
+        private TMP_Text settingsBackText;
         private CanvasGroup creditsGroup;
         private TMP_Text creditsTitleText;
         private TMP_Text creditsBodyText;
@@ -80,10 +124,53 @@ namespace ProjectBeat.Runtime
         private Image brightnessSliderGlow;
         private RectTransform brightnessSliderHandle;
         private TMP_Text brightnessValueText;
+        private Image effectsSliderFill;
+        private Image effectsSliderGlow;
+        private RectTransform effectsSliderHandle;
+        private TMP_Text effectsValueText;
+        private TMP_Text sensitivityValueText;
+        private CanvasGroup mainMenuLoadingGroup;
+        private TMP_Text mainMenuLoadingText;
+        private bool isReturningToInitialMenu;
+        private bool isResumeCountdown;
+        private string resumeCountdownLabel = string.Empty;
+        private Coroutine resumeCountdownCoroutine;
+        private static bool mainMenuSceneLoadPending;
         private Image volumeSliderFill;
         private Image volumeSliderGlow;
         private RectTransform volumeSliderHandle;
         private TMP_Text volumeValueText;
+        private RectTransform settingsScrollContent;
+        private RectTransform settingsScrollHandle;
+        private Image settingsScrollTrack;
+        private Image settingsScrollFill;
+        private float settingsScrollY;
+        private float restoreNoticeTimer;
+        private const float SettingsScrollMax = 390f;
+        // Avance 93: evita cambios repetidos por un mismo click en filas de configuracion.
+        private const float SettingsClickCooldown = 0.14f;
+        private float lastSettingsClickTime = -100f;
+
+        // Avance 59: elementos decorativos exclusivos del selector de niveles.
+        // Son visuales, no cambian la logica de seleccion ni la carga de pistas.
+        private Image levelSelectorAura;
+        private Image levelSelectorCardGlow;
+        private Image levelSelectorTitleGlow;
+        private Image[] levelSelectorBars;
+        private Image[] levelSelectorLines;
+        private Image[] levelSelectorParticles;
+        private Image[] levelSelectorRings;
+        private CanvasGroup levelLockedGroup;
+        private TMP_Text levelLockedText;
+        private TMP_Text levelLockNoticeText;
+        private float levelLockNoticeTimer;
+
+        // Avance 83: musica ambiental propia del selector de niveles.
+        private const string SelectorMusicResourcePath = "Timecop1983Afterglow";
+        private AudioSource selectorMusicSource;
+        private AudioClip selectorMusicClip;
+        private Coroutine selectorMusicFadeCoroutine;
+        private const float SelectorMusicVolume = 0.42f;
 
         private float fadeAlpha;
         private float fadeTarget;
@@ -105,13 +192,16 @@ namespace ProjectBeat.Runtime
             menuLabels[2] = restartLabel;
             menuLabels[3] = settingsMenuLabel;
             menuLabels[4] = null;
-            menuLabels[5] = quitLabel;
+            menuLabels[5] = null;
+            menuLabels[6] = quitLabel;
             BuildSprites();
             BuildCommercialPauseMenu();
             BuildCommercialLevelSelect();
             BuildSettingsPanel();
             BuildCreditsPanel();
             BuildBrightnessOverlay();
+            BuildMainMenuLoadingOverlay();
+            ShowMainMenuLoading(false);
             LoadSettingsPrefs();
             ApplyVisualAudioSettings();
             StyleStaticTexts();
@@ -131,6 +221,10 @@ namespace ProjectBeat.Runtime
         {
             AnimateGroups();
             pulseT += Time.unscaledDeltaTime * 5.4f;
+            UpdateLevelLockNotice();
+
+            if (isReturningToInitialMenu || isResumeCountdown)
+                return;
 
             if (Input.GetKeyDown(KeyCode.Escape))
             {
@@ -159,35 +253,130 @@ namespace ProjectBeat.Runtime
                 HandleMenuInput();
 
             ApplyVisualAudioSettings();
+            if (isInSettings && restoreNoticeTimer > 0f)
+                RefreshSettingsPanel();
 
             AnimateMenuLabels();
         }
 
         public void OpenPause()
         {
+            if (isReturningToInitialMenu || isResumeCountdown) return;
+
+            Cursor.visible = true;
+            Cursor.lockState = CursorLockMode.None;
+
+            // Avance 50: al abrir pausa se limpia cualquier subpanel residual.
+            // Esto evita el panel morado/intermedio que quedaba activo sin mostrar
+            // correctamente el menu de pausa.
             isPaused = true;
+            isInLevelSelect = false;
+            levelSelectOpenedFromMainMenu = false;
+            isInSettings = false;
+            isInCredits = false;
             Time.timeScale = 0f;
             if (gameController != null) gameController.PauseAudio(true);
 
             selectedOption = 0;
             fadeTarget = 1f;
-            ShowLevelSelectGroup(false);
+            levelTarget = 0f;
+            ShowMainMenuLoading(false);
+            ShowLevelSelectGroup(false, true);
+            ShowSettingsGroup(false, true);
+            ShowCreditsGroup(false, true);
+            ShowPauseGroup(true);
             RefreshLabels();
         }
 
         public void ClosePause()
         {
+            // Avance 50: Continuar ya no reanuda instantaneamente.
+            // Se usa una cuenta regresiva con el gameplay congelado para no
+            // perder notas al volver desde pausa.
+            if (isResumeCountdown || isReturningToInitialMenu) return;
+            resumeCountdownCoroutine = StartCoroutine(ResumeCountdownRoutine());
+        }
+
+        // Avance 50.1: cierre seguro para transiciones/cargas.
+        // IMPORTANTE: no inicia la cuenta regresiva. Se usa cuando ResultsScreen,
+        // reinicio o menu principal necesitan ocultar la pausa sin ejecutar 3-2-1-GO.
+        public void ForceCloseWithoutResumeCountdown()
+        {
+            if (resumeCountdownCoroutine != null)
+            {
+                StopCoroutine(resumeCountdownCoroutine);
+                resumeCountdownCoroutine = null;
+            }
+
+            isResumeCountdown = false;
+            resumeCountdownLabel = string.Empty;
             isPaused = false;
             isInLevelSelect = false;
+            levelSelectOpenedFromMainMenu = false;
             isInSettings = false;
             isInCredits = false;
-            Time.timeScale = 1f;
-            if (gameController != null) gameController.PauseAudio(false);
 
             fadeTarget = 0f;
-            ShowLevelSelectGroup(false);
-            ShowSettingsGroup(false);
-            ShowCreditsGroup(false);
+            levelTarget = 0f;
+            ShowPauseGroup(false);
+            ShowLevelSelectGroup(false, true);
+            ShowSettingsGroup(false, true);
+            ShowCreditsGroup(false, true);
+        }
+
+        private System.Collections.IEnumerator ResumeCountdownRoutine()
+        {
+            isResumeCountdown = true;
+            isInLevelSelect = false;
+            levelSelectOpenedFromMainMenu = false;
+            isInSettings = false;
+            isInCredits = false;
+
+            ShowPauseGroup(false);
+            ShowLevelSelectGroup(false, true);
+            ShowSettingsGroup(false, true);
+            ShowCreditsGroup(false, true);
+            ShowMainMenuLoading(false);
+
+            Time.timeScale = 0f;
+            if (gameController != null) gameController.PauseAudio(true);
+            Cursor.visible = false;
+            Cursor.lockState = CursorLockMode.None;
+
+            string[] labels = { "3", "2", "1", "GO" };
+            for (int i = 0; i < labels.Length; i++)
+            {
+                resumeCountdownLabel = labels[i];
+                yield return new WaitForSecondsRealtime(i == labels.Length - 1 ? 0.45f : 0.70f);
+            }
+
+            resumeCountdownLabel = string.Empty;
+            isResumeCountdown = false;
+            isPaused = false;
+            fadeTarget = 0f;
+            levelTarget = 0f;
+
+            Time.timeScale = 1f;
+            if (gameController != null) gameController.PauseAudio(false);
+            resumeCountdownCoroutine = null;
+        }
+
+        private void OnGUI()
+        {
+            // Avance 50.1: el countdown solo pertenece a CONTINUAR.
+            // Si hay carga/retorno a menu, nunca debe dibujarse encima de CARGANDO...
+            if (!isResumeCountdown || isReturningToInitialMenu || string.IsNullOrEmpty(resumeCountdownLabel)) return;
+            if (mainMenuLoadingGroup != null && mainMenuLoadingGroup.alpha > 0.01f) return;
+
+            GUIStyle style = new GUIStyle(GUI.skin.label)
+            {
+                alignment = TextAnchor.MiddleCenter,
+                fontSize = Mathf.RoundToInt(Mathf.Clamp(Screen.height * 0.13f, 72f, 150f)),
+                fontStyle = FontStyle.Bold
+            };
+            style.normal.textColor = new Color(1f, 0.94f, 0.04f, 1f);
+
+            GUI.Label(new Rect(0f, 0f, Screen.width, Screen.height), resumeCountdownLabel, style);
         }
 
         private void HandleMenuInput()
@@ -217,13 +406,17 @@ namespace ProjectBeat.Runtime
                 case 2: RestartLevel(); break;
                 case 3: EnterSettings(); break;
                 case 4: EnterCredits(); break;
-                case 5: QuitGame(); break;
+                case 5: ReturnToMainMenu(); break;
+                case 6: QuitGame(); break;
             }
         }
 
         private void EnterLevelSelect()
         {
+            // Abierto desde el menu de pausa durante gameplay.
+            levelSelectOpenedFromMainMenu = false;
             isInLevelSelect = true;
+            StartSelectorMusic();
             ShowPauseGroup(false);
             ShowLevelSelectGroup(true);
             RefreshLevelSelectLabels();
@@ -231,10 +424,61 @@ namespace ProjectBeat.Runtime
 
         private void ExitLevelSelect()
         {
+            StopSelectorMusic(true);
+            // Avance 63: el selector puede abrirse desde dos origenes.
+            // 1) Menu principal -> ARCADE: VOLVER debe retornar al menu principal.
+            // 2) Gameplay -> Pausa -> Elegir nivel: VOLVER debe retornar a pausa.
+            if (levelSelectOpenedFromMainMenu)
+            {
+                levelSelectOpenedFromMainMenu = false;
+                isInLevelSelect = false;
+                ShowLevelSelectGroup(false);
+                ShowPauseGroup(false);
+                ReturnToMainMenu();
+                return;
+            }
+
             isInLevelSelect = false;
             ShowPauseGroup(true);
             ShowLevelSelectGroup(false);
             RefreshLabels();
+        }
+
+        public void OpenSettingsFromMainMenu(System.Action onClosed = null)
+        {
+            // Avance 53: se reutiliza exactamente el panel de configuracion de PauseMenu.
+            // Causa corregida: en Avance 52 se activaba SettingsGroup, pero se mantenia
+            // PauseGroup con fadeTarget = 0. Como SettingsGroup es hijo de PauseGroup,
+            // el CanvasGroup padre dejaba todos los textos/sliders invisibles.
+            settingsOpenedFromMainMenu = true;
+            onMainMenuSettingsClosed = onClosed;
+            isPaused = true;
+            isInSettings = true;
+            isInCredits = false;
+            isInLevelSelect = false;
+            levelSelectOpenedFromMainMenu = false;
+            selectedSettingsOption = 0;
+
+            Cursor.visible = true;
+            Cursor.lockState = CursorLockMode.None;
+            Time.timeScale = 1f;
+
+            // El panel real de configuracion vive dentro de pauseGroup, por eso
+            // el grupo padre debe quedar visible mientras se abre desde el menu inicial.
+            fadeAlpha = 1f;
+            fadeTarget = 1f;
+            if (pauseGroup != null)
+            {
+                pauseGroup.alpha = 1f;
+                pauseGroup.interactable = true;
+                pauseGroup.blocksRaycasts = true;
+                pauseGroup.transform.localScale = Vector3.one;
+            }
+
+            ShowLevelSelectGroup(false, true);
+            ShowCreditsGroup(false, true);
+            ShowSettingsGroup(true, true);
+            RefreshSettingsPanel();
         }
 
         private void EnterSettings()
@@ -242,6 +486,7 @@ namespace ProjectBeat.Runtime
             isInSettings = true;
             isInCredits = false;
             isInLevelSelect = false;
+            levelSelectOpenedFromMainMenu = false;
             selectedSettingsOption = 0;
             ShowLevelSelectGroup(false);
             ShowSettingsGroup(true);
@@ -252,6 +497,23 @@ namespace ProjectBeat.Runtime
         {
             isInSettings = false;
             ShowSettingsGroup(false);
+
+            if (settingsOpenedFromMainMenu)
+            {
+                settingsOpenedFromMainMenu = false;
+                isPaused = false;
+                fadeTarget = 0f;
+                levelTarget = 0f;
+                ShowPauseGroup(false);
+                ShowLevelSelectGroup(false, true);
+                ShowCreditsGroup(false, true);
+
+                System.Action callback = onMainMenuSettingsClosed;
+                onMainMenuSettingsClosed = null;
+                callback?.Invoke();
+                return;
+            }
+
             RefreshLabels();
         }
 
@@ -260,6 +522,7 @@ namespace ProjectBeat.Runtime
             isInCredits = true;
             isInSettings = false;
             isInLevelSelect = false;
+            levelSelectOpenedFromMainMenu = false;
             ShowLevelSelectGroup(false);
             ShowSettingsGroup(false);
             ShowCreditsGroup(true);
@@ -286,14 +549,28 @@ namespace ProjectBeat.Runtime
 
         private void HandleSettingsInput()
         {
+            // Reentrega Avance 91: respaldo directo para filas clickeables de configuración.
+            // Evita que zonas transparentes, textos o cambios de orden en el canvas impidan
+            // activar opciones como Calidad Visual desde el lado izquierdo o derecho.
+            HandleSettingsRowClickFallback();
+
+            float wheel = Input.mouseScrollDelta.y;
+            if (Mathf.Abs(wheel) > 0.01f)
+            {
+                settingsScrollY = Mathf.Clamp(settingsScrollY - wheel * 72f, 0f, SettingsScrollMax);
+                ApplySettingsScrollLayout();
+            }
+
             if (Input.GetKeyDown(KeyCode.UpArrow) || Input.GetKeyDown(KeyCode.W))
             {
                 selectedSettingsOption = (selectedSettingsOption - 1 + SettingsOptionCount) % SettingsOptionCount;
+                EnsureSelectedSettingsOptionVisible();
                 RefreshSettingsPanel();
             }
             else if (Input.GetKeyDown(KeyCode.DownArrow) || Input.GetKeyDown(KeyCode.S))
             {
                 selectedSettingsOption = (selectedSettingsOption + 1) % SettingsOptionCount;
+                EnsureSelectedSettingsOptionVisible();
                 RefreshSettingsPanel();
             }
             else if (Input.GetKeyDown(KeyCode.LeftArrow) || Input.GetKeyDown(KeyCode.A))
@@ -306,13 +583,121 @@ namespace ProjectBeat.Runtime
             }
             else if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter) || Input.GetKeyDown(KeyCode.Space))
             {
-                if (selectedSettingsOption == 3)
-                    ExitSettings();
+                ActivateSelectedSetting();
             }
             else if (Input.GetKeyDown(KeyCode.Escape))
             {
                 ExitSettings();
             }
+        }
+
+        private void HandleSettingsRowClickFallback()
+        {
+            if (!Input.GetMouseButtonDown(0)) return;
+            if (!isPaused || !isInSettings || isReturningToInitialMenu) return;
+            if (settingsScrollContent == null) return;
+
+            // Avance 93: un solo cambio por click real. El problema anterior era que el
+            // respaldo por Update y los EventTrigger de las filas podían activar la misma
+            // opción más de una vez, provocando cambios rápidos sin control.
+            if (Time.unscaledTime - lastSettingsClickTime < SettingsClickCooldown)
+                return;
+
+            Vector2 localPoint;
+            if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(settingsScrollContent, Input.mousePosition, null, out localPoint))
+                return;
+
+            // Limites seguros del contenido visible. Incluye texto izquierdo, centro y valores
+            // del lado derecho, pero evita zonas fuera del panel/scrollbar.
+            if (localPoint.x < -760f || localPoint.x > 735f)
+                return;
+
+            int option = GetSettingsOptionFromLocalY(localPoint.y);
+            if (option < 0)
+                return;
+
+            // Los sliders manejan su propio click/drag. Si el click cae exactamente sobre una
+            // barra, no se cicla la opción por fila para no alterar brillo/efectos/volumen.
+            if (IsSettingsSliderArea(option, localPoint))
+                return;
+
+            lastSettingsClickTime = Time.unscaledTime;
+            selectedSettingsOption = option;
+
+            switch (option)
+            {
+                case 2: // Resolucion
+                case 3: // Modo Pantalla
+                case 4: // Intensidad de efectos, solo si se clickea valor/fila y no slider
+                case 6: // Calidad Visual
+                    AdjustSelectedSetting(0.05f);
+                    break;
+                case 5: // Sensibilidad visual
+                case 7: // Efectos de Combo
+                case 8: // Aura de Combo
+                case 10: // Restaurar Valores
+                case 11: // Volver
+                    ActivateSelectedSetting();
+                    break;
+                default:
+                    RefreshSettingsPanel();
+                    break;
+            }
+        }
+
+        private bool IsSettingsSliderArea(int option, Vector2 localPoint)
+        {
+            if (option != 1 && option != 4 && option != 9)
+                return false;
+
+            // Sliders creados en x=270 con ancho 620. Este margen cubre barra y handle.
+            return localPoint.x >= -55f && localPoint.x <= 600f;
+        }
+
+        private int GetSettingsOptionFromLocalY(float y)
+        {
+            // Posiciones del layout del Avance 89/91.
+            if (Mathf.Abs(y - 154f) <= 32f) return 1;
+            if (Mathf.Abs(y - 88f) <= 32f) return 2;
+            if (Mathf.Abs(y - 22f) <= 32f) return 3;
+            if (Mathf.Abs(y + 44f) <= 32f) return 4;
+            if (Mathf.Abs(y + 110f) <= 32f) return 5;
+            if (Mathf.Abs(y + 176f) <= 34f) return 6;
+            if (Mathf.Abs(y + 242f) <= 34f) return 7;
+            if (Mathf.Abs(y + 308f) <= 34f) return 8;
+            if (Mathf.Abs(y + 450f) <= 34f) return 9;
+            if (Mathf.Abs(y + 592f) <= 36f) return 10;
+            if (Mathf.Abs(y + 660f) <= 36f) return 11;
+            return -1;
+        }
+
+        private void ActivateSelectedSetting()
+        {
+            switch (selectedSettingsOption)
+            {
+                case 5:
+                    VisualAccessibilitySettings.ToggleSensitivityMode();
+                    break;
+                case 6:
+                    VisualAccessibilitySettings.AdjustVisualQuality(1);
+                    break;
+                case 7:
+                    VisualAccessibilitySettings.ToggleComboEffects();
+                    break;
+                case 8:
+                    VisualAccessibilitySettings.ToggleComboAura();
+                    break;
+                case 10:
+                    RestoreDefaultSettings();
+                    break;
+                case 11:
+                    ExitSettings();
+                    return;
+            }
+
+            PlayerPrefs.Save();
+            ApplyVisualAudioSettings();
+            RefreshSettingsPanel();
         }
 
         private void AdjustSelectedSetting(float delta)
@@ -324,17 +709,55 @@ namespace ProjectBeat.Runtime
                     PlayerPrefs.SetFloat(BrightnessPrefsKey, brightness);
                     break;
                 case 2:
+                    resolutionIndex = WrapIndex(resolutionIndex + (delta > 0f ? 1 : -1), ResolutionOptions.Length);
+                    PlayerPrefs.SetInt(ResolutionPrefsKey, resolutionIndex);
+                    ApplyDisplaySettings();
+                    break;
+                case 3:
+                    displayModeIndex = WrapIndex(displayModeIndex + (delta > 0f ? 1 : -1), DisplayModeNames.Length);
+                    PlayerPrefs.SetInt(DisplayModePrefsKey, displayModeIndex);
+                    ApplyDisplaySettings();
+                    break;
+                case 4:
+                    VisualAccessibilitySettings.AdjustIntensity(delta > 0f ? 1 : -1);
+                    break;
+                case 5:
+                    VisualAccessibilitySettings.ToggleSensitivityMode();
+                    break;
+                case 6:
+                    VisualAccessibilitySettings.AdjustVisualQuality(delta > 0f ? 1 : -1);
+                    break;
+                case 7:
+                    VisualAccessibilitySettings.ToggleComboEffects();
+                    break;
+                case 8:
+                    VisualAccessibilitySettings.ToggleComboAura();
+                    break;
+                case 9:
                     masterVolume = Mathf.Clamp01(masterVolume + delta);
                     PlayerPrefs.SetFloat(MasterVolumePrefsKey, masterVolume);
                     break;
-                case 3:
-                    // ENTER vuelve; izquierda/derecha no hacen nada aqui.
+                case 10:
+                    RestoreDefaultSettings();
+                    break;
+                case 11:
                     break;
             }
 
             PlayerPrefs.Save();
             ApplyVisualAudioSettings();
             RefreshSettingsPanel();
+        }
+
+        private void RestoreDefaultSettings()
+        {
+            brightness = 1f;
+            masterVolume = 1f;
+            PlayerPrefs.SetFloat(BrightnessPrefsKey, brightness);
+            PlayerPrefs.SetFloat(MasterVolumePrefsKey, masterVolume);
+            VisualAccessibilitySettings.RestoreRecommendedVisualDefaults();
+            restoreNoticeTimer = 2.2f;
+            PlayerPrefs.Save();
         }
 
         private void HandleLevelSelectInput()
@@ -368,8 +791,10 @@ namespace ProjectBeat.Runtime
         {
             isPaused = true;
             isInLevelSelect = true;
+            levelSelectOpenedFromMainMenu = true;
             Time.timeScale = 0f;
             selectedOption = 1;
+            StartSelectorMusic();
             ShowPauseGroup(false);
             ShowLevelSelectGroup(true, true);
             RefreshLevelSelectLabels();
@@ -377,16 +802,141 @@ namespace ProjectBeat.Runtime
 
         private void ConfirmLevelSelect()
         {
-            PlayerPrefs.SetInt(StartupFlowController.SkipStartupPrefsKey, 1);
-            PlayerPrefs.Save();
+            LevelManager lm = LevelManager.Instance;
+            if (lm == null || lm.Levels == null || lm.Levels.Length == 0)
+            {
+                RefreshLevelSelectLabels();
+                return;
+            }
+
+            if (IsCurrentLevelLocked())
+            {
+                ShowLevelLockedNotice();
+                RefreshLevelSelectLabels();
+                return;
+            }
+
+            // Avance 48: al iniciar un nivel desde el selector se usa un flag
+            // temporal de memoria, no PlayerPrefs, para evitar estados cruzados
+            // entre computadores o sesiones anteriores.
+            levelSelectOpenedFromMainMenu = false;
+            StopSelectorMusic(true);
+
+            // Avance 84: carga unificada con fondo negro completo.
+            // Se oculta el selector antes de recargar para que no queden paneles transparentes detras.
+            UnifiedLoadingScreen.Show("CARGANDO...", true);
+            ShowLevelSelectGroup(false);
+            ShowPauseGroup(false);
+
+            StartupFlowController.RequestSkipStartupOnce();
             Time.timeScale = 1f;
-            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex, LoadSceneMode.Single);
         }
 
         private void RestartLevel()
         {
             Time.timeScale = 1f;
             SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        }
+
+        private void ReturnToMainMenu()
+        {
+            // Avance 41 Safe Fix: este flujo es independiente del resto de botones.
+            // No toca Reiniciar, Tutorial, Elegir Nivel, Configuracion ni Creditos.
+            if (isReturningToInitialMenu) return;
+            StartCoroutine(ReturnToInitialMenuSafeRoutine());
+        }
+
+        private System.Collections.IEnumerator ReturnToInitialMenuSafeRoutine()
+        {
+            isReturningToInitialMenu = true;
+
+            // Avance 44: flujo lineal. CARGANDO -> flag menu inicial -> recarga limpia.
+            // No se reutiliza el GameController actual para evitar estados pegados.
+            isPaused = false;
+            isInLevelSelect = false;
+            levelSelectOpenedFromMainMenu = false;
+            isInSettings = false;
+            isInCredits = false;
+            StopSelectorMusic(true);
+            Time.timeScale = 1f;
+
+            Cursor.visible = true;
+            Cursor.lockState = CursorLockMode.None;
+
+            ShowPauseGroup(false);
+            ShowLevelSelectGroup(false);
+            ShowSettingsGroup(false);
+            ShowCreditsGroup(false);
+            ShowMainMenuLoading(true);
+            UnifiedLoadingScreen.Show("CARGANDO...", true);
+
+            CleanupGameplayBeforeMainMenu();
+
+            // Avance 45: antes de recargar se evita dejar seleccionado TUTORIAL como nivel activo,
+            // porque el overlay de instrucciones se reconstruia detras del menu inicial.
+            // El menu inicial sigue permitiendo entrar a Tutorial, pero el estado base queda limpio.
+            if (LevelManager.Instance != null && LevelManager.Instance.Levels != null && LevelManager.Instance.Levels.Length > 1)
+                LevelManager.Instance.SetLevel(1);
+
+            StartupFlowController.RequestMainMenuOnNextLoad();
+
+            yield return new WaitForSecondsRealtime(0.95f);
+
+            SceneManager.sceneLoaded -= HandleMainMenuSceneLoadedSafe;
+            SceneManager.sceneLoaded += HandleMainMenuSceneLoadedSafe;
+            mainMenuSceneLoadPending = true;
+            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex, LoadSceneMode.Single);
+        }
+
+        private static void HandleMainMenuSceneLoadedSafe(Scene scene, LoadSceneMode mode)
+        {
+            SceneManager.sceneLoaded -= HandleMainMenuSceneLoadedSafe;
+            mainMenuSceneLoadPending = false;
+            Time.timeScale = 1f;
+            StartupFlowController.ForceShowMainMenuOnCurrentScene();
+        }
+
+        private void CleanupGameplayBeforeMainMenu()
+        {
+            StopSelectorMusic(false);
+            if (gameController != null)
+                gameController.PauseAudio(false);
+
+            AudioSource[] audioSources = FindObjectsOfType<AudioSource>();
+            for (int i = 0; i < audioSources.Length; i++)
+            {
+                if (audioSources[i] != null)
+                    audioSources[i].Stop();
+            }
+
+            NoteObject[] notes = FindObjectsOfType<NoteObject>();
+            for (int i = 0; i < notes.Length; i++)
+            {
+                if (notes[i] != null)
+                    Destroy(notes[i].gameObject);
+            }
+
+            HitEffect[] hitEffects = FindObjectsOfType<HitEffect>();
+            for (int i = 0; i < hitEffects.Length; i++)
+            {
+                if (hitEffects[i] != null)
+                    Destroy(hitEffects[i].gameObject);
+            }
+
+            ParticleSystem[] particles = FindObjectsOfType<ParticleSystem>();
+            for (int i = 0; i < particles.Length; i++)
+            {
+                if (particles[i] == null) continue;
+                particles[i].Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+            }
+
+            TutorialOverlayController[] tutorialOverlays = FindObjectsOfType<TutorialOverlayController>();
+            for (int i = 0; i < tutorialOverlays.Length; i++)
+            {
+                if (tutorialOverlays[i] != null)
+                    Destroy(tutorialOverlays[i].gameObject);
+            }
         }
 
         private void QuitGame()
@@ -419,34 +969,136 @@ namespace ProjectBeat.Runtime
             }
         }
 
+        private void EnsureSelectorMusicSource()
+        {
+            if (selectorMusicSource != null) return;
+
+            selectorMusicClip = Resources.Load<AudioClip>(SelectorMusicResourcePath);
+            if (selectorMusicClip == null) return;
+
+            selectorMusicSource = gameObject.AddComponent<AudioSource>();
+            selectorMusicSource.clip = selectorMusicClip;
+            selectorMusicSource.loop = true;
+            selectorMusicSource.playOnAwake = false;
+            selectorMusicSource.spatialBlend = 0f;
+            selectorMusicSource.ignoreListenerPause = true;
+            selectorMusicSource.priority = 20;
+            selectorMusicSource.volume = 0f;
+        }
+
+        private void StartSelectorMusic()
+        {
+            EnsureSelectorMusicSource();
+            if (selectorMusicSource == null || selectorMusicClip == null) return;
+
+            if (selectorMusicFadeCoroutine != null)
+                StopCoroutine(selectorMusicFadeCoroutine);
+
+            if (!selectorMusicSource.isPlaying)
+            {
+                selectorMusicSource.time = 0f;
+                selectorMusicSource.Play();
+            }
+
+            selectorMusicFadeCoroutine = StartCoroutine(FadeSelectorMusic(SelectorMusicVolume * Mathf.Clamp01(masterVolume), 0.35f, false));
+        }
+
+        private void StopSelectorMusic(bool fade)
+        {
+            if (selectorMusicSource == null) return;
+
+            if (selectorMusicFadeCoroutine != null)
+                StopCoroutine(selectorMusicFadeCoroutine);
+
+            if (fade && selectorMusicSource.isPlaying)
+                selectorMusicFadeCoroutine = StartCoroutine(FadeSelectorMusic(0f, 0.25f, true));
+            else
+            {
+                selectorMusicSource.Stop();
+                selectorMusicSource.volume = 0f;
+            }
+        }
+
+        private System.Collections.IEnumerator FadeSelectorMusic(float targetVolume, float duration, bool stopAtEnd)
+        {
+            if (selectorMusicSource == null) yield break;
+            float start = selectorMusicSource.volume;
+            float t = 0f;
+            duration = Mathf.Max(0.01f, duration);
+            while (t < duration && selectorMusicSource != null)
+            {
+                t += Time.unscaledDeltaTime;
+                float k = Mathf.Clamp01(t / duration);
+                k = k * k * (3f - 2f * k);
+                selectorMusicSource.volume = Mathf.Lerp(start, targetVolume, k);
+                yield return null;
+            }
+
+            if (selectorMusicSource != null)
+            {
+                selectorMusicSource.volume = targetVolume;
+                if (stopAtEnd)
+                    selectorMusicSource.Stop();
+            }
+        }
+
         private void RefreshLevelSelectLabels()
         {
             LevelManager lm = LevelManager.Instance;
-            if (lm == null || lm.CurrentLevel == null) return;
+            if (lm == null || lm.Levels == null || lm.Levels.Length == 0 || lm.CurrentLevel == null)
+            {
+                if (levelNameText != null)
+                {
+                    levelNameText.alignment = TextAlignmentOptions.Center;
+                    levelNameText.fontSize = 34f;
+                    levelNameText.text = "<color=#73FFFF>NO HAY NIVELES CARGADOS</color>";
+                }
+                if (levelArtistText != null)
+                    levelArtistText.text = "<color=#BDFEFF>Revisa LevelManager y Build limpio.</color>";
+                if (levelHintText != null)
+                    levelHintText.text = "<color=#FF8A28>[ESC]</color> Volver";
+                return;
+            }
 
             LevelData level = lm.CurrentLevel;
             int idx = lm.CurrentLevelIndex;
             int total = lm.Levels.Length;
+            bool locked = IsCurrentLevelLocked();
 
             if (levelNameText != null)
             {
+                string trackName = string.IsNullOrEmpty(level.levelName) ? "PISTA SIN NOMBRE" : level.levelName.ToUpperInvariant();
+                int length = trackName.Length;
+                int titleSize = length >= 22 ? 43 : (length >= 18 ? 47 : (length >= 15 ? 52 : 60));
+                float spacing = length >= 18 ? 2.0f : (length >= 15 ? 3.0f : 5.0f);
+
+                // Avance 62: layout adaptable para nombres largos.
+                // El texto mantiene una sola linea principal y reduce tamano/espaciado
+                // antes de invadir las flechas laterales.
                 levelNameText.alignment = TextAlignmentOptions.Center;
-                levelNameText.fontSize = 54f;
-                levelNameText.characterSpacing = 3f;
+                levelNameText.fontSize = titleSize;
+                levelNameText.fontSizeMin = 38f;
+                levelNameText.fontSizeMax = 62f;
+                levelNameText.enableAutoSizing = false;
+                levelNameText.enableWordWrapping = false;
+                levelNameText.overflowMode = TextOverflowModes.Overflow;
+                levelNameText.characterSpacing = spacing;
+                levelNameText.raycastTarget = false;
                 levelNameText.text =
-                    "<size=20><color=#00F1FF>SELECCIONA TU TRACK</color></size>\n" +
-                    "<size=36><color=#FF6A00><</color></size>  " +
-                    "<b><color=#FFF000>" + level.levelName + "</color></b>" +
-                    "  <size=36><color=#FF6A00>></color></size>\n" +
-                    "<size=22><color=#BFB6FF>PISTA " + (idx + 1) + " DE " + total + "</color></size>";
+                    "<size=17><color=#BDFEFF>SELECCIONA TU TRACK</color></size>\n" +
+                    "<size=" + titleSize + "><b><color=#8CFFFF>" + trackName + "</color></b></size>\n" +
+                    "<size=21><color=#E6FFFF>PISTA " + (idx + 1) + " DE " + total + "</color></size>";
             }
 
             if (levelArtistText != null)
             {
                 levelArtistText.alignment = TextAlignmentOptions.Center;
-                levelArtistText.fontSize = 25f;
-                levelArtistText.characterSpacing = 1.5f;
-                levelArtistText.text = "<color=#FFAA44>Nivel " + (idx + 1) + "</color>  <color=#00F1FF>•</color>  <color=#FFFFFF>LISTO PARA JUGAR</color>";
+                levelArtistText.fontSize = 27f;
+                levelArtistText.characterSpacing = 1.8f;
+                levelArtistText.raycastTarget = false;
+                levelArtistText.text = locked
+                    ? "<color=#FF66D9>Nivel " + (idx + 1) + "</color>  <color=#69FFFF>•</color>  <color=#FFB6F4>BLOQUEADO</color>"
+                    : "<color=#FF8A28>Nivel " + (idx + 1) + "</color>  <color=#69FFFF>•</color>  <color=#F3FFFF>LISTO PARA JUGAR</color>";
             }
 
             if (levelHintText != null)
@@ -454,7 +1106,17 @@ namespace ProjectBeat.Runtime
                 levelHintText.alignment = TextAlignmentOptions.Center;
                 levelHintText.fontSize = 18f;
                 levelHintText.characterSpacing = 1.5f;
-                levelHintText.text = "<color=#00F1FF>[A/D]</color> Cambiar pista    <color=#FFF000>[ENTER]</color> Iniciar    <color=#FF6A00>[ESC]</color> Volver";
+                levelHintText.raycastTarget = false;
+                levelHintText.text = locked
+                    ? "<color=#69FFFF>[A/D]</color> Cambiar pista    <color=#FF66D9>[ENTER]</color> Aviso bloqueado    <color=#FF8A28>[ESC]</color> Volver"
+                    : "<color=#69FFFF>[A/D]</color> Cambiar pista    <color=#F3FFFF>[ENTER]</color> Iniciar    <color=#FF8A28>[ESC]</color> Volver";
+            }
+
+            if (levelLockedGroup != null)
+            {
+                levelLockedGroup.alpha = locked ? 1f : 0f;
+                levelLockedGroup.blocksRaycasts = false;
+                levelLockedGroup.interactable = false;
             }
         }
 
@@ -491,6 +1153,7 @@ namespace ProjectBeat.Runtime
                 levelSelectGroup.blocksRaycasts = levelAlpha > 0.5f && isInLevelSelect;
                 float s = Mathf.Lerp(0.93f, 1f, Mathf.SmoothStep(0f, 1f, levelAlpha));
                 levelSelectGroup.transform.localScale = new Vector3(s, s, 1f);
+                AnimateLevelSelectVisuals();
             }
         }
 
@@ -507,17 +1170,23 @@ namespace ProjectBeat.Runtime
 
                 float target = active ? selectedScale : normalScale;
                 label.transform.localScale = Vector3.Lerp(label.transform.localScale, new Vector3(target, target, 1f), Time.unscaledDeltaTime * 14f);
-                label.color = active ? Color.Lerp(NeonOrange, NeonYellow, glow) : Color.Lerp(label.color, TextDim, Time.unscaledDeltaTime * 7f);
+                Color activeText = i == OptionCount - 1 ? Color.Lerp(NeonOrange, NeonYellow, glow) : Color.Lerp(new Color(1f, 0.86f, 1f, 1f), NeonCyan, glow * 0.35f);
+                label.color = active ? activeText : Color.Lerp(label.color, TextDim, Time.unscaledDeltaTime * 7f);
 
                 if (menuButtonImages != null && i < menuButtonImages.Length && menuButtonImages[i] != null)
                 {
-                    Color targetColor = active ? new Color(1f, 0.34f, 0.02f, 0.32f + glow * 0.18f) : new Color(0.10f, 0.045f, 0.15f, 0.42f);
+                    // Avance 72: SALIR ya no vuelve al estilo naranja/marron antiguo al seleccionarse.
+                    // Mantiene la misma base morada/neon del resto del menu de pausa, con solo
+                    // un acento calido en el texto.
+                    Color targetColor = active ? new Color(1f, 0.12f, 0.82f, 0.38f + glow * 0.20f) : new Color(0.090f, 0.020f, 0.140f, 0.55f);
+                    if (i == OptionCount - 1 && active) targetColor = new Color(0.62f, 0.045f, 0.42f, 0.46f + glow * 0.14f);
                     menuButtonImages[i].color = Color.Lerp(menuButtonImages[i].color, targetColor, Time.unscaledDeltaTime * 10f);
                 }
 
                 if (menuGlowImages != null && i < menuGlowImages.Length && menuGlowImages[i] != null)
                 {
-                    Color targetGlow = active ? new Color(1f, 0.78f, 0.05f, 0.20f + glow * 0.16f) : new Color(1f, 0.78f, 0.05f, 0f);
+                    Color targetGlow = active ? new Color(1f, 0.14f, 0.82f, 0.24f + glow * 0.18f) : new Color(1f, 0.14f, 0.82f, 0f);
+                    if (i == OptionCount - 1 && active) targetGlow = new Color(1f, 0.14f, 0.82f, 0.22f + glow * 0.16f);
                     menuGlowImages[i].color = Color.Lerp(menuGlowImages[i].color, targetGlow, Time.unscaledDeltaTime * 10f);
                     float glowScale = active ? 1.08f + glow * 0.02f : 0.96f;
                     menuGlowImages[i].rectTransform.localScale = Vector3.Lerp(menuGlowImages[i].rectTransform.localScale, new Vector3(glowScale, glowScale, 1f), Time.unscaledDeltaTime * 10f);
@@ -555,36 +1224,59 @@ namespace ProjectBeat.Runtime
 
         private void BuildCommercialPauseMenu()
         {
+            EnsureEventSystem();
             if (pauseGroup == null) return;
             RectTransform root = pauseGroup.GetComponent<RectTransform>();
             if (root == null) return;
 
             DisableRootImage(pauseGroup);
             RemoveOldVisuals(pauseGroup.transform);
-            CreateFullScreenImage(pauseGroup.transform, "PB_UI_DimBlur", DeepDim, 0);
-            CreateFullScreenImage(pauseGroup.transform, "PB_UI_ColorWash", new Color(0.00f, 0.01f, 0.03f, 0.34f), 1);
-            CreateFloatingGlow(pauseGroup.transform, "PB_UI_Glow_Cyan", new Vector2(-520f, 220f), new Vector2(520f, 110f), new Color(0f, 0.9f, 1f, 0.10f), 2);
-            CreateFloatingGlow(pauseGroup.transform, "PB_UI_Glow_Orange", new Vector2(520f, -220f), new Vector2(520f, 110f), new Color(1f, 0.32f, 0f, 0.11f), 3);
+            // Avance 71: pausa con fondo limpio y paleta morada/neon coherente con
+            // menu principal, creditos, ayuda y configuracion. Se eliminan los bloques
+            // rectangulares laterales grandes que se veian como sobrantes detras del panel.
+            CreateFullScreenImage(pauseGroup.transform, "PB_UI_DimBlur", new Color(0.006f, 0.000f, 0.020f, 0.90f), 0);
+            CreateFullScreenImage(pauseGroup.transform, "PB_UI_PurpleWash", new Color(0.070f, 0.000f, 0.120f, 0.34f), 1);
+            CreateFullScreenImage(pauseGroup.transform, "PB_UI_SoftVignette", new Color(0.000f, 0.000f, 0.010f, 0.36f), 2);
 
-            RectTransform card = CreateCard(pauseGroup.transform, "PB_UI_PauseCard", new Vector2(640f, 640f), Vector2.zero, 4);
-            CreateLine(pauseGroup.transform, "PB_UI_PauseTopNeon", new Vector2(0f, 305f), new Vector2(500f, 4f), NeonOrange, 5);
-            CreateLine(pauseGroup.transform, "PB_UI_PauseCyanLine", new Vector2(0f, 293f), new Vector2(320f, 2f), NeonCyan, 6);
-            CreateTmp(pauseGroup.transform, "PB_UI_PauseSubtitle", "PROJECT BEAT", new Vector2(0f, 220f), new Vector2(500f, 34f), 18f, NeonCyan, 7, FontStyles.Bold, 5f);
-            CreateTmp(pauseGroup.transform, "PB_UI_PauseTitle", "PAUSA", new Vector2(0f, 174f), new Vector2(500f, 64f), 48f, NeonYellow, 8, FontStyles.Bold, 7f);
+            RectTransform cardGlow = CreateCard(pauseGroup.transform, "PB_UI_PauseCardGlow", new Vector2(700f, 720f), Vector2.zero, 3);
+            if (cardGlow != null)
+            {
+                Image glowImage = cardGlow.GetComponent<Image>();
+                if (glowImage != null) glowImage.color = new Color(1f, 0.10f, 0.85f, 0.09f);
+                Outline glowOutline = cardGlow.GetComponent<Outline>();
+                if (glowOutline != null) glowOutline.effectColor = new Color(0f, 0.92f, 1f, 0.18f);
+                Shadow glowShadow = cardGlow.GetComponent<Shadow>();
+                if (glowShadow != null) glowShadow.effectColor = new Color(1f, 0.10f, 0.85f, 0.20f);
+            }
+
+            RectTransform card = CreateCard(pauseGroup.transform, "PB_UI_PauseCard", new Vector2(660f, 700f), Vector2.zero, 4);
+            if (card != null)
+            {
+                Image cardImage = card.GetComponent<Image>();
+                if (cardImage != null) cardImage.color = new Color(0.050f, 0.010f, 0.090f, 0.96f);
+                Outline cardOutline = card.GetComponent<Outline>();
+                if (cardOutline != null) cardOutline.effectColor = new Color(0f, 0.92f, 1f, 0.42f);
+            }
+            CreateLine(pauseGroup.transform, "PB_UI_PauseTopNeon", new Vector2(0f, 325f), new Vector2(500f, 4f), new Color(1f, 0.14f, 0.82f, 1f), 5);
+            CreateLine(pauseGroup.transform, "PB_UI_PauseCyanLine", new Vector2(0f, 313f), new Vector2(320f, 2f), NeonCyan, 6);
+            CreateLine(pauseGroup.transform, "PB_UI_PauseInnerPink", new Vector2(0f, 151f), new Vector2(430f, 2f), new Color(1f, 0.14f, 0.82f, 0.48f), 7);
+            CreateTmp(pauseGroup.transform, "PB_UI_PauseSubtitle", "PROJECT BEAT", new Vector2(0f, 246f), new Vector2(500f, 34f), 18f, NeonCyan, 8, FontStyles.Bold, 5f);
+            CreateTmp(pauseGroup.transform, "PB_UI_PauseTitle", "PAUSA", new Vector2(0f, 200f), new Vector2(500f, 64f), 48f, new Color(1f, 0.88f, 1f, 1f), 9, FontStyles.Bold, 7f);
 
             menuButtonImages = new Image[OptionCount];
             menuGlowImages = new Image[OptionCount];
             menuButtonGroups = new CanvasGroup[OptionCount];
             menuButtonRects = new RectTransform[OptionCount];
 
-            float startY = 92f;
+            float startY = 126f;
             for (int i = 0; i < OptionCount; i++)
             {
-                RectTransform button = CreateButtonShell(pauseGroup.transform, "PB_UI_MenuButton_" + i, new Vector2(0f, startY - i * 66f), 9 + i);
+                RectTransform button = CreateButtonShell(pauseGroup.transform, "PB_UI_MenuButton_" + i, new Vector2(0f, startY - i * 58f), 9 + i);
                 menuButtonRects[i] = button;
                 menuButtonImages[i] = button.GetComponent<Image>();
                 menuGlowImages[i] = CreateFloatingGlow(button, "PB_UI_SelectedGlow_" + i, Vector2.zero, new Vector2(470f, 66f), new Color(1f, 0.75f, 0.04f, 0f), 0);
                 menuButtonGroups[i] = button.gameObject.AddComponent<CanvasGroup>();
+                AddMouseEventsToPauseButton(button.gameObject, i);
 
                 if (menuLabels[i] == null)
                 {
@@ -601,7 +1293,8 @@ namespace ProjectBeat.Runtime
                 menuLabels[i].transform.SetAsLastSibling();
             }
 
-            CreateTmp(pauseGroup.transform, "PB_UI_PauseHint", "<color=#00F1FF>[W/S]</color> Navegar     <color=#FFF000>[ENTER]</color> Confirmar     <color=#FF6A00>[ESC]</color> Cerrar", new Vector2(0f, -286f), new Vector2(540f, 28f), 17f, TextNormal, 20, FontStyles.Normal, 1.5f);
+            CreateLine(pauseGroup.transform, "PB_UI_PauseBottomLine", new Vector2(0f, -286f), new Vector2(430f, 3f), new Color(0f, 0.92f, 1f, 0.85f), 20);
+            CreateTmp(pauseGroup.transform, "PB_UI_PauseHint", "<color=#00F1FF>[W/S]</color> Navegar     <color=#FFF000>[ENTER]</color> Confirmar     <color=#FF6A00>[ESC]</color> Cerrar", new Vector2(0f, -318f), new Vector2(560f, 28f), 17f, TextNormal, 21, FontStyles.Normal, 1.5f);
             RefreshLabels();
         }
 
@@ -620,55 +1313,272 @@ namespace ProjectBeat.Runtime
             grt.offsetMin = Vector2.zero;
             grt.offsetMax = Vector2.zero;
 
-            CreateFullScreenImage(groupGO.transform, "PB_Settings_Dim", new Color(0f, 0f, 0f, 0.35f), 0);
-            CreateCard(groupGO.transform, "PB_Settings_Card", new Vector2(760f, 610f), Vector2.zero, 1);
-            CreateLine(groupGO.transform, "PB_Settings_TopLine", new Vector2(0f, 292f), new Vector2(610f, 4f), NeonCyan, 2);
-            CreateLine(groupGO.transform, "PB_Settings_BottomLine", new Vector2(0f, -292f), new Vector2(420f, 3f), NeonOrange, 3);
+            // Avance 89: panel de configuración reajustado con márgenes seguros, sin recortes y con scroll limpio.
+            CreateFullScreenImage(groupGO.transform, "PB_Settings_Dim", new Color(0.010f, 0.000f, 0.045f, 0.62f), 0);
+            CreateFloatingGlow(groupGO.transform, "PB_Settings_Glow_Magenta", new Vector2(-430f, 255f), new Vector2(850f, 185f), new Color(1f, 0.12f, 0.75f, 0.16f), 1);
+            CreateFloatingGlow(groupGO.transform, "PB_Settings_Glow_Cyan", new Vector2(480f, -270f), new Vector2(780f, 165f), new Color(0f, 0.92f, 1f, 0.12f), 2);
 
-            settingsTitleText = CreateTmp(groupGO.transform, "PB_Settings_Title", "CONFIGURACION", new Vector2(0f, 238f), new Vector2(660f, 54f), 36f, NeonYellow, 4, FontStyles.Bold, 5f);
-            settingsBodyText = CreateTmp(groupGO.transform, "PB_Settings_Body", "", new Vector2(0f, -8f), new Vector2(660f, 370f), 20f, TextNormal, 5, FontStyles.Normal, 1.2f);
-            settingsBodyText.alignment = TextAlignmentOptions.TopLeft;
-            settingsBodyText.enableWordWrapping = true;
-            settingsHintText = CreateTmp(groupGO.transform, "PB_Settings_Hint", "", new Vector2(0f, -252f), new Vector2(690f, 44f), 17f, TextDim, 6, FontStyles.Normal, 1.0f);
+            RectTransform settingsCard = CreateCard(groupGO.transform, "PB_Settings_Card", new Vector2(1620f, 940f), Vector2.zero, 3);
+            Image settingsCardImage = settingsCard != null ? settingsCard.GetComponent<Image>() : null;
+            if (settingsCardImage != null)
+                settingsCardImage.color = new Color(0.050f, 0.014f, 0.100f, 0.98f);
 
-            CreateSliderVisual(groupGO.transform, "PB_Settings_BrightnessSlider", new Vector2(70f, 28f), out brightnessSliderFill, out brightnessSliderGlow, out brightnessSliderHandle);
-            brightnessValueText = CreateTmp(groupGO.transform, "PB_Settings_BrightnessValue", "100%", new Vector2(290f, 28f), new Vector2(90f, 28f), 18f, NeonYellow, 7, FontStyles.Bold, 1.0f);
-            brightnessValueText.alignment = TextAlignmentOptions.Left;
+            CreateLine(groupGO.transform, "PB_Settings_TopLine", new Vector2(0f, 445f), new Vector2(1420f, 4f), NeonCyan, 4);
+            CreateLine(groupGO.transform, "PB_Settings_BottomLine", new Vector2(0f, -440f), new Vector2(810f, 3f), new Color(1f, 0.14f, 0.82f, 1f), 5);
+            CreateLine(groupGO.transform, "PB_Settings_TitleAccent", new Vector2(0f, 354f), new Vector2(720f, 2f), new Color(1f, 0.14f, 0.82f, 0.58f), 6);
 
-            CreateSliderVisual(groupGO.transform, "PB_Settings_VolumeSlider", new Vector2(70f, -88f), out volumeSliderFill, out volumeSliderGlow, out volumeSliderHandle);
-            volumeValueText = CreateTmp(groupGO.transform, "PB_Settings_VolumeValue", "100%", new Vector2(290f, -88f), new Vector2(90f, 28f), 18f, NeonYellow, 7, FontStyles.Bold, 1.0f);
-            volumeValueText.alignment = TextAlignmentOptions.Left;
+            settingsTitleText = CreateTmp(groupGO.transform, "PB_Settings_Title", "CONFIGURACION", new Vector2(0f, 392f), new Vector2(900f, 62f), 44f, new Color(1f, 0.88f, 1f, 1f), 7, FontStyles.Bold, 5f);
+
+            // Viewport con máscara para que las opciones nuevas no saturen ni invadan bordes.
+            GameObject viewportGO = new GameObject("PB_Settings_ScrollViewport", typeof(RectTransform), typeof(RectMask2D));
+            viewportGO.transform.SetParent(groupGO.transform, false);
+            viewportGO.transform.SetAsLastSibling();
+            RectTransform viewportRT = viewportGO.GetComponent<RectTransform>();
+            viewportRT.anchorMin = new Vector2(0.5f, 0.5f);
+            viewportRT.anchorMax = new Vector2(0.5f, 0.5f);
+            viewportRT.pivot = new Vector2(0.5f, 0.5f);
+            viewportRT.anchoredPosition = new Vector2(0f, -10f);
+            viewportRT.sizeDelta = new Vector2(1500f, 660f);
+
+            GameObject contentGO = new GameObject("PB_Settings_ScrollContent", typeof(RectTransform));
+            contentGO.transform.SetParent(viewportGO.transform, false);
+            settingsScrollContent = contentGO.GetComponent<RectTransform>();
+            settingsScrollContent.anchorMin = new Vector2(0.5f, 0.5f);
+            settingsScrollContent.anchorMax = new Vector2(0.5f, 0.5f);
+            settingsScrollContent.pivot = new Vector2(0.5f, 0.5f);
+            settingsScrollContent.anchoredPosition = Vector2.zero;
+            settingsScrollContent.sizeDelta = new Vector2(1500f, 1060f);
+
+            Transform content = settingsScrollContent.transform;
+            settingsBodyText = CreateTmp(content, "PB_Settings_Body", "", new Vector2(0f, 0f), new Vector2(1f, 1f), 1f, TextNormal, 5, FontStyles.Normal, 0f);
+            settingsBodyText.enabled = false;
+
+            controlsHeaderText = CreateTmp(content, "PB_Settings_ControlsHeader", "", new Vector2(-330f, 300f), new Vector2(700f, 34f), 23f, NeonCyan, 6, FontStyles.Bold, 2f);
+            controlsDescriptionText = CreateTmp(content, "PB_Settings_ControlsDescription", "", new Vector2(-330f, 270f), new Vector2(780f, 30f), 15f, TextDim, 7, FontStyles.Normal, 0f);
+            graphicsHeaderText = CreateTmp(content, "PB_Settings_GraphicsHeader", "", new Vector2(-330f, 215f), new Vector2(700f, 36f), 24f, NeonCyan, 8, FontStyles.Bold, 2f);
+            brightnessLabelText = CreateTmp(content, "PB_Settings_BrightnessLabel", "", new Vector2(-330f, 154f), new Vector2(700f, 52f), 19f, TextNormal, 9, FontStyles.Normal, 0f);
+            resolutionLabelText = CreateTmp(content, "PB_Settings_ResolutionLabel", "", new Vector2(-330f, 88f), new Vector2(700f, 52f), 19f, TextNormal, 10, FontStyles.Normal, 0f);
+            displayModeLabelText = CreateTmp(content, "PB_Settings_DisplayModeLabel", "", new Vector2(-330f, 22f), new Vector2(700f, 52f), 19f, TextNormal, 11, FontStyles.Normal, 0f);
+            effectsLabelText = CreateTmp(content, "PB_Settings_EffectsLabel", "", new Vector2(-330f, -44f), new Vector2(740f, 52f), 19f, TextNormal, 12, FontStyles.Normal, 0f);
+            sensitivityLabelText = CreateTmp(content, "PB_Settings_SensitivityLabel", "", new Vector2(-330f, -110f), new Vector2(740f, 52f), 19f, TextNormal, 13, FontStyles.Normal, 0f);
+            visualQualityLabelText = CreateTmp(content, "PB_Settings_VisualQualityLabel", "", new Vector2(-330f, -176f), new Vector2(740f, 52f), 19f, TextNormal, 14, FontStyles.Normal, 0f);
+            comboEffectsLabelText = CreateTmp(content, "PB_Settings_ComboEffectsLabel", "", new Vector2(-330f, -242f), new Vector2(740f, 52f), 19f, TextNormal, 15, FontStyles.Normal, 0f);
+            comboAuraLabelText = CreateTmp(content, "PB_Settings_ComboAuraLabel", "", new Vector2(-330f, -308f), new Vector2(740f, 52f), 19f, TextNormal, 16, FontStyles.Normal, 0f);
+            soundHeaderText = CreateTmp(content, "PB_Settings_SoundHeader", "", new Vector2(-330f, -388f), new Vector2(700f, 36f), 24f, NeonCyan, 17, FontStyles.Bold, 2f);
+            volumeLabelText = CreateTmp(content, "PB_Settings_VolumeLabel", "", new Vector2(-330f, -450f), new Vector2(700f, 52f), 19f, TextNormal, 18, FontStyles.Normal, 0f);
+            generalHeaderText = CreateTmp(content, "PB_Settings_GeneralHeader", "", new Vector2(-330f, -530f), new Vector2(700f, 36f), 24f, NeonCyan, 19, FontStyles.Bold, 2f);
+            resetValuesText = CreateTmp(content, "PB_Settings_ResetValues", "", new Vector2(-330f, -592f), new Vector2(740f, 52f), 21f, TextNormal, 20, FontStyles.Bold, 1.0f);
+            settingsBackText = CreateTmp(content, "PB_Settings_Back", "", new Vector2(-330f, -660f), new Vector2(700f, 50f), 24f, NeonOrange, 21, FontStyles.Bold, 1.5f);
+
+            TMP_Text[] leftLabels = { controlsHeaderText, controlsDescriptionText, graphicsHeaderText, brightnessLabelText, resolutionLabelText, displayModeLabelText, effectsLabelText, sensitivityLabelText, visualQualityLabelText, comboEffectsLabelText, comboAuraLabelText, soundHeaderText, volumeLabelText, generalHeaderText, resetValuesText, settingsBackText };
+            foreach (TMP_Text label in leftLabels)
+            {
+                if (label == null) continue;
+                label.alignment = TextAlignmentOptions.Left;
+                label.enableWordWrapping = true;
+            }
+
+            CreateLine(content, "PB_Settings_Separator_Top", new Vector2(0f, 238f), new Vector2(1320f, 2f), new Color(1f, 0.14f, 0.82f, 0.22f), 22);
+            CreateLine(content, "PB_Settings_Separator_Mid", new Vector2(0f, -350f), new Vector2(1320f, 2f), new Color(0f, 0.92f, 1f, 0.18f), 23);
+            CreateLine(content, "PB_Settings_Separator_Bottom", new Vector2(0f, -500f), new Vector2(1320f, 2f), new Color(1f, 0.14f, 0.82f, 0.22f), 24);
+
+            CreateSliderVisual(content, "PB_Settings_BrightnessSlider", new Vector2(270f, 154f), out brightnessSliderFill, out brightnessSliderGlow, out brightnessSliderHandle);
+            brightnessValueText = CreateTmp(content, "PB_Settings_BrightnessValue", "100%", new Vector2(610f, 154f), new Vector2(200f, 34f), 22f, NeonYellow, 25, FontStyles.Bold, 1.0f);
+            brightnessValueText.alignment = TextAlignmentOptions.Right;
+
+            resolutionValueText = CreateTmp(content, "PB_Settings_ResolutionValue", "1920x1080", new Vector2(585f, 88f), new Vector2(260f, 34f), 22f, NeonYellow, 26, FontStyles.Bold, 1.0f);
+            resolutionValueText.alignment = TextAlignmentOptions.Right;
+
+            displayModeValueText = CreateTmp(content, "PB_Settings_DisplayModeValue", "PANTALLA COMPLETA", new Vector2(505f, 22f), new Vector2(400f, 34f), 21f, NeonYellow, 27, FontStyles.Bold, 0.5f);
+            displayModeValueText.alignment = TextAlignmentOptions.Right;
+
+            CreateSliderVisual(content, "PB_Settings_EffectsSlider", new Vector2(270f, -44f), out effectsSliderFill, out effectsSliderGlow, out effectsSliderHandle);
+            effectsValueText = CreateTmp(content, "PB_Settings_EffectsValue", "MEDIO", new Vector2(610f, -44f), new Vector2(200f, 34f), 22f, NeonYellow, 28, FontStyles.Bold, 1.0f);
+            effectsValueText.alignment = TextAlignmentOptions.Right;
+
+            sensitivityValueText = CreateTmp(content, "PB_Settings_SensitivityValue", "OFF", new Vector2(610f, -110f), new Vector2(200f, 34f), 22f, NeonYellow, 29, FontStyles.Bold, 1.0f);
+            sensitivityValueText.alignment = TextAlignmentOptions.Right;
+
+            visualQualityValueText = CreateTmp(content, "PB_Settings_VisualQualityValue", "ALTA", new Vector2(610f, -176f), new Vector2(200f, 34f), 22f, NeonYellow, 30, FontStyles.Bold, 1.0f);
+            visualQualityValueText.alignment = TextAlignmentOptions.Right;
+
+            comboEffectsValueText = CreateTmp(content, "PB_Settings_ComboEffectsValue", "ON", new Vector2(610f, -242f), new Vector2(200f, 34f), 22f, NeonYellow, 31, FontStyles.Bold, 1.0f);
+            comboEffectsValueText.alignment = TextAlignmentOptions.Right;
+
+            comboAuraValueText = CreateTmp(content, "PB_Settings_ComboAuraValue", "ON", new Vector2(610f, -308f), new Vector2(200f, 34f), 22f, NeonYellow, 32, FontStyles.Bold, 1.0f);
+            comboAuraValueText.alignment = TextAlignmentOptions.Right;
+
+            CreateSliderVisual(content, "PB_Settings_VolumeSlider", new Vector2(270f, -450f), out volumeSliderFill, out volumeSliderGlow, out volumeSliderHandle);
+            volumeValueText = CreateTmp(content, "PB_Settings_VolumeValue", "100%", new Vector2(610f, -450f), new Vector2(200f, 34f), 22f, NeonYellow, 33, FontStyles.Bold, 1.0f);
+            volumeValueText.alignment = TextAlignmentOptions.Right;
+
+            restoreNoticeText = CreateTmp(groupGO.transform, "PB_Settings_RestoreNotice", "", new Vector2(0f, -372f), new Vector2(760f, 32f), 20f, NeonYellow, 34, FontStyles.Bold, 1.4f);
+            settingsHintText = CreateTmp(groupGO.transform, "PB_Settings_Hint", "", new Vector2(0f, -405f), new Vector2(1110f, 42f), 17f, TextDim, 35, FontStyles.Normal, 1.0f);
+
+            CreateSettingsScrollbar(groupGO.transform);
+
+            // Zonas de mouse transparentes dentro del contenido con scroll.
+            AddSettingsMouseZone(content, "PB_Settings_Mouse_Controls", new Vector2(0f, 285f), new Vector2(1420f, 62f), 0);
+            AddSettingsMouseZone(content, "PB_Settings_Mouse_BrightnessRow", new Vector2(0f, 154f), new Vector2(1420f, 58f), 1);
+            AddSettingsSliderMouseZone(content, "PB_Settings_Mouse_BrightnessSlider", new Vector2(270f, 154f), new Vector2(620f, 54f), 1);
+            AddSettingsMouseZone(content, "PB_Settings_Mouse_Resolution", new Vector2(0f, 88f), new Vector2(1420f, 58f), 2, true);
+            AddSettingsMouseZone(content, "PB_Settings_Mouse_DisplayMode", new Vector2(0f, 22f), new Vector2(1420f, 58f), 3, true);
+            AddSettingsMouseZone(content, "PB_Settings_Mouse_EffectsRow", new Vector2(0f, -44f), new Vector2(1420f, 58f), 4);
+            AddSettingsSliderMouseZone(content, "PB_Settings_Mouse_EffectsSlider", new Vector2(270f, -44f), new Vector2(620f, 54f), 4);
+            AddSettingsMouseZone(content, "PB_Settings_Mouse_EffectsValue", new Vector2(610f, -44f), new Vector2(260f, 50f), 4, true);
+            AddSettingsMouseZone(content, "PB_Settings_Mouse_Sensitivity", new Vector2(0f, -110f), new Vector2(1420f, 58f), 5, true);
+            AddSettingsMouseZone(content, "PB_Settings_Mouse_VisualQuality", new Vector2(0f, -176f), new Vector2(1420f, 58f), 6, true);
+            AddSettingsMouseZone(content, "PB_Settings_Mouse_ComboEffects", new Vector2(0f, -242f), new Vector2(1420f, 58f), 7, true);
+            AddSettingsMouseZone(content, "PB_Settings_Mouse_ComboAura", new Vector2(0f, -308f), new Vector2(1420f, 58f), 8, true);
+            AddSettingsMouseZone(content, "PB_Settings_Mouse_VolumeRow", new Vector2(0f, -450f), new Vector2(1420f, 58f), 9);
+            AddSettingsSliderMouseZone(content, "PB_Settings_Mouse_VolumeSlider", new Vector2(270f, -450f), new Vector2(620f, 54f), 9);
+            AddSettingsMouseZone(content, "PB_Settings_Mouse_Reset", new Vector2(0f, -592f), new Vector2(1420f, 58f), 10, true);
+            AddSettingsMouseZone(content, "PB_Settings_Mouse_Back", new Vector2(0f, -660f), new Vector2(1420f, 58f), 11, true);
 
             RefreshSettingsPanel();
+        }
+
+        private void CreateSettingsScrollbar(Transform parent)
+        {
+            GameObject trackGO = new GameObject("PB_Settings_ScrollbarTrack", typeof(RectTransform));
+            trackGO.transform.SetParent(parent, false);
+            RectTransform trackRT = trackGO.GetComponent<RectTransform>();
+            trackRT.anchorMin = new Vector2(0.5f, 0.5f);
+            trackRT.anchorMax = new Vector2(0.5f, 0.5f);
+            trackRT.pivot = new Vector2(0.5f, 0.5f);
+            trackRT.anchoredPosition = new Vector2(738f, -10f);
+            trackRT.sizeDelta = new Vector2(16f, 660f);
+            settingsScrollTrack = trackGO.AddComponent<Image>();
+            settingsScrollTrack.raycastTarget = true;
+            settingsScrollTrack.sprite = lineSprite;
+            settingsScrollTrack.type = Image.Type.Sliced;
+            settingsScrollTrack.color = new Color(0.06f, 0.02f, 0.11f, 0.92f);
+
+            GameObject fillGO = new GameObject("PB_Settings_ScrollbarFill", typeof(RectTransform));
+            fillGO.transform.SetParent(trackGO.transform, false);
+            RectTransform fillRT = fillGO.GetComponent<RectTransform>();
+            fillRT.anchorMin = new Vector2(0f, 0f);
+            fillRT.anchorMax = new Vector2(1f, 1f);
+            fillRT.offsetMin = new Vector2(4f, 4f);
+            fillRT.offsetMax = new Vector2(-4f, -4f);
+            settingsScrollFill = fillGO.AddComponent<Image>();
+            settingsScrollFill.raycastTarget = false;
+            settingsScrollFill.sprite = lineSprite;
+            settingsScrollFill.type = Image.Type.Sliced;
+            settingsScrollFill.color = new Color(0f, 0.92f, 1f, 0.22f);
+
+            GameObject handleGO = new GameObject("PB_Settings_ScrollbarHandle", typeof(RectTransform));
+            handleGO.transform.SetParent(trackGO.transform, false);
+            settingsScrollHandle = handleGO.GetComponent<RectTransform>();
+            settingsScrollHandle.anchorMin = new Vector2(0f, 1f);
+            settingsScrollHandle.anchorMax = new Vector2(1f, 1f);
+            settingsScrollHandle.pivot = new Vector2(0.5f, 1f);
+            settingsScrollHandle.sizeDelta = new Vector2(0f, 170f);
+            Image handleImage = handleGO.AddComponent<Image>();
+            handleImage.sprite = lineSprite;
+            handleImage.type = Image.Type.Sliced;
+            handleImage.color = NeonCyan;
+            handleImage.raycastTarget = true;
+
+            EventTrigger trigger = trackGO.AddComponent<EventTrigger>();
+            trigger.triggers = new List<EventTrigger.Entry>();
+            UnityEngine.Events.UnityAction<BaseEventData> scrollApply = (data) =>
+            {
+                PointerEventData pointer = data as PointerEventData;
+                if (pointer == null || !isPaused || !isInSettings) return;
+                Vector2 localPoint;
+                if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(trackRT, pointer.position, pointer.pressEventCamera, out localPoint)) return;
+                float t = Mathf.Clamp01(0.5f - (localPoint.y / Mathf.Max(1f, trackRT.rect.height)));
+                settingsScrollY = Mathf.Clamp(t * SettingsScrollMax, 0f, SettingsScrollMax);
+                ApplySettingsScrollLayout();
+            };
+            AddTrigger(trigger, EventTriggerType.PointerDown, scrollApply);
+            AddTrigger(trigger, EventTriggerType.Drag, scrollApply);
+
+            EventTrigger handleTrigger = handleGO.AddComponent<EventTrigger>();
+            handleTrigger.triggers = new List<EventTrigger.Entry>();
+            AddTrigger(handleTrigger, EventTriggerType.PointerDown, scrollApply);
+            AddTrigger(handleTrigger, EventTriggerType.Drag, scrollApply);
+        }
+
+        private void EnsureSelectedSettingsOptionVisible()
+        {
+            if (selectedSettingsOption <= 5)
+                settingsScrollY = 0f;
+            else if (selectedSettingsOption <= 8)
+                settingsScrollY = Mathf.Clamp(170f, 0f, SettingsScrollMax);
+            else
+                settingsScrollY = SettingsScrollMax;
+            ApplySettingsScrollLayout();
+        }
+
+        private void ApplySettingsScrollLayout()
+        {
+            settingsScrollY = Mathf.Clamp(settingsScrollY, 0f, SettingsScrollMax);
+            if (settingsScrollContent != null)
+                settingsScrollContent.anchoredPosition = new Vector2(0f, settingsScrollY);
+
+            if (settingsScrollHandle != null)
+            {
+                float t = SettingsScrollMax <= 0.01f ? 0f : Mathf.Clamp01(settingsScrollY / SettingsScrollMax);
+                float trackHeight = 660f;
+                float handleHeight = 180f;
+                settingsScrollHandle.anchoredPosition = new Vector2(0f, -t * (trackHeight - handleHeight));
+                settingsScrollHandle.sizeDelta = new Vector2(0f, handleHeight);
+            }
         }
 
         private void BuildCreditsPanel()
         {
             if (pauseGroup == null || creditsGroup != null) return;
 
-            GameObject groupGO = new GameObject("PB_UI_CreditsGroup", typeof(RectTransform));
+            GameObject groupGO = new GameObject("PB_UI_CreditsGroup");
             groupGO.transform.SetParent(pauseGroup.transform, false);
             groupGO.transform.SetAsLastSibling();
             creditsGroup = groupGO.AddComponent<CanvasGroup>();
 
-            RectTransform grt = groupGO.GetComponent<RectTransform>();
+            RectTransform grt = groupGO.AddComponent<RectTransform>();
             grt.anchorMin = Vector2.zero;
             grt.anchorMax = Vector2.one;
             grt.offsetMin = Vector2.zero;
             grt.offsetMax = Vector2.zero;
 
-            CreateFullScreenImage(groupGO.transform, "PB_Credits_Dim", new Color(0f, 0f, 0f, 0.42f), 0);
-            CreateFloatingGlow(groupGO.transform, "PB_Credits_Glow_Cyan", new Vector2(-180f, 180f), new Vector2(620f, 130f), new Color(0f, 0.92f, 1f, 0.10f), 1);
-            CreateFloatingGlow(groupGO.transform, "PB_Credits_Glow_Orange", new Vector2(210f, -210f), new Vector2(520f, 120f), new Color(1f, 0.42f, 0.02f, 0.10f), 2);
-            CreateCard(groupGO.transform, "PB_Credits_Card", new Vector2(760f, 610f), Vector2.zero, 3);
-            CreateLine(groupGO.transform, "PB_Credits_TopLine", new Vector2(0f, 292f), new Vector2(610f, 4f), NeonCyan, 4);
-            CreateLine(groupGO.transform, "PB_Credits_BottomLine", new Vector2(0f, -292f), new Vector2(420f, 3f), NeonOrange, 5);
+            // Avance 69: se unifica el panel de creditos de pausa con el contenido/estilo
+            // del panel nuevo del menu principal, sin tocar la logica de pausa ni gameplay.
+            CreateFullScreenImage(groupGO.transform, "PB_Credits_Dim", new Color(0.010f, 0.000f, 0.045f, 0.58f), 0);
+            CreateFloatingGlow(groupGO.transform, "PB_Credits_Glow_Pink", new Vector2(-170f, 168f), new Vector2(650f, 160f), new Color(1f, 0.16f, 0.75f, 0.16f), 1);
+            CreateFloatingGlow(groupGO.transform, "PB_Credits_Glow_Cyan", new Vector2(180f, -190f), new Vector2(560f, 150f), new Color(0f, 0.92f, 1f, 0.13f), 2);
 
-            creditsTitleText = CreateTmp(groupGO.transform, "PB_Credits_Title", "CREDITOS", new Vector2(0f, 238f), new Vector2(660f, 54f), 36f, NeonYellow, 6, FontStyles.Bold, 5f);
-            creditsBodyText = CreateTmp(groupGO.transform, "PB_Credits_Body", "", new Vector2(0f, 15f), new Vector2(650f, 360f), 22f, TextNormal, 7, FontStyles.Normal, 1.1f);
-            creditsBodyText.alignment = TextAlignmentOptions.Top;
+            RectTransform card = CreateCard(groupGO.transform, "PB_Credits_Card", new Vector2(760f, 610f), Vector2.zero, 3);
+            Image cardImage = card != null ? card.GetComponent<Image>() : null;
+            if (cardImage != null)
+                cardImage.color = new Color(0.075f, 0.020f, 0.130f, 0.96f);
+
+            CreateLine(groupGO.transform, "PB_Credits_TopLine", new Vector2(0f, 292f), new Vector2(610f, 4f), NeonCyan, 4);
+            CreateLine(groupGO.transform, "PB_Credits_BottomLine", new Vector2(0f, -292f), new Vector2(420f, 3f), new Color(1f, 0.14f, 0.82f, 1f), 5);
+            CreateLine(groupGO.transform, "PB_Credits_PinkAccent", new Vector2(0f, 220f), new Vector2(500f, 2f), new Color(1f, 0.14f, 0.82f, 0.55f), 6);
+
+            GameObject bodyGO = new GameObject("PB_Credits_BodyBox");
+            bodyGO.transform.SetParent(groupGO.transform, false);
+            bodyGO.transform.SetSiblingIndex(Mathf.Min(7, groupGO.transform.childCount - 1));
+            Image bodyImage = bodyGO.AddComponent<Image>();
+            bodyImage.raycastTarget = false;
+            bodyImage.sprite = roundedPanelSprite;
+            bodyImage.type = Image.Type.Sliced;
+            bodyImage.color = new Color(0.045f, 0.010f, 0.090f, 0.72f);
+            RectTransform bodyRt = bodyGO.GetComponent<RectTransform>();
+            bodyRt.anchorMin = new Vector2(0.5f, 0.5f);
+            bodyRt.anchorMax = new Vector2(0.5f, 0.5f);
+            bodyRt.pivot = new Vector2(0.5f, 0.5f);
+            bodyRt.anchoredPosition = new Vector2(0f, -8f);
+            bodyRt.sizeDelta = new Vector2(650f, 400f);
+
+            creditsTitleText = CreateTmp(groupGO.transform, "PB_Credits_Title", "CREDITOS", new Vector2(0f, 238f), new Vector2(660f, 54f), 38f, NeonYellow, 8, FontStyles.Bold, 5f);
+            creditsBodyText = CreateTmp(groupGO.transform, "PB_Credits_Body", "", new Vector2(0f, -12f), new Vector2(620f, 372f), 19f, TextNormal, 9, FontStyles.Bold, 0.8f);
+            creditsBodyText.alignment = TextAlignmentOptions.Center;
             creditsBodyText.enableWordWrapping = true;
-            creditsHintText = CreateTmp(groupGO.transform, "PB_Credits_Hint", "", new Vector2(0f, -252f), new Vector2(690f, 44f), 17f, TextDim, 8, FontStyles.Normal, 1.0f);
+            creditsBodyText.richText = true;
+            creditsHintText = CreateTmp(groupGO.transform, "PB_Credits_Hint", "", new Vector2(0f, -252f), new Vector2(690f, 44f), 17f, TextDim, 10, FontStyles.Normal, 1.0f);
 
             RefreshCreditsPanel();
         }
@@ -679,17 +1589,17 @@ namespace ProjectBeat.Runtime
             {
                 creditsBodyText.text =
                     "<size=20><color=#00F1FF><b>PROJECT BEAT v3.0+</b></color></size>\n\n" +
-                    "<color=#FFF000><b>Desarrolladores</b></color>\n" +
+                    "<color=#FFE600><b>Desarrolladores</b></color>\n" +
                     "Denzel Alvarez\n" +
                     "Alonso Leiva\n\n" +
-                    "<color=#FFF000><b>Curso</b></color>\n" +
+                    "<color=#FFE600><b>Asignatura</b></color>\n" +
                     "Programacion de Videojuegos\n\n" +
-                    "<color=#FFF000><b>Institucion</b></color>\n" +
+                    "<color=#FFE600><b>Institucion</b></color>\n" +
                     "Santo Tomas Iquique\n\n" +
-                    "<color=#FFF000><b>Tecnologias</b></color>\n" +
+                    "<color=#FFE600><b>Tecnologias</b></color>\n" +
                     "Unity  |  C#  |  TextMeshPro  |  Unity UI\n\n" +
-                    "<color=#FFF000><b>Inspiracion</b></color>\n" +
-                    "osu!mania  |  Fortnite Festival  |  Guitar Hero\n\n" +
+                    "<color=#FFE600><b>Inspiraciones</b></color>\n" +
+                    "osu!  |  Fortnite Festival  |  Geometry Dash  |  Guitar Hero\n\n" +
                     "<i><color=#00F1FF>\"Feel the rhythm.\"</color></i>";
             }
 
@@ -704,6 +1614,66 @@ namespace ProjectBeat.Runtime
             creditsGroup.interactable = show;
             creditsGroup.blocksRaycasts = show;
             if (show) creditsGroup.transform.SetAsLastSibling();
+        }
+
+        private void BuildMainMenuLoadingOverlay()
+        {
+            if (mainMenuLoadingGroup != null) return;
+
+            GameObject canvasGO = new GameObject("PB_MainMenuLoadingCanvas");
+            Canvas canvas = canvasGO.AddComponent<Canvas>();
+            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+            canvas.sortingOrder = 6000;
+            CanvasScaler scaler = canvasGO.AddComponent<CanvasScaler>();
+            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+            scaler.referenceResolution = new Vector2(1920f, 1080f);
+            scaler.matchWidthOrHeight = 0.5f;
+            canvasGO.AddComponent<GraphicRaycaster>();
+
+            GameObject root = new GameObject("PB_MainMenuLoading", typeof(RectTransform));
+            root.transform.SetParent(canvasGO.transform, false);
+            RectTransform rootRT = root.GetComponent<RectTransform>();
+            rootRT.anchorMin = Vector2.zero;
+            rootRT.anchorMax = Vector2.one;
+            rootRT.offsetMin = Vector2.zero;
+            rootRT.offsetMax = Vector2.zero;
+
+            Image bg = root.AddComponent<Image>();
+            bg.color = new Color(0f, 0f, 0f, 1f);
+            mainMenuLoadingGroup = root.AddComponent<CanvasGroup>();
+
+            GameObject textGO = new GameObject("PB_MainMenuLoadingText", typeof(RectTransform));
+            textGO.transform.SetParent(root.transform, false);
+            RectTransform textRT = textGO.GetComponent<RectTransform>();
+            textRT.anchorMin = new Vector2(0.5f, 0.5f);
+            textRT.anchorMax = new Vector2(0.5f, 0.5f);
+            textRT.sizeDelta = new Vector2(700f, 120f);
+            textRT.anchoredPosition = Vector2.zero;
+
+            mainMenuLoadingText = textGO.AddComponent<TextMeshProUGUI>();
+            mainMenuLoadingText.text = "CARGANDO...";
+            mainMenuLoadingText.alignment = TextAlignmentOptions.Center;
+            mainMenuLoadingText.fontSize = 52f;
+            mainMenuLoadingText.fontStyle = FontStyles.Bold;
+            mainMenuLoadingText.characterSpacing = 8f;
+            mainMenuLoadingText.color = new Color(1f, 0.22f, 0.78f, 1f);
+            mainMenuLoadingText.raycastTarget = false;
+        }
+
+        private void ShowMainMenuLoading(bool show)
+        {
+            if (mainMenuLoadingGroup != null)
+            {
+                mainMenuLoadingGroup.alpha = show ? 1f : 0f;
+                mainMenuLoadingGroup.interactable = show;
+                mainMenuLoadingGroup.blocksRaycasts = show;
+                if (show) mainMenuLoadingGroup.transform.SetAsLastSibling();
+            }
+
+            // Avance 84: aunque se conserva el overlay local por compatibilidad,
+            // la pantalla visible debe ser la unificada del proyecto.
+            if (show) UnifiedLoadingScreen.Show("CARGANDO...", true);
+            else UnifiedLoadingScreen.Hide(0.20f);
         }
 
         private void BuildBrightnessOverlay()
@@ -740,13 +1710,18 @@ namespace ProjectBeat.Runtime
         {
             brightness = PlayerPrefs.GetFloat(BrightnessPrefsKey, 1f);
             masterVolume = PlayerPrefs.GetFloat(MasterVolumePrefsKey, 1f);
+            resolutionIndex = Mathf.Clamp(PlayerPrefs.GetInt(ResolutionPrefsKey, 3), 0, ResolutionOptions.Length - 1);
+            displayModeIndex = Mathf.Clamp(PlayerPrefs.GetInt(DisplayModePrefsKey, 0), 0, DisplayModeNames.Length - 1);
             brightness = Mathf.Clamp(brightness, 0.55f, 1.35f);
             masterVolume = Mathf.Clamp01(masterVolume);
+            ApplyDisplaySettings();
         }
 
         private void ApplyVisualAudioSettings()
         {
             AudioListener.volume = masterVolume;
+            if (selectorMusicSource != null)
+                selectorMusicSource.volume = SelectorMusicVolume * Mathf.Clamp01(masterVolume);
 
             if (brightnessOverlay != null)
             {
@@ -761,41 +1736,153 @@ namespace ProjectBeat.Runtime
 
         private void RefreshSettingsPanel()
         {
-            if (settingsBodyText == null || settingsHintText == null) return;
+            if (settingsHintText == null) return;
 
-            string controls = SectionTitle(0, "VER CONTROLES");
-            string graphics = SectionTitle(1, "GRAFICOS");
-            string sound = SectionTitle(2, "SONIDO");
-            string back = selectedSettingsOption == 3
-                ? "<size=22><color=#FFF000><b>> VOLVER</b></color></size>"
-                : "<size=21><color=#FF6A00><b>  VOLVER</b></color></size>";
+            if (restoreNoticeTimer > 0f)
+                restoreNoticeTimer -= Time.unscaledDeltaTime;
 
-            settingsBodyText.text =
-                controls + "\n" +
-                "<size=16><color=#FFFFFF>D / F / J / K</color>    Carriles        <color=#FFFFFF>ESC</color>    Pausa\n" +
-                "<color=#FFFFFF>ENTER</color>        Confirmar       <color=#FFFFFF>W / S</color>   Navegar\n" +
-                "<color=#FFFFFF>F2 / F3 / F4</color>   Ajustar / resetear offset</size>\n\n" +
-                "<color=#224455>----------------------------------------------</color>\n\n" +
-                graphics + "\n" +
-                "<size=17><color=#DDEEFF>Brillo</color></size>\n\n\n" +
-                "<color=#224455>----------------------------------------------</color>\n\n" +
-                sound + "\n" +
-                "<size=17><color=#DDEEFF>Volumen general</color></size>\n\n\n" +
-                "<color=#224455>----------------------------------------------</color>\n\n" +
-                back;
+            SetHeaderText(controlsHeaderText, 0, "VER CONTROLES");
+            if (controlsDescriptionText != null)
+                controlsDescriptionText.text = "D/F/J/K Carriles   ESC Pausa   ENTER Confirmar   F1-F4 Offset";
+
+            SetHeaderText(graphicsHeaderText, -1, "GRAFICOS");
+            SetOptionText(brightnessLabelText, 1, "Brillo General", "Ajusta la iluminacion general del juego.");
+            SetOptionText(resolutionLabelText, 2, "Resolucion", "Cambia la resolucion de pantalla.");
+            SetOptionText(displayModeLabelText, 3, "Modo Pantalla", "Alterna pantalla completa, ventana o sin bordes.");
+            SetOptionText(effectsLabelText, 4, "Intensidad Efectos Visuales", "Controla glow, flashes, particulas y transiciones.");
+            SetOptionText(sensitivityLabelText, 5, "Modo Sensibilidad Visual", "Reduce destellos y flashes rapidos para mayor comodidad visual.");
+            SetOptionText(visualQualityLabelText, 6, "Calidad Visual", "Ajusta carga visual, glow y detalles secundarios.");
+            SetOptionText(comboEffectsLabelText, 7, "Efectos de Combo", "Activa o desactiva brillos y acentos extra del combo.");
+            SetOptionText(comboAuraLabelText, 8, "Aura de Combo", "Muestra u oculta solo la aura visual de racha.");
+            SetHeaderText(soundHeaderText, -1, "SONIDO");
+            SetOptionText(volumeLabelText, 9, "Volumen General", "Ajusta el volumen principal del juego.");
+            SetHeaderText(generalHeaderText, -1, "GENERAL");
+            SetOptionText(resetValuesText, 10, "Restaurar Valores", "Vuelve a la configuracion visual recomendada.");
+
+            if (settingsBackText != null)
+            {
+                settingsBackText.text = selectedSettingsOption == 11
+                    ? "<color=#FFF000><b>> VOLVER</b></color>"
+                    : "<color=#FF37D6><b>  VOLVER</b></color>";
+            }
 
             UpdateSliderVisual(brightnessSliderFill, brightnessSliderGlow, brightnessSliderHandle, brightnessValueText, brightness, 0.55f, 1.35f, selectedSettingsOption == 1);
-            UpdateSliderVisual(volumeSliderFill, volumeSliderGlow, volumeSliderHandle, volumeValueText, masterVolume, 0f, 1f, selectedSettingsOption == 2);
+            UpdateSliderVisual(effectsSliderFill, effectsSliderGlow, effectsSliderHandle, effectsValueText, VisualAccessibilitySettings.IntensityIndex, 0f, 4f, selectedSettingsOption == 4);
+            UpdateSliderVisual(volumeSliderFill, volumeSliderGlow, volumeSliderHandle, volumeValueText, masterVolume, 0f, 1f, selectedSettingsOption == 9);
 
-            settingsHintText.text = "<color=#00F1FF>[W/S]</color> Seleccionar    <color=#FFF000>[A/D]</color> Ajustar barra    <color=#FF6A00>[ESC]</color> Volver";
+            if (resolutionValueText != null)
+            {
+                Vector2Int res = ResolutionOptions[Mathf.Clamp(resolutionIndex, 0, ResolutionOptions.Length - 1)];
+                resolutionValueText.text = (selectedSettingsOption == 2 ? "<color=#FF37D6><</color> " : "") + res.x + "x" + res.y + (selectedSettingsOption == 2 ? " <color=#FF37D6>></color>" : "");
+                resolutionValueText.color = selectedSettingsOption == 2 ? NeonYellow : new Color(0.92f, 0.86f, 1f, 1f);
+            }
+
+            if (displayModeValueText != null)
+            {
+                displayModeValueText.text = (selectedSettingsOption == 3 ? "<color=#FF37D6><</color> " : "") + DisplayModeNames[Mathf.Clamp(displayModeIndex, 0, DisplayModeNames.Length - 1)] + (selectedSettingsOption == 3 ? " <color=#FF37D6>></color>" : "");
+                displayModeValueText.color = selectedSettingsOption == 3 ? NeonYellow : new Color(0.92f, 0.86f, 1f, 1f);
+            }
+
+            if (effectsValueText != null)
+            {
+                effectsValueText.text = VisualAccessibilitySettings.IntensityName;
+                effectsValueText.color = selectedSettingsOption == 4 ? NeonYellow : new Color(0.92f, 0.86f, 1f, 1f);
+            }
+
+            if (sensitivityValueText != null)
+            {
+                sensitivityValueText.text = VisualAccessibilitySettings.SensitivityMode ? "ON" : "OFF";
+                sensitivityValueText.color = selectedSettingsOption == 5 ? NeonYellow : new Color(0.92f, 0.86f, 1f, 1f);
+            }
+
+            if (visualQualityValueText != null)
+            {
+                visualQualityValueText.text = (selectedSettingsOption == 6 ? "<color=#FF37D6><</color> " : "") + VisualAccessibilitySettings.VisualQualityName + (selectedSettingsOption == 6 ? " <color=#FF37D6>></color>" : "");
+                visualQualityValueText.color = selectedSettingsOption == 6 ? NeonYellow : new Color(0.92f, 0.86f, 1f, 1f);
+            }
+
+            if (comboEffectsValueText != null)
+            {
+                comboEffectsValueText.text = VisualAccessibilitySettings.ComboEffectsEnabled ? "ON" : "OFF";
+                comboEffectsValueText.color = selectedSettingsOption == 7 ? NeonYellow : new Color(0.92f, 0.86f, 1f, 1f);
+            }
+
+            if (comboAuraValueText != null)
+            {
+                comboAuraValueText.text = VisualAccessibilitySettings.ComboAuraEnabled ? "ON" : "OFF";
+                comboAuraValueText.color = selectedSettingsOption == 8 ? NeonYellow : new Color(0.92f, 0.86f, 1f, 1f);
+            }
+
+            if (restoreNoticeText != null)
+            {
+                restoreNoticeText.text = restoreNoticeTimer > 0f ? "<color=#FFF000>VALORES RESTAURADOS</color>" : "";
+                Color restoreColor = restoreNoticeText.color;
+                restoreColor.a = restoreNoticeTimer > 0f ? Mathf.Clamp01(restoreNoticeTimer / 0.35f) : 0f;
+                restoreNoticeText.color = restoreColor;
+            }
+
+            settingsHintText.text = "<color=#00F1FF>[W/S]</color> Seleccionar    <color=#FF37D6>[A/D]</color> Ajustar / Cambiar    <color=#FFF000>[ESC]</color> Volver    <color=#D7B6FF>[MOUSE]</color> Click / Arrastrar / Scroll";
+            ApplySettingsScrollLayout();
+        }
+
+        private void SetHeaderText(TMP_Text text, int optionIndex, string title)
+        {
+            if (text == null) return;
+            bool selected = optionIndex >= 0 && selectedSettingsOption == optionIndex;
+            text.text = selected ? "<color=#FFF000><b>> " + title + "</b></color>" : "<color=#FF37D6><b>  " + title + "</b></color>";
+            text.color = selected ? NeonYellow : new Color(1f, 0.22f, 0.84f, 1f);
+        }
+
+        private void SetOptionText(TMP_Text text, int optionIndex, string title, string description)
+        {
+            if (text == null) return;
+            bool selected = selectedSettingsOption == optionIndex;
+            string marker = selected ? "<color=#FFF000><b>> </b></color>" : "  ";
+            string titleColor = selected ? "#FFF000" : "#00F1FF";
+            string descColor = selected ? "#FFFFFF" : "#D9CCF5";
+            text.text = marker + "<color=" + titleColor + "><b>" + title + "</b></color>\n" +
+                        "<size=15><color=" + descColor + ">" + description + "</color></size>";
+            text.color = selected ? NeonYellow : TextNormal;
+        }
+
+        private int WrapIndex(int value, int count)
+        {
+            if (count <= 0) return 0;
+            value %= count;
+            if (value < 0) value += count;
+            return value;
+        }
+
+        private void ApplyDisplaySettings()
+        {
+            resolutionIndex = Mathf.Clamp(resolutionIndex, 0, ResolutionOptions.Length - 1);
+            displayModeIndex = Mathf.Clamp(displayModeIndex, 0, DisplayModeNames.Length - 1);
+            Vector2Int resolution = ResolutionOptions[resolutionIndex];
+            FullScreenMode mode = FullScreenMode.ExclusiveFullScreen;
+
+            switch (displayModeIndex)
+            {
+                case 0:
+                    mode = FullScreenMode.ExclusiveFullScreen;
+                    break;
+                case 1:
+                    mode = FullScreenMode.Windowed;
+                    break;
+                case 2:
+                    mode = FullScreenMode.FullScreenWindow;
+                    break;
+            }
+
+            if (Screen.width != resolution.x || Screen.height != resolution.y || Screen.fullScreenMode != mode)
+                Screen.SetResolution(resolution.x, resolution.y, mode);
         }
 
         private string SectionTitle(int optionIndex, string title)
         {
             if (selectedSettingsOption == optionIndex)
-                return "<size=21><color=#FFF000><b>> " + title + "</b></color></size>";
+                return "<size=19><color=#FFF000><b>> " + title + "</b></color></size>";
 
-            return "<size=20><color=#00F1FF><b>  " + title + "</b></color></size>";
+            return "<size=18><color=#00F1FF><b>  " + title + "</b></color></size>";
         }
 
         private string MakeCleanBar(float value, float min, float max)
@@ -812,16 +1899,102 @@ namespace ProjectBeat.Runtime
         private void BuildCommercialLevelSelect()
         {
             if (levelSelectGroup == null) return;
+
+            // Avance 60 (version turquesa viva): el selector conserva pantalla completa propia.
+            // La capa base es opaca para ocultar completamente gameplay/HUD/carriles detras.
+            RectTransform groupRt = levelSelectGroup.GetComponent<RectTransform>();
+            if (groupRt != null)
+            {
+                groupRt.anchorMin = Vector2.zero;
+                groupRt.anchorMax = Vector2.one;
+                groupRt.pivot = new Vector2(0.5f, 0.5f);
+                groupRt.offsetMin = Vector2.zero;
+                groupRt.offsetMax = Vector2.zero;
+                groupRt.anchoredPosition = Vector2.zero;
+            }
+
             DisableRootImage(levelSelectGroup);
             RemoveOldVisuals(levelSelectGroup.transform);
-            CreateFullScreenImage(levelSelectGroup.transform, "PB_UI_LevelDimBlur", DeepDim, 0);
-            CreateFullScreenImage(levelSelectGroup.transform, "PB_UI_LevelColorWash", new Color(0.01f, 0.02f, 0.08f, 0.36f), 1);
-            CreateFloatingGlow(levelSelectGroup.transform, "PB_UI_LevelGlow", new Vector2(0f, 0f), new Vector2(760f, 150f), new Color(0f, 0.9f, 1f, 0.12f), 2);
 
-            CreateCard(levelSelectGroup.transform, "PB_UI_LevelCard", new Vector2(760f, 430f), Vector2.zero, 3);
-            CreateLine(levelSelectGroup.transform, "PB_UI_LevelTopNeon", new Vector2(0f, 210f), new Vector2(640f, 4f), NeonOrange, 4);
-            CreateLine(levelSelectGroup.transform, "PB_UI_LevelBottomNeon", new Vector2(0f, -210f), new Vector2(360f, 3f), NeonCyan, 5);
-            CreateTmp(levelSelectGroup.transform, "PB_UI_LevelBadge", "ARCADE SELECT", new Vector2(0f, 155f), new Vector2(500f, 30f), 18f, NeonCyan, 6, FontStyles.Bold, 4f);
+            Color deepAqua = new Color(0.006f, 0.030f, 0.045f, 1f);
+            Color tealWash = new Color(0.000f, 0.70f, 0.82f, 0.34f);
+            Color cyanGlow = new Color(0.00f, 0.96f, 1f, 0.38f);
+            Color aquaSoft = new Color(0.16f, 1f, 0.92f, 0.28f);
+            Color blueShadow = new Color(0.00f, 0.10f, 0.22f, 0.72f);
+            Color orangeAccent = new Color(1f, 0.46f, 0.08f, 0.32f);
+
+            CreateFullScreenImage(levelSelectGroup.transform, "PB_UI_LevelTurquoiseOpaqueBackground", deepAqua, 0);
+            CreateFullScreenImage(levelSelectGroup.transform, "PB_UI_LevelTurquoiseAtmosphere", new Color(0.00f, 0.48f, 0.58f, 0.36f), 1);
+            CreateFullScreenImage(levelSelectGroup.transform, "PB_UI_LevelDeepBlueVignette", blueShadow, 2);
+
+            levelSelectorAura = CreateFloatingGlow(levelSelectGroup.transform, "PB_UI_LevelTurquoiseAura", new Vector2(0f, 0f), new Vector2(1250f, 650f), tealWash, 3);
+            CreateFloatingGlow(levelSelectGroup.transform, "PB_UI_LevelCyanNebulaTop", new Vector2(0f, 245f), new Vector2(1000f, 170f), new Color(0.00f, 0.95f, 1f, 0.18f), 4);
+            CreateFloatingGlow(levelSelectGroup.transform, "PB_UI_LevelAquaGlowLeft", new Vector2(-520f, -145f), new Vector2(500f, 115f), aquaSoft, 5);
+            CreateFloatingGlow(levelSelectGroup.transform, "PB_UI_LevelAquaGlowRight", new Vector2(520f, -145f), new Vector2(500f, 115f), aquaSoft, 6);
+            CreateFloatingGlow(levelSelectGroup.transform, "PB_UI_LevelOrangeAccentGlow", new Vector2(0f, -265f), new Vector2(760f, 70f), orangeAccent, 7);
+
+            levelSelectorLines = new Image[14];
+            for (int i = 0; i < levelSelectorLines.Length; i++)
+            {
+                float side = i < levelSelectorLines.Length / 2 ? -1f : 1f;
+                int local = i % (levelSelectorLines.Length / 2);
+                Vector2 pos = new Vector2(side * (325f + local * 72f), 235f - local * 72f);
+                Vector2 size = new Vector2(170f + local * 30f, local % 2 == 0 ? 4f : 3f);
+                Color color = local % 3 == 0 ? new Color(0.08f, 1f, 0.92f, 0.42f) : (local % 3 == 1 ? new Color(0f, 0.62f, 1f, 0.28f) : new Color(1f, 0.43f, 0.08f, 0.20f));
+                levelSelectorLines[i] = CreateLevelDecorLine(levelSelectGroup.transform, "PB_UI_LevelTurquoiseLine_" + i, pos, size, color, 8 + i, side * -9f);
+            }
+
+            levelSelectorRings = new Image[5];
+            levelSelectorRings[0] = CreateFloatingGlow(levelSelectGroup.transform, "PB_UI_LevelAquaRing_L", new Vector2(-430f, 88f), new Vector2(155f, 155f), new Color(0.00f, 0.92f, 1f, 0.18f), 24);
+            levelSelectorRings[1] = CreateFloatingGlow(levelSelectGroup.transform, "PB_UI_LevelAquaRing_R", new Vector2(430f, 88f), new Vector2(155f, 155f), new Color(0.00f, 0.92f, 1f, 0.18f), 25);
+            levelSelectorRings[2] = CreateFloatingGlow(levelSelectGroup.transform, "PB_UI_LevelMintRing_L", new Vector2(-540f, -185f), new Vector2(98f, 98f), new Color(0.20f, 1f, 0.86f, 0.16f), 26);
+            levelSelectorRings[3] = CreateFloatingGlow(levelSelectGroup.transform, "PB_UI_LevelMintRing_R", new Vector2(540f, -185f), new Vector2(98f, 98f), new Color(0.20f, 1f, 0.86f, 0.16f), 27);
+            levelSelectorRings[4] = CreateFloatingGlow(levelSelectGroup.transform, "PB_UI_LevelCenterPulseRing", new Vector2(0f, 35f), new Vector2(760f, 210f), new Color(0.00f, 0.90f, 1f, 0.10f), 28);
+
+            levelSelectorBars = new Image[24];
+            for (int i = 0; i < levelSelectorBars.Length; i++)
+            {
+                float x = -635f + i * 55f;
+                float h = 24f + (i % 6) * 12f;
+                Color barColor = i % 4 == 0 ? new Color(1f, 0.47f, 0.08f, 0.30f) : (i % 2 == 0 ? new Color(0f, 0.92f, 1f, 0.38f) : new Color(0.20f, 1f, 0.83f, 0.30f));
+                levelSelectorBars[i] = CreateLevelBar(levelSelectGroup.transform, "PB_UI_LevelAquaEqualizerBar_" + i, new Vector2(x, -315f), new Vector2(16f, h), barColor, 30 + i);
+            }
+
+            levelSelectorParticles = new Image[30];
+            for (int i = 0; i < levelSelectorParticles.Length; i++)
+            {
+                float x = -610f + (i * 79f) % 1220f;
+                float y = -255f + (i * 43f) % 500f;
+                float size = 4f + (i % 5) * 1.6f;
+                Color particleColor = i % 5 == 0 ? new Color(1f, 0.55f, 0.10f, 0.40f) : (i % 2 == 0 ? new Color(0.05f, 1f, 0.94f, 0.46f) : new Color(0f, 0.72f, 1f, 0.34f));
+                levelSelectorParticles[i] = CreateLevelBar(levelSelectGroup.transform, "PB_UI_LevelAquaSpark_" + i, new Vector2(x, y), new Vector2(size, size), particleColor, 56 + i);
+            }
+
+            levelSelectorCardGlow = CreateFloatingGlow(levelSelectGroup.transform, "PB_UI_LevelAquaCardOuterGlow", Vector2.zero, new Vector2(1040f, 540f), new Color(0.00f, 0.95f, 1f, 0.32f), 90);
+            CreateFloatingGlow(levelSelectGroup.transform, "PB_UI_LevelCardInnerLight", new Vector2(0f, 44f), new Vector2(900f, 180f), new Color(0.00f, 0.95f, 1f, 0.12f), 91);
+            RectTransform card = CreateCard(levelSelectGroup.transform, "PB_UI_LevelCard", new Vector2(980f, 470f), Vector2.zero, 92);
+            if (card != null)
+            {
+                Image cardImage = card.GetComponent<Image>();
+                if (cardImage != null)
+                    cardImage.color = new Color(0.012f, 0.105f, 0.125f, 0.93f);
+
+                Outline outline = card.GetComponent<Outline>();
+                if (outline != null)
+                {
+                    outline.effectColor = new Color(0.00f, 0.96f, 1f, 0.68f);
+                    outline.effectDistance = new Vector2(2.6f, -2.6f);
+                }
+            }
+
+            CreateFloatingGlow(levelSelectGroup.transform, "PB_UI_LevelNameAquaBackGlow", new Vector2(0f, 42f), new Vector2(900f, 132f), new Color(0.00f, 0.92f, 1f, 0.20f), 93);
+            levelSelectorTitleGlow = CreateFloatingGlow(levelSelectGroup.transform, "PB_UI_LevelTitleAquaGlow", new Vector2(0f, 158f), new Vector2(620f, 52f), new Color(0.12f, 1f, 0.92f, 0.24f), 94);
+
+            CreateLine(levelSelectGroup.transform, "PB_UI_LevelTopAquaNeon", new Vector2(0f, 214f), new Vector2(820f, 5f), new Color(0.05f, 1f, 0.94f, 1f), 95);
+            CreateLine(levelSelectGroup.transform, "PB_UI_LevelTopWhiteAccent", new Vector2(0f, 196f), new Vector2(700f, 3f), new Color(0.86f, 1f, 1f, 0.86f), 96);
+            CreateLine(levelSelectGroup.transform, "PB_UI_LevelBottomAquaNeon", new Vector2(0f, -214f), new Vector2(640f, 4f), new Color(0.05f, 1f, 0.94f, 1f), 97);
+            CreateLine(levelSelectGroup.transform, "PB_UI_LevelBottomOrangeAccent", new Vector2(0f, -190f), new Vector2(760f, 3f), new Color(1f, 0.46f, 0.08f, 1f), 98);
+            CreateTmp(levelSelectGroup.transform, "PB_UI_LevelBadge", "ARCADE SELECT", new Vector2(0f, 156f), new Vector2(620f, 32f), 19f, new Color(0.75f, 1f, 1f, 1f), 99, FontStyles.Bold, 4f);
 
             if (levelNameText != null)
             {
@@ -830,9 +2003,9 @@ namespace ProjectBeat.Runtime
                 rt.anchorMin = new Vector2(0.5f, 0.5f);
                 rt.anchorMax = new Vector2(0.5f, 0.5f);
                 rt.pivot = new Vector2(0.5f, 0.5f);
-                rt.anchoredPosition = new Vector2(0f, 42f);
-                rt.sizeDelta = new Vector2(720f, 170f);
-                levelNameText.transform.SetSiblingIndex(8);
+                rt.anchoredPosition = new Vector2(0f, 44f);
+                rt.sizeDelta = new Vector2(900f, 170f);
+                levelNameText.transform.SetSiblingIndex(100);
             }
 
             if (levelArtistText != null)
@@ -842,9 +2015,9 @@ namespace ProjectBeat.Runtime
                 rt.anchorMin = new Vector2(0.5f, 0.5f);
                 rt.anchorMax = new Vector2(0.5f, 0.5f);
                 rt.pivot = new Vector2(0.5f, 0.5f);
-                rt.anchoredPosition = new Vector2(0f, -70f);
-                rt.sizeDelta = new Vector2(650f, 42f);
-                levelArtistText.transform.SetSiblingIndex(9);
+                rt.anchoredPosition = new Vector2(0f, -84f);
+                rt.sizeDelta = new Vector2(850f, 48f);
+                levelArtistText.transform.SetSiblingIndex(101);
             }
 
             if (levelHintText != null)
@@ -854,12 +2027,221 @@ namespace ProjectBeat.Runtime
                 rt.anchorMin = new Vector2(0.5f, 0.5f);
                 rt.anchorMax = new Vector2(0.5f, 0.5f);
                 rt.pivot = new Vector2(0.5f, 0.5f);
-                rt.anchoredPosition = new Vector2(0f, -160f);
-                rt.sizeDelta = new Vector2(720f, 36f);
-                levelHintText.transform.SetSiblingIndex(10);
+                rt.anchoredPosition = new Vector2(0f, -166f);
+                rt.sizeDelta = new Vector2(880f, 38f);
+                levelHintText.transform.SetSiblingIndex(102);
             }
 
+            BuildLevelLockedOverlay(levelSelectGroup.transform);
+
+            // Avance 60 Fix: flechas visibles y clickeables por encima de los textos TMP.
+            // Las zonas reciben raycast al estar al frente, pero no cambian la logica del selector.
+            CreateLevelMouseButton(levelSelectGroup.transform, "PB_UI_LevelMouse_Left", new Vector2(-440f, 44f), new Vector2(92f, 86f), () => ChangeLevelWithMouse(-1), "<");
+            CreateLevelMouseButton(levelSelectGroup.transform, "PB_UI_LevelMouse_Right", new Vector2(440f, 44f), new Vector2(92f, 86f), () => ChangeLevelWithMouse(1), ">");
+            CreateLevelMouseButton(levelSelectGroup.transform, "PB_UI_LevelMouse_Start", new Vector2(0f, -84f), new Vector2(850f, 64f), ConfirmLevelSelect, "INICIAR");
+            TMP_Text backText = CreateTmp(levelSelectGroup.transform, "PB_UI_LevelBackButton", "<color=#75FFFF><b>VOLVER</b></color>", new Vector2(0f, -202f), new Vector2(260f, 34f), 20f, new Color(0.48f, 1f, 1f, 1f), 103, FontStyles.Bold, 1.0f);
+            if (backText != null) backText.raycastTarget = false;
+            CreateLevelMouseButton(levelSelectGroup.transform, "PB_UI_LevelMouse_Back", new Vector2(0f, -202f), new Vector2(300f, 44f), ExitLevelSelect, null);
+
             RefreshLevelSelectLabels();
+        }
+
+
+        private void BuildLevelLockedOverlay(Transform parent)
+        {
+            GameObject root = new GameObject("PB_UI_LevelLockedOverlay");
+            root.transform.SetParent(parent, false);
+            root.transform.SetSiblingIndex(106);
+            RectTransform rt = root.AddComponent<RectTransform>();
+            rt.anchorMin = new Vector2(0.5f, 0.5f);
+            rt.anchorMax = new Vector2(0.5f, 0.5f);
+            rt.pivot = new Vector2(0.5f, 0.5f);
+            rt.anchoredPosition = new Vector2(0f, 42f);
+            rt.sizeDelta = new Vector2(900f, 130f);
+            levelLockedGroup = root.AddComponent<CanvasGroup>();
+            levelLockedGroup.alpha = 0f;
+            levelLockedGroup.interactable = false;
+            levelLockedGroup.blocksRaycasts = false;
+
+            Image shade = CreateLevelBar(root.transform, "PB_UI_LockedShade", Vector2.zero, new Vector2(900f, 130f), new Color(0.020f, 0.005f, 0.040f, 0.68f), 0);
+            shade.sprite = roundedPanelSprite;
+            shade.type = Image.Type.Sliced;
+
+            TMP_Text lockTitle = CreateTmp(root.transform, "PB_UI_LockedTitle", "BLOQUEADO", new Vector2(0f, 22f), new Vector2(760f, 42f), 32f, new Color(1f, 0.32f, 0.80f, 1f), 2, FontStyles.Bold, 4f);
+            lockTitle.alignment = TextAlignmentOptions.Center;
+            levelLockedText = CreateTmp(root.transform, "PB_UI_LockedMessage", "Supera el nivel anterior para desbloquear este nivel.", new Vector2(0f, -28f), new Vector2(760f, 34f), 16f, new Color(0.88f, 1f, 1f, 0.95f), 3, FontStyles.Bold, 1f);
+            levelLockedText.alignment = TextAlignmentOptions.Center;
+
+            levelLockNoticeText = CreateTmp(parent, "PB_UI_LevelLockNotice", "", new Vector2(0f, -128f), new Vector2(760f, 42f), 18f, new Color(1f, 0.32f, 0.80f, 0f), 120, FontStyles.Bold, 2f);
+            levelLockNoticeText.alignment = TextAlignmentOptions.Center;
+        }
+
+        private bool IsCurrentLevelLocked()
+        {
+            LevelManager lm = LevelManager.Instance;
+            if (lm == null || lm.Levels == null || lm.Levels.Length == 0) return false;
+            int firstArcade = lm.GetFirstArcadeLevelIndex();
+            return !ProfileStatsStorage.IsLevelUnlocked(lm.CurrentLevelIndex, firstArcade);
+        }
+
+        private void ShowLevelLockedNotice()
+        {
+            LevelManager lm = LevelManager.Instance;
+            string previous = "nivel anterior";
+            string current = "este nivel";
+            if (lm != null && lm.Levels != null && lm.Levels.Length > 0)
+            {
+                current = lm.CurrentLevel != null && !string.IsNullOrEmpty(lm.CurrentLevel.levelName) ? lm.CurrentLevel.levelName.ToUpperInvariant() : current;
+                int prevIndex = Mathf.Clamp(lm.CurrentLevelIndex - 1, 0, lm.Levels.Length - 1);
+                if (lm.Levels[prevIndex] != null && !string.IsNullOrEmpty(lm.Levels[prevIndex].levelName))
+                    previous = lm.Levels[prevIndex].levelName.ToUpperInvariant();
+            }
+
+            if (levelLockNoticeText != null)
+                levelLockNoticeText.text = "<color=#FF66D9>NIVEL BLOQUEADO</color>  <color=#D8CBFF>Supera " + previous + " para desbloquear " + current + ".</color>";
+            levelLockNoticeTimer = 2.6f;
+            PopText(levelNameText, 1.04f);
+        }
+
+        private void UpdateLevelLockNotice()
+        {
+            if (levelLockNoticeText == null) return;
+            if (levelLockNoticeTimer > 0f)
+                levelLockNoticeTimer -= Time.unscaledDeltaTime;
+            float a = Mathf.Clamp01(levelLockNoticeTimer / 0.35f);
+            Color c = levelLockNoticeText.color;
+            c.a = a;
+            levelLockNoticeText.color = c;
+        }
+
+        private Image CreateLevelDecorLine(Transform parent, string name, Vector2 pos, Vector2 size, Color color, int sibling, float zRotation)
+        {
+            GameObject go = new GameObject(name);
+            go.transform.SetParent(parent, false);
+            go.transform.SetSiblingIndex(Mathf.Min(sibling, parent.childCount - 1));
+            Image img = go.AddComponent<Image>();
+            img.raycastTarget = false;
+            img.sprite = lineSprite;
+            img.type = Image.Type.Sliced;
+            img.color = color;
+            RectTransform rt = go.GetComponent<RectTransform>();
+            rt.anchorMin = new Vector2(0.5f, 0.5f);
+            rt.anchorMax = new Vector2(0.5f, 0.5f);
+            rt.pivot = new Vector2(0.5f, 0.5f);
+            rt.anchoredPosition = pos;
+            rt.sizeDelta = size;
+            rt.localRotation = Quaternion.Euler(0f, 0f, zRotation);
+            return img;
+        }
+
+        private Image CreateLevelBar(Transform parent, string name, Vector2 pos, Vector2 size, Color color, int sibling)
+        {
+            GameObject go = new GameObject(name);
+            go.transform.SetParent(parent, false);
+            go.transform.SetSiblingIndex(Mathf.Min(sibling, parent.childCount - 1));
+            Image img = go.AddComponent<Image>();
+            img.raycastTarget = false;
+            img.sprite = roundedButtonSprite != null ? roundedButtonSprite : lineSprite;
+            img.type = Image.Type.Sliced;
+            img.color = color;
+            RectTransform rt = go.GetComponent<RectTransform>();
+            rt.anchorMin = new Vector2(0.5f, 0.5f);
+            rt.anchorMax = new Vector2(0.5f, 0.5f);
+            rt.pivot = new Vector2(0.5f, 0.5f);
+            rt.anchoredPosition = pos;
+            rt.sizeDelta = size;
+            return img;
+        }
+
+        private void AnimateLevelSelectVisuals()
+        {
+            if (levelSelectGroup == null || levelAlpha <= 0.01f) return;
+
+            float t = pulseT;
+            float glow = 0.5f + 0.5f * Mathf.Sin(t * 0.85f);
+
+            if (levelSelectorAura != null)
+            {
+                levelSelectorAura.color = Color.Lerp(new Color(0.00f, 0.55f, 0.70f, 0.18f), new Color(0.05f, 1f, 0.92f, 0.36f), glow);
+                float scale = 1f + Mathf.Sin(t * 0.7f) * 0.035f;
+                levelSelectorAura.rectTransform.localScale = new Vector3(scale, scale, 1f);
+            }
+
+            if (levelSelectorCardGlow != null)
+            {
+                levelSelectorCardGlow.color = Color.Lerp(new Color(0.00f, 0.72f, 0.92f, 0.18f), new Color(0.18f, 1f, 0.92f, 0.42f), glow);
+                float scale = 1f + Mathf.Sin(t * 1.05f) * 0.025f;
+                levelSelectorCardGlow.rectTransform.localScale = new Vector3(scale, scale, 1f);
+            }
+
+            if (levelSelectorTitleGlow != null)
+            {
+                levelSelectorTitleGlow.color = Color.Lerp(new Color(0.08f, 1f, 0.92f, 0.16f), new Color(0.74f, 1f, 1f, 0.34f), glow);
+            }
+
+            if (levelSelectorBars != null)
+            {
+                for (int i = 0; i < levelSelectorBars.Length; i++)
+                {
+                    Image bar = levelSelectorBars[i];
+                    if (bar == null) continue;
+                    RectTransform rt = bar.rectTransform;
+                    float beat = 0.5f + 0.5f * Mathf.Sin(t * 1.25f + i * 0.62f);
+                    rt.sizeDelta = new Vector2(rt.sizeDelta.x, 24f + beat * (35f + (i % 5) * 10f));
+                    Color target = i % 4 == 0 ? new Color(1f, 0.45f, 0.08f, 0.20f + beat * 0.22f) : (i % 2 == 0 ? new Color(0.00f, 0.93f, 1f, 0.24f + beat * 0.28f) : new Color(0.18f, 1f, 0.82f, 0.18f + beat * 0.24f));
+                    bar.color = target;
+                }
+            }
+
+            if (levelSelectorLines != null)
+            {
+                for (int i = 0; i < levelSelectorLines.Length; i++)
+                {
+                    Image line = levelSelectorLines[i];
+                    if (line == null) continue;
+                    RectTransform rt = line.rectTransform;
+                    Vector2 p = rt.anchoredPosition;
+                    p.x += Mathf.Sin(t * 0.28f + i) * Time.unscaledDeltaTime * 16f;
+                    if (p.x > 740f) p.x = -740f;
+                    if (p.x < -740f) p.x = 740f;
+                    rt.anchoredPosition = p;
+                    float alpha = 0.20f + (0.5f + 0.5f * Mathf.Sin(t * 0.9f + i)) * 0.34f;
+                    Color c = line.color;
+                    c.a = alpha;
+                    line.color = c;
+                }
+            }
+
+            if (levelSelectorParticles != null)
+            {
+                for (int i = 0; i < levelSelectorParticles.Length; i++)
+                {
+                    Image particle = levelSelectorParticles[i];
+                    if (particle == null) continue;
+                    RectTransform rt = particle.rectTransform;
+                    Vector2 pos = rt.anchoredPosition;
+                    pos.y += Time.unscaledDeltaTime * (8f + (i % 5) * 3f);
+                    if (pos.y > 295f) pos.y = -285f;
+                    rt.anchoredPosition = pos;
+                    Color c = particle.color;
+                    c.a = 0.20f + (0.5f + 0.5f * Mathf.Sin(t * 1.1f + i * 0.55f)) * 0.44f;
+                    particle.color = c;
+                }
+            }
+
+            if (levelSelectorRings != null)
+            {
+                for (int i = 0; i < levelSelectorRings.Length; i++)
+                {
+                    Image ring = levelSelectorRings[i];
+                    if (ring == null) continue;
+                    float scale = 1f + Mathf.Sin(t * 0.75f + i) * 0.055f;
+                    ring.rectTransform.localScale = new Vector3(scale, scale, 1f);
+                    Color c = ring.color;
+                    c.a = 0.10f + (0.5f + 0.5f * Mathf.Sin(t * 0.9f + i)) * 0.18f;
+                    ring.color = c;
+                }
+            }
         }
 
         private void RemoveOldVisuals(Transform root)
@@ -937,18 +2319,297 @@ namespace ProjectBeat.Runtime
             return rt;
         }
 
+        private void EnsureEventSystem()
+        {
+            if (EventSystem.current != null) return;
+            GameObject eventSystem = new GameObject("EventSystem");
+            eventSystem.AddComponent<EventSystem>();
+            eventSystem.AddComponent<StandaloneInputModule>();
+        }
+
+        private RectTransform CreateTransparentHitZone(Transform parent, string name, Vector2 pos, Vector2 size, int sibling = 80)
+        {
+            GameObject go = new GameObject(name, typeof(RectTransform));
+            go.transform.SetParent(parent, false);
+            go.transform.SetSiblingIndex(Mathf.Min(sibling, parent.childCount - 1));
+            Image img = go.AddComponent<Image>();
+            img.color = new Color(1f, 1f, 1f, 0.003f);
+            img.raycastTarget = true;
+            RectTransform rt = go.GetComponent<RectTransform>();
+            rt.anchorMin = new Vector2(0.5f, 0.5f);
+            rt.anchorMax = new Vector2(0.5f, 0.5f);
+            rt.pivot = new Vector2(0.5f, 0.5f);
+            rt.anchoredPosition = pos;
+            rt.sizeDelta = size;
+            return rt;
+        }
+
+        private void AddTrigger(EventTrigger trigger, EventTriggerType type, UnityEngine.Events.UnityAction<BaseEventData> action)
+        {
+            EventTrigger.Entry entry = new EventTrigger.Entry { eventID = type };
+            entry.callback.AddListener(action);
+            trigger.triggers.Add(entry);
+        }
+
+        private void AddSettingsMouseZone(Transform parent, string name, Vector2 pos, Vector2 size, int optionIndex, bool clickActs = false)
+        {
+            // Avance 93: las filas conservan hover/selección, pero el cambio real se centraliza
+            // en HandleSettingsRowClickFallback(). Así se evita que EventTrigger + Update
+            // procesen el mismo click dos veces y hagan que una opción cambie sin control.
+            Vector2 safeSize = new Vector2(Mathf.Max(size.x, 1490f), Mathf.Max(size.y, 64f));
+            RectTransform hit = CreateTransparentHitZone(parent, name, pos, safeSize, 90 + optionIndex);
+            EventTrigger trigger = hit.gameObject.AddComponent<EventTrigger>();
+            trigger.triggers = new List<EventTrigger.Entry>();
+
+            AddTrigger(trigger, EventTriggerType.PointerEnter, (_) =>
+            {
+                if (!isPaused || !isInSettings || isReturningToInitialMenu) return;
+                selectedSettingsOption = optionIndex;
+                RefreshSettingsPanel();
+            });
+
+            AddTrigger(trigger, EventTriggerType.PointerDown, (_) =>
+            {
+                if (!isPaused || !isInSettings || isReturningToInitialMenu) return;
+                selectedSettingsOption = optionIndex;
+                RefreshSettingsPanel();
+            });
+
+            AddTrigger(trigger, EventTriggerType.PointerClick, (_) =>
+            {
+                if (!isPaused || !isInSettings || isReturningToInitialMenu) return;
+                selectedSettingsOption = optionIndex;
+                RefreshSettingsPanel();
+            });
+        }
+
+        private void ActivateSettingsMouseOption(int optionIndex)
+        {
+            switch (optionIndex)
+            {
+                case 2: // Resolucion
+                case 3: // Modo Pantalla
+                case 4: // Intensidad de efectos
+                case 6: // Calidad visual
+                    AdjustSelectedSetting(0.05f);
+                    break;
+                case 5: // Sensibilidad visual
+                case 7: // Efectos de combo
+                case 8: // Aura de combo
+                case 10: // Restaurar valores
+                    ActivateSelectedSetting();
+                    break;
+                case 11:
+                    ExitSettings();
+                    break;
+                default:
+                    RefreshSettingsPanel();
+                    break;
+            }
+        }
+
+        private void AddSettingsSliderMouseZone(Transform parent, string name, Vector2 pos, Vector2 size, int optionIndex)
+        {
+            RectTransform hit = CreateTransparentHitZone(parent, name, pos, size, 110 + optionIndex);
+            EventTrigger trigger = hit.gameObject.AddComponent<EventTrigger>();
+            trigger.triggers = new List<EventTrigger.Entry>();
+
+            UnityEngine.Events.UnityAction<BaseEventData> apply = (data) =>
+            {
+                if (!isPaused || !isInSettings || isReturningToInitialMenu) return;
+                selectedSettingsOption = optionIndex;
+                PointerEventData pointer = data as PointerEventData;
+                if (pointer != null)
+                    ApplySliderFromMouse(optionIndex, hit, pointer);
+            };
+
+            AddTrigger(trigger, EventTriggerType.PointerEnter, (_) =>
+            {
+                if (!isPaused || !isInSettings || isReturningToInitialMenu) return;
+                selectedSettingsOption = optionIndex;
+                RefreshSettingsPanel();
+            });
+            AddTrigger(trigger, EventTriggerType.PointerDown, apply);
+            AddTrigger(trigger, EventTriggerType.Drag, apply);
+            AddTrigger(trigger, EventTriggerType.PointerClick, apply);
+        }
+
+        private void ApplySliderFromMouse(int optionIndex, RectTransform zone, PointerEventData eventData)
+        {
+            Vector2 localPoint;
+            Camera cam = eventData.pressEventCamera;
+            if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(zone, eventData.position, cam, out localPoint)) return;
+
+            float t = Mathf.Clamp01((localPoint.x / Mathf.Max(1f, zone.rect.width)) + 0.5f);
+
+            switch (optionIndex)
+            {
+                case 1:
+                    brightness = Mathf.Lerp(0.55f, 1.35f, t);
+                    PlayerPrefs.SetFloat(BrightnessPrefsKey, brightness);
+                    break;
+                case 4:
+                    VisualAccessibilitySettings.SetIntensityIndex(Mathf.RoundToInt(t * 4f));
+                    break;
+                case 9:
+                    masterVolume = t;
+                    PlayerPrefs.SetFloat(MasterVolumePrefsKey, masterVolume);
+                    break;
+            }
+
+            PlayerPrefs.Save();
+            ApplyVisualAudioSettings();
+            RefreshSettingsPanel();
+        }
+
+        private void CreateLevelMouseButton(Transform parent, string name, Vector2 pos, Vector2 size, System.Action clickAction, string visualLabel = null)
+        {
+            GameObject go = new GameObject(name, typeof(RectTransform));
+            go.transform.SetParent(parent, false);
+            go.transform.SetAsLastSibling();
+
+            Image hitImage = go.AddComponent<Image>();
+            hitImage.sprite = roundedButtonSprite != null ? roundedButtonSprite : lineSprite;
+            hitImage.type = Image.Type.Sliced;
+            hitImage.raycastTarget = true;
+
+            bool isArrow = !string.IsNullOrEmpty(visualLabel) && (visualLabel == "<" || visualLabel == ">");
+            bool isStart = !string.IsNullOrEmpty(visualLabel) && visualLabel == "INICIAR";
+
+            Color baseColor = isArrow
+                ? new Color(0.04f, 1f, 0.92f, 0.28f)
+                : (isStart ? new Color(0.00f, 0.86f, 1f, 0.055f) : new Color(0.00f, 0.95f, 1f, 0.045f));
+            Color hoverColor = isArrow
+                ? new Color(0.18f, 1f, 0.96f, 0.76f)
+                : (isStart ? new Color(0.00f, 0.95f, 1f, 0.22f) : new Color(0.00f, 0.95f, 1f, 0.24f));
+            Color pressColor = new Color(1f, 0.48f, 0.06f, isArrow ? 0.70f : 0.36f);
+            hitImage.color = baseColor;
+
+            Outline outline = go.AddComponent<Outline>();
+            outline.effectColor = isArrow ? new Color(0.25f, 1f, 0.96f, 0.62f) : new Color(0.05f, 1f, 0.95f, 0.34f);
+            outline.effectDistance = new Vector2(1.8f, -1.8f);
+
+            Shadow shadow = go.AddComponent<Shadow>();
+            shadow.effectColor = new Color(0f, 0.95f, 1f, isArrow ? 0.32f : 0.18f);
+            shadow.effectDistance = new Vector2(0f, -4f);
+
+            RectTransform hit = go.GetComponent<RectTransform>();
+            hit.anchorMin = new Vector2(0.5f, 0.5f);
+            hit.anchorMax = new Vector2(0.5f, 0.5f);
+            hit.pivot = new Vector2(0.5f, 0.5f);
+            hit.anchoredPosition = pos;
+            hit.sizeDelta = size;
+
+            TMP_Text label = null;
+            if (!string.IsNullOrEmpty(visualLabel))
+            {
+                if (isStart)
+                {
+                    // Avance 66 polish: el area de click central sigue activa, pero sin texto "CLICK"
+                    // para no ensuciar el estado del nivel ni superponerse con LISTO PARA JUGAR.
+                    label = null;
+                }
+                else
+                {
+                    label = CreateTmp(go.transform, name + "_Label", visualLabel, Vector2.zero, size, isArrow ? 36f : 16f, isArrow ? new Color(0.88f, 1f, 1f, 0.95f) : new Color(0.78f, 1f, 1f, 0.55f), 1, FontStyles.Bold, isArrow ? 0f : 2f);
+                    if (label != null)
+                        label.raycastTarget = false;
+                }
+            }
+
+            EventTrigger trigger = go.AddComponent<EventTrigger>();
+            trigger.triggers = new List<EventTrigger.Entry>();
+
+            AddTrigger(trigger, EventTriggerType.PointerEnter, (_) =>
+            {
+                if (!isPaused || !isInLevelSelect || isReturningToInitialMenu) return;
+                hitImage.color = hoverColor;
+                outline.effectColor = new Color(0.85f, 1f, 1f, 0.90f);
+                shadow.effectColor = new Color(0f, 0.95f, 1f, 0.58f);
+                hit.localScale = Vector3.one * (isArrow ? 1.09f : 1.035f);
+                if (label != null) label.color = isArrow ? NeonYellow : new Color(0.95f, 1f, 1f, 0.95f);
+                PopText(levelNameText, 1.02f);
+            });
+
+            AddTrigger(trigger, EventTriggerType.PointerExit, (_) =>
+            {
+                hitImage.color = baseColor;
+                outline.effectColor = isArrow ? new Color(0.25f, 1f, 0.96f, 0.62f) : new Color(0.05f, 1f, 0.95f, 0.34f);
+                shadow.effectColor = new Color(0f, 0.95f, 1f, isArrow ? 0.32f : 0.18f);
+                hit.localScale = Vector3.one;
+                if (label != null) label.color = isArrow ? new Color(0.88f, 1f, 1f, 0.95f) : new Color(0.78f, 1f, 1f, 0.55f);
+            });
+
+            AddTrigger(trigger, EventTriggerType.PointerDown, (_) =>
+            {
+                if (!isPaused || !isInLevelSelect || isReturningToInitialMenu) return;
+                hitImage.color = pressColor;
+                hit.localScale = Vector3.one * 0.94f;
+            });
+
+            AddTrigger(trigger, EventTriggerType.PointerUp, (_) =>
+            {
+                if (!isPaused || !isInLevelSelect || isReturningToInitialMenu) return;
+                hitImage.color = hoverColor;
+                hit.localScale = Vector3.one * (isArrow ? 1.06f : 1.02f);
+            });
+
+            AddTrigger(trigger, EventTriggerType.PointerClick, (_) =>
+            {
+                if (!isPaused || !isInLevelSelect || isReturningToInitialMenu) return;
+                if (clickAction != null) clickAction.Invoke();
+            });
+        }
+
+        private void ChangeLevelWithMouse(int direction)
+        {
+            LevelManager lm = LevelManager.Instance;
+            if (lm == null) return;
+            if (direction < 0) lm.PreviousLevel();
+            else lm.NextLevel();
+            RefreshLevelSelectLabels();
+            PopText(levelNameText, 1.08f);
+        }
+
+        private void AddMouseEventsToPauseButton(GameObject target, int optionIndex)
+        {
+            if (target == null) return;
+            EventTrigger trigger = target.GetComponent<EventTrigger>();
+            if (trigger == null) trigger = target.AddComponent<EventTrigger>();
+            if (trigger.triggers == null) trigger.triggers = new List<EventTrigger.Entry>();
+
+            EventTrigger.Entry enter = new EventTrigger.Entry { eventID = EventTriggerType.PointerEnter };
+            enter.callback.AddListener((_) =>
+            {
+                if (!isPaused || isInLevelSelect || isInSettings || isInCredits || isReturningToInitialMenu) return;
+                selectedOption = optionIndex;
+                RefreshLabels();
+            });
+            trigger.triggers.Add(enter);
+
+            EventTrigger.Entry click = new EventTrigger.Entry { eventID = EventTriggerType.PointerClick };
+            click.callback.AddListener((_) =>
+            {
+                if (!isPaused || isInLevelSelect || isInSettings || isInCredits || isReturningToInitialMenu) return;
+                selectedOption = optionIndex;
+                RefreshLabels();
+                ConfirmOption();
+            });
+            trigger.triggers.Add(click);
+        }
+
         private RectTransform CreateButtonShell(Transform parent, string name, Vector2 pos, int sibling)
         {
             GameObject go = new GameObject(name);
             go.transform.SetParent(parent, false);
             go.transform.SetSiblingIndex(Mathf.Min(sibling, parent.childCount - 1));
             Image img = go.AddComponent<Image>();
-            img.raycastTarget = false;
+            img.raycastTarget = true;
             img.sprite = roundedButtonSprite;
             img.type = Image.Type.Sliced;
-            img.color = new Color(0.10f, 0.045f, 0.15f, 0.50f);
+            img.color = new Color(0.090f, 0.020f, 0.140f, 0.62f);
             Outline outline = go.AddComponent<Outline>();
-            outline.effectColor = new Color(1f, 0.5f, 0f, 0.22f);
+            outline.effectColor = new Color(1f, 0.14f, 0.82f, 0.30f);
             outline.effectDistance = new Vector2(1.5f, -1.5f);
 
             RectTransform rt = go.GetComponent<RectTransform>();
@@ -956,7 +2617,7 @@ namespace ProjectBeat.Runtime
             rt.anchorMax = new Vector2(0.5f, 0.5f);
             rt.pivot = new Vector2(0.5f, 0.5f);
             rt.anchoredPosition = pos;
-            rt.sizeDelta = new Vector2(470f, 60f);
+            rt.sizeDelta = new Vector2(470f, 52f);
             return rt;
         }
 
@@ -1022,7 +2683,7 @@ namespace ProjectBeat.Runtime
             rt.anchorMax = new Vector2(0.5f, 0.5f);
             rt.pivot = new Vector2(0.5f, 0.5f);
             rt.anchoredPosition = pos;
-            rt.sizeDelta = new Vector2(280f, 18f);
+            rt.sizeDelta = new Vector2(500f, 20f);
 
             GameObject baseGO = new GameObject(name + "_Base", typeof(RectTransform));
             baseGO.transform.SetParent(root.transform, false);
@@ -1030,7 +2691,7 @@ namespace ProjectBeat.Runtime
             baseImage.raycastTarget = false;
             baseImage.sprite = lineSprite;
             baseImage.type = Image.Type.Sliced;
-            baseImage.color = new Color(0.08f, 0.18f, 0.24f, 0.92f);
+            baseImage.color = new Color(0.11f, 0.035f, 0.18f, 0.94f);
             RectTransform baseRT = baseGO.GetComponent<RectTransform>();
             baseRT.anchorMin = new Vector2(0f, 0.5f);
             baseRT.anchorMax = new Vector2(1f, 0.5f);
@@ -1058,7 +2719,7 @@ namespace ProjectBeat.Runtime
             glow.raycastTarget = false;
             glow.sprite = roundedButtonSprite;
             glow.type = Image.Type.Sliced;
-            glow.color = new Color(0f, 0.92f, 1f, 0f);
+            glow.color = new Color(1f, 0.14f, 0.82f, 0f);
             RectTransform glowRT = glowGO.GetComponent<RectTransform>();
             glowRT.anchorMin = new Vector2(0f, 0.5f);
             glowRT.anchorMax = new Vector2(1f, 0.5f);
@@ -1075,7 +2736,7 @@ namespace ProjectBeat.Runtime
             handleImage.type = Image.Type.Sliced;
             handleImage.color = NeonYellow;
             Outline outline = handleGO.AddComponent<Outline>();
-            outline.effectColor = new Color(0f, 0.92f, 1f, 0.55f);
+            outline.effectColor = new Color(1f, 0.14f, 0.82f, 0.55f);
             outline.effectDistance = new Vector2(2f, -2f);
             handle = handleGO.GetComponent<RectTransform>();
             handle.anchorMin = new Vector2(0f, 0.5f);
@@ -1093,7 +2754,7 @@ namespace ProjectBeat.Runtime
             {
                 RectTransform rt = fill.rectTransform;
                 rt.anchorMax = new Vector2(t, 0.5f);
-                fill.color = selected ? NeonYellow : NeonCyan;
+                fill.color = selected ? new Color(1f, 0.14f, 0.82f, 1f) : NeonCyan;
             }
 
             if (handle != null)
@@ -1105,12 +2766,12 @@ namespace ProjectBeat.Runtime
             }
 
             if (glow != null)
-                glow.color = selected ? new Color(1f, 0.92f, 0.02f, 0.18f) : new Color(0f, 0.92f, 1f, 0.06f);
+                glow.color = selected ? new Color(1f, 0.14f, 0.82f, 0.22f) : new Color(0f, 0.92f, 1f, 0.08f);
 
             if (valueText != null)
             {
                 valueText.text = Mathf.RoundToInt(value * 100f) + "%";
-                valueText.color = selected ? NeonYellow : TextNormal;
+                valueText.color = selected ? NeonYellow : new Color(0.92f, 0.86f, 1f, 1f);
             }
         }
 

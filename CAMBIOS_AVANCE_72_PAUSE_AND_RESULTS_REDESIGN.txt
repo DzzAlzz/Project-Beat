@@ -1,0 +1,34 @@
+AVANCE 72 - CORRECCION FINAL DE SALIR EN PAUSA Y REDISENO DEL PANEL DE RESULTADOS
+
+Base usada:
+- Avance 71.
+
+Archivos modificados:
+- Assets/Scripts/Runtime/PauseMenu.cs
+- Assets/Scripts/Runtime/GameplayUI.cs
+- Assets/Scripts/Runtime/GameController.cs
+
+Cambios aplicados:
+- El boton SALIR del menu de pausa ya no recupera el estilo antiguo naranja/marron al seleccionarse.
+- SALIR mantiene una base morada/neon coherente con el resto del menu de pausa, conservando solo un acento calido en el texto.
+- Pantalla de resultados redisenada con fondo morado/neon, glows magenta/cian, panel mas moderno y mejor jerarquia visual.
+- Se eliminaron visualmente las teclas D/F/J/K durante la pantalla de resultados.
+- Se mantienen los colores distintivos de PERFECT, GOOD, MISS y FAIL.
+- Se mantienen los colores diferenciados por rango.
+- Se agrego la opcion [N] SIGUIENTE NIVEL cuando existe un nivel posterior.
+- Al usar SIGUIENTE NIVEL se muestra CARGANDO... antes de cargar el siguiente nivel.
+- Si el jugador esta en el ultimo nivel, la opcion SIGUIENTE NIVEL no se muestra y no rompe el flujo.
+
+No modificado:
+- Gameplay base.
+- LevelManager.
+- Canciones.
+- Timing.
+- Hit detection.
+- Sistema de puntuacion.
+- Calculo de rango.
+- Selector de niveles.
+- Menu principal.
+- Ayuda.
+- Creditos.
+- Configuracion.

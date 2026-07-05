@@ -1,0 +1,63 @@
+AVANCE 93 – CORRECCIÓN DE CLICK EN CONFIGURACIÓN Y LOGO DEL EJECUTABLE
+
+BASE
+- Usado como base: ProjectBeat_Avance92_SettingsQualityClickAndTutorialHUDFix.zip
+- Se descartaron los avances de idiomas/localización.
+
+ARCHIVOS MODIFICADOS
+- Assets/Scripts/Runtime/PauseMenu.cs
+- ProjectSettings/ProjectSettings.asset
+
+ARCHIVOS AGREGADOS
+- Assets/Art/UI/Branding/ProjectBeat_ExecutableIcon.png
+- Assets/Art/UI/Branding/ProjectBeat_ExecutableIcon.png.meta
+- Assets/Art/UI/Branding/ProjectBeat_ExecutableIcon.ico
+- Assets/Art/UI/Branding/ProjectBeat_ExecutableIcon.ico.meta
+- CAMBIOS_AVANCE_93_SETTINGS_CLICK_FIX_AND_EXECUTABLE_LOGO.txt
+
+CORRECCIÓN DE CLICK EN CONFIGURACIÓN
+- Se corrigió el problema donde algunas opciones cambiaban rápidamente sin control con un solo click.
+- Se centralizó el cambio real de las filas de configuración en un único respaldo de click.
+- Los EventTrigger de las filas ahora solo seleccionan/actualizan visualmente y ya no ejecutan un cambio adicional.
+- Se agregó un pequeño cooldown interno para evitar múltiples cambios por un mismo click.
+- Calidad Visual ahora puede responder desde el nombre, descripción, centro de fila y valor derecho.
+- ON/OFF, EXTREMA, PANTALLA COMPLETA y opciones equivalentes cambian una sola vez por click.
+- Los sliders conservan su propio manejo de click/arrastre para no interferir con brillo, efectos ni volumen.
+
+LOGO / ICONO DEL EJECUTABLE
+- Se creó un icono nuevo representativo de Project Beat con estética morado/cian/magenta/neón.
+- El icono incluye identidad PB, barras de ritmo/ecualizador y pulso musical.
+- El PNG quedó guardado en:
+  Assets/Art/UI/Branding/ProjectBeat_ExecutableIcon.png
+- También se agregó versión .ico en:
+  Assets/Art/UI/Branding/ProjectBeat_ExecutableIcon.ico
+- El ProjectSettings.asset fue actualizado para que Windows Standalone use el nuevo icono en los tamaños 256, 128, 64, 48, 32 y 16.
+
+CÓMO VERIFICAR EL ICONO EN UNITY
+1. Abrir el proyecto en Unity 6000.3.11f1.
+2. Buscar el asset:
+   Assets/Art/UI/Branding/ProjectBeat_ExecutableIcon.png
+3. Ir a:
+   Edit > Project Settings > Player > Icon
+4. Revisar la sección de Windows / Standalone.
+5. Debe aparecer asignado el icono de Project Beat.
+
+CÓMO VERIFICAR EL ICONO EN EL .EXE
+1. Generar un build nuevo de Windows.
+2. Revisar el archivo ProjectBeat.exe del build nuevo.
+3. Si Windows sigue mostrando el icono anterior, puede ser caché del sistema.
+4. Para forzar refresco:
+   - crear un acceso directo nuevo,
+   - mover el build a una carpeta nueva,
+   - refrescar el escritorio,
+   - reiniciar el Explorador de Windows,
+   - o limpiar la caché de iconos de Windows si fuera necesario.
+
+VALIDACIÓN REALIZADA EN ESTA ENTREGA
+- El ZIP fue generado correctamente.
+- Se verificó que el ZIP existe físicamente.
+- Se verificó que el ZIP no está vacío.
+- Se verificó la integridad del ZIP con unzip -t.
+
+NOTA
+- No se modificó gameplay, timing, puntuación, hit detection, canciones, perfiles, estadísticas, logros, selector, pausa ni resultados.

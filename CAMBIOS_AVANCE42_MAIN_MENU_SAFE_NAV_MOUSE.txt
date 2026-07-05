@@ -1,0 +1,18 @@
+AVANCE 42 - MAIN MENU SAFE NAVIGATION + MOUSE UI
+
+Cambios principales:
+- Se rehace el flujo MENU PRINCIPAL para que no dependa solo del orden automatico de RuntimeInitializeOnLoadMethod.
+- Al cargar la escena se registra SceneManager.sceneLoaded y luego se fuerza el menu inicial real mediante StartupFlowController.ForceShowMainMenuOnCurrentScene().
+- StartupFlowController ahora puede abrir directamente el menu PROJECT BEAT / TUTORIAL / ARCADE / PROXIMAMENTE sin pasar por la intro.
+- Se mantiene la pantalla CARGANDO... antes de volver al menu inicial.
+- Se mantiene la musica del menu principal Timecop1983 en loop.
+- Se agrega soporte basico de mouse para menu principal y menu de pausa:
+  * hover selecciona opcion
+  * click confirma opcion
+  * teclado se mantiene igual
+- Se evita tocar gameplay, scoring, timing, Hold Notes, offset, resultados y LevelManager.
+
+Notas de estabilidad:
+- El flujo de MENU PRINCIPAL queda aislado de Reiniciar, Tutorial, Elegir Nivel, Configuracion, Creditos y Salir.
+- Se reinicia Time.timeScale a 1 antes de cargar el menu.
+- Se limpian audios, notas, particulas y efectos temporales antes de volver al menu.

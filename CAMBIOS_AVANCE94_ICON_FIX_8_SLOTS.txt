@@ -1,0 +1,18 @@
+AVANCE 94 - CORRECCION DEL ERROR DE ICONOS STANDALONE
+
+Se corrigio el script de editor del icono del ejecutable.
+
+Problema corregido:
+Unity 6000.3.11f1 podia mostrar el error:
+"Attempting to set an incorrect number of icons for Standalone: 8 expected while 6 were specified."
+
+Causa:
+El script anterior entregaba una cantidad fija de 6 iconos al PlayerSettings, pero Unity 6000.3.11f1 espera 8 espacios de icono para Standalone.
+
+Correccion:
+Ahora el script consulta dinamicamente cuantos tamanos de icono espera Unity usando PlayerSettings.GetIconSizes y crea exactamente esa cantidad.
+
+Archivos modificados:
+Assets/Scripts/Editor/ProjectBeatExecutableIconFinalizer.cs
+
+No se modifico gameplay, LevelManager, canciones, timing, hit detection, puntuacion, precision, combo, menus, perfiles, logros, selector ni sistemas existentes.

@@ -1,0 +1,34 @@
+AVANCE 62 – AJUSTE DE TAMAÑOS Y DISTRIBUCIÓN DEL SELECTOR DE NIVELES
+
+Base utilizada:
+- Avance 61.
+
+Versión objetivo:
+- Unity 6000.3.11f1.
+
+Archivo modificado:
+- Assets/Scripts/Runtime/PauseMenu.cs
+
+Ajustes implementados:
+- Se amplió el panel principal del selector para dar más espacio horizontal y vertical.
+- Se amplió el área disponible del nombre del track.
+- Se agregó adaptación de tamaño para nombres largos como SUMMER VACATION.
+- Se redujo el espaciado de caracteres cuando el nombre del track es largo.
+- Se movieron las flechas izquierda/derecha hacia los laterales para que no invadan el texto.
+- Se redujo el tamaño visual de las flechas para que no sobrecarguen el nombre del track.
+- Se reajustaron posiciones de estado, controles inferiores y botón VOLVER.
+- Se mantuvo la estética turquesa/cian del Avance 61.
+- Se mantuvo el fondo completo opaco para ocultar el gameplay detrás.
+
+No se modificó:
+- Gameplay.
+- LevelManager.
+- Canciones.
+- Resultados.
+- Configuración.
+- Sistema de pausa.
+- Sistema de puntuación.
+- Flujo de escenas.
+- Lógica del selector.
+- Cambio de pistas.
+- Navegación A/D, ENTER, ESC y mouse.

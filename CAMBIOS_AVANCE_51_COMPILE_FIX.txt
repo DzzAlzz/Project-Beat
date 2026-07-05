@@ -1,0 +1,17 @@
+AVANCE 51 - MAIN MENU SETTINGS BUTTON COMPILE FIX
+
+Base: avance 50.1 estable.
+
+Cambios:
+- Se agrega acceso a CONFIGURACION desde el menu principal.
+- Se agrega boton cuadrado tipo engranaje en el lado izquierdo del menu inicial.
+- Se reutiliza una configuracion simple y segura desde el menu principal.
+- Se corrige error de compilacion por referencia de color TextNormal no definida en StartupFlowController.
+- No se modifica gameplay, scoring, timing, canciones, Hold Notes, offset, resultados ni LevelManager.
+
+Verificacion manual recomendada:
+- Abrir Unity sin Safe Mode.
+- Iniciar juego.
+- Click en boton CONFIG del menu principal.
+- Volver con ESC o VOLVER.
+- Entrar a Tutorial y Arcade normalmente.
