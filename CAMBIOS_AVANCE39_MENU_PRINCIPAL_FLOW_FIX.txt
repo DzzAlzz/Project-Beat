@@ -1,0 +1,14 @@
+AVANCE 39 - MENU PRINCIPAL FLOW FIX
+
+Cambios principales:
+- Se agrega opcion MENU PRINCIPAL dentro del menu de pausa.
+- Se conserva la opcion SALIR del juego.
+- Al volver al menu principal se recarga la escena limpiamente.
+- Se fuerza Time.timeScale = 1 antes del cambio de flujo.
+- Se evita que quede la cancion pausada/activa detras del menu principal.
+- Se evita que queden notas, Hold Notes o particulas residuales luego de salir al menu.
+- Se mantiene LevelManager intacto.
+- No se modifica gameplay, scoring, timing, BPM, canciones, offset ni resultados.
+
+Flujo esperado:
+Pausa > MENU PRINCIPAL > menu inicial limpio con Tutorial / Arcade / Proximamente.

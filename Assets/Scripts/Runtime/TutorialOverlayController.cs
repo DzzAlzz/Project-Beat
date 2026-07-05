@@ -5,40 +5,101 @@ using UnityEngine.UI;
 namespace ProjectBeat.Runtime
 {
     /// <summary>
-    /// Overlay simple para el Nivel 0 Tutorial. No toca LevelManager ni el core.
-    /// Se crea solo cuando el LevelData actual es TUTORIAL.
+    /// Overlay simple para el Nivel 0 Tutorial.
+    /// Avance 46:
+    /// - Se reconstruye de forma segura cuando el nivel activo es TUTORIAL.
+    /// - Se mantiene visible durante el tutorial.
+    /// - Se oculta mientras el juego esta en pausa.
+    /// - Se destruye al salir del tutorial, al ir al menu principal o al cambiar de nivel.
     /// </summary>
     public class TutorialOverlayController : MonoBehaviour
     {
         private CanvasGroup group;
+        private bool uiBuilt;
+
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void CreateIfTutorial()
         {
-            LevelData current = LevelManager.Instance != null ? LevelManager.Instance.CurrentLevel : null;
-            if (current == null || current.levelName != "TUTORIAL") return;
-            if (FindObjectOfType<TutorialOverlayController>() != null) return;
+            // Primer intento. GameController vuelve a llamar cuando ya esta inicializado el nivel,
+            // evitando que el overlay se pierda por orden de carga.
+            EnsureForCurrentLevel();
+        }
+
+        public static void EnsureForCurrentLevel()
+        {
+            if (!ShouldShowForCurrentLevel())
+            {
+                DestroyAll();
+                return;
+            }
+
+            if (FindObjectOfType<TutorialOverlayController>() != null)
+                return;
 
             GameObject go = new GameObject("TutorialOverlayController");
             go.AddComponent<TutorialOverlayController>();
         }
 
+        public static void DestroyAll()
+        {
+            TutorialOverlayController[] overlays = FindObjectsOfType<TutorialOverlayController>();
+            for (int i = 0; i < overlays.Length; i++)
+            {
+                if (overlays[i] != null)
+                    Destroy(overlays[i].gameObject);
+            }
+        }
+
+        private static bool ShouldShowForCurrentLevel()
+        {
+            if (StartupFlowController.IsMainMenuVisible)
+                return false;
+
+            if (PlayerPrefs.GetInt(StartupFlowController.ForceMainMenuPrefsKey, 0) == 1)
+                return false;
+
+            LevelData current = LevelManager.Instance != null ? LevelManager.Instance.CurrentLevel : null;
+            if (current == null || string.IsNullOrEmpty(current.levelName))
+                return false;
+
+            return current.levelName.Trim().ToUpperInvariant() == "TUTORIAL";
+        }
+
         private void Start()
         {
+            if (!ShouldShowForCurrentLevel())
+            {
+                Destroy(gameObject);
+                return;
+            }
+
+            BuildUI();
+        }
+
+        private void BuildUI()
+        {
+            if (uiBuilt) return;
+            uiBuilt = true;
+
             Canvas canvas = new GameObject("TutorialOverlayCanvas").AddComponent<Canvas>();
             canvas.transform.SetParent(transform, false);
             canvas.renderMode = RenderMode.ScreenSpaceOverlay;
             canvas.sortingOrder = 3500;
             canvas.gameObject.AddComponent<GraphicRaycaster>();
+
             CanvasScaler scaler = canvas.gameObject.AddComponent<CanvasScaler>();
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution = new Vector2(1280, 720);
+            scaler.matchWidthOrHeight = 0.5f;
 
             group = canvas.gameObject.AddComponent<CanvasGroup>();
             group.alpha = 1f;
+            group.blocksRaycasts = false;
+            group.interactable = false;
 
             Image panel = new GameObject("Panel").AddComponent<Image>();
             panel.transform.SetParent(canvas.transform, false);
-            panel.color = new Color(0.03f, 0.035f, 0.045f, 0.72f);
+            panel.color = new Color(0.025f, 0.028f, 0.038f, 0.76f);
             RectTransform prt = panel.GetComponent<RectTransform>();
             prt.anchorMin = new Vector2(0f, 0f);
             prt.anchorMax = new Vector2(0f, 1f);
@@ -67,9 +128,28 @@ namespace ProjectBeat.Runtime
 
         private void Update()
         {
-            // En el Nivel 0 Tutorial la guía debe mantenerse visible durante toda la canción.
+            if (!ShouldShowForCurrentLevel())
+            {
+                Destroy(gameObject);
+                return;
+            }
+
+            if (!uiBuilt)
+                BuildUI();
+
+            PauseMenu pauseMenu = FindObjectOfType<PauseMenu>();
+            bool pauseVisible = pauseMenu != null && pauseMenu.IsPausedForOverlay;
+            bool mainMenuVisible = StartupFlowController.IsMainMenuVisible;
+
+            // Visible solo mientras se juega Tutorial.
+            // Oculto si se abre pausa o si se muestra el menu principal.
             if (group != null)
-                group.alpha = 1f;
+            {
+                bool visible = !pauseVisible && !mainMenuVisible;
+                group.alpha = visible ? 1f : 0f;
+                group.blocksRaycasts = false;
+                group.interactable = false;
+            }
         }
     }
 }
